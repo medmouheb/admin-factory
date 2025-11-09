@@ -10,16 +10,7 @@ I've been creating dashboard UIs at work and for my personal projects. I always 
 
 > This is not a starter project (template) though. I'll probably make one in the future.
 
-## Features
-
-- Light/dark mode
-- Responsive
-- Accessible
-- With built-in Sidebar component
-- Global search command
-- 10+ pages
-- Extra custom components
-- RTL support
+#
 
 <details>
 <summary>Customized Components (click to expand)</summary>
