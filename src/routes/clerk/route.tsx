@@ -8,6 +8,7 @@ import { ConfigDrawer } from '@/components/config-drawer'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
 import { Main } from '@/components/layout/main'
 import { ThemeSwitch } from '@/components/theme-switch'
+import StepperDemo from '@/components/stepper'
 
 export const Route = createFileRoute('/clerk')({
   component: RouteComponent,
@@ -47,6 +48,7 @@ function MissingClerkPubKey() {
           <ConfigDrawer />
         </div>
       </div>
+      <StepperDemo/>
       <Main className='flex flex-col items-center justify-start'>
         <div className='max-w-2xl'>
           <Alert>
