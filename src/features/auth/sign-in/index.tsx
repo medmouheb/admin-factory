@@ -20,7 +20,7 @@ export function SignIn() {
           <CardTitle className='text-lg tracking-tight'>Sign in</CardTitle>
           <CardDescription>
             Enter your email and password below to <br />
-            log into your account
+            log into your
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -44,7 +44,7 @@ export function SignIn() {
             </a>
             .
           </p>
-        </CardFooter>
+       </CardFooter> 
       </Card>
     </AuthLayout>
   )

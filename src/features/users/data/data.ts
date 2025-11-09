@@ -28,8 +28,8 @@ export const roles = [
     icon: Users,
   },
   {
-    label: 'Cashier',
-    value: 'cashier',
+    label: 'opperateur',
+    value: 'opperateur',
     icon: CreditCard,
   },
 ] as const

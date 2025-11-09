@@ -20,28 +20,28 @@ import {
   ShieldCheck,
   AudioWaveform,
   Command,
-  GalleryVerticalEnd,
+  
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
   user: {
-    name: 'satnaing',
-    email: 'satnaingdev@gmail.com',
+    name: 'Abderrahmen',
+    email: 'Abderrahmendev@gmail.com',
     avatar: '/avatars/shadcn.jpg',
   },
   teams: [
     {
-      name: 'Shadcn Admin',
+      name: 'Tesca Tunisie',
       logo: Command,
-      plan: 'Vite + ShadcnUI',
+      plan: '',
     },
-    {
+ /*  {
       name: 'Acme Inc',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise',
-    },
+    },*/
     {
       name: 'Acme Corp.',
       logo: AudioWaveform,
