@@ -1,17 +1,31 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { defineStepper } from '@stepperize/react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog'
 import { Progress } from './ui/progress'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
-import { toast } from "sonner"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table'
+
 // ,jjljkolj
-  
+
 const { useStepper, steps, utils } = defineStepper(
   {
     id: 'shipping',
@@ -28,6 +42,26 @@ const { useStepper, steps, utils } = defineStepper(
 
 function StepperDemo() {
   const stepper = useStepper()
+  const [currentData, setCurrentData] = useState({
+    part: {
+      id: '',
+      learPN: '',
+      tescaPN: '',
+      desc: '',
+      qtyPerBox: '',
+      createdAt: '',
+      updatedAt: '',
+    },
+    materile: {
+      id: '',
+      material: '',
+      materialDescription: '',
+      storageUn: '',
+      availStock: '',
+      createdAt: '',
+      updatedAt: '',
+    },
+  })
 
   const currentIndex = utils.getIndex(stepper.current.id)
   return (
@@ -79,9 +113,14 @@ function StepperDemo() {
       </nav>
       <div className='space-y-4'>
         {stepper.switch({
-          shipping: () => <ShippingComponent />,
-          payment: () => <PaymentComponent />,
-          complete: () => <CompleteComponent />,
+          shipping: () => <PaymentComponent setCurrentData={setCurrentData} />,
+          payment: () => <ShippingComponent setCurrentData={setCurrentData} />,
+          complete: () => (
+            <CompleteComponent
+              currentData={currentData}
+              setCurrentData={setCurrentData}
+            />
+          ),
         })}
         {!stepper.isLast ? (
           <div className='flex justify-end gap-4'>
@@ -104,17 +143,18 @@ function StepperDemo() {
   )
 }
 
-const ShippingComponent = () => {
-  const [materialCode, setMaterialCode] = useState('')
+const ShippingComponent = ({ setCurrentData }) => {
+  const [storageUnit, setStorageUnit] = useState('')
+
   const [material, setMaterial] = useState({
     description: '',
-    storageUnit: '',
     availableStock: '',
+    materialCode: '',
   })
   const [loading, setLoading] = useState(false)
 
   const handleFetchMaterial = async () => {
-    if (!materialCode.trim()) {
+    if (!storageUnit.trim()) {
       console.log({
         title: 'Error',
         description: 'Please enter a material code',
@@ -125,14 +165,17 @@ const ShippingComponent = () => {
     try {
       // 👇 Replace this with your backend API endpoint
       const response = await fetch(
-        `http://localhost:8080/api/materials/code?material=${materialCode}`
+        `http://localhost:8080/api/materials/storageunit?storageUn=${storageUnit}`
       )
       if (!response.ok) throw new Error('Material not found')
       const data = await response.json()
-
+      setCurrentData((prev: any) => ({
+        ...prev,
+        materile: data,
+      }))
       setMaterial({
         description: data.materialDescription || '',
-        storageUnit: data.storageUn || '',
+        materialCode: data.material || '',
         availableStock: data.availStock || '',
       })
       console.log({
@@ -141,7 +184,7 @@ const ShippingComponent = () => {
       })
     } catch (error) {
       console.log({ title: 'Error', description: 'Material not found' })
-      setMaterial({ description: '', storageUnit: '', availableStock: '' })
+      setMaterial({ description: '', materialCode: '', availableStock: '' })
     } finally {
       setLoading(false)
     }
@@ -156,13 +199,13 @@ const ShippingComponent = () => {
         <CardContent className='space-y-4'>
           {/* Material Code */}
           <div className='space-y-2'>
-            <Label htmlFor='materialCode'>Material Code</Label>
+            <Label htmlFor='storageUnit'>Storage Unit</Label>
             <div className='flex gap-2'>
               <Input
-                id='materialCode'
-                value={materialCode}
-                onChange={(e) => setMaterialCode(e.target.value)}
-                placeholder='Enter Material Code'
+                id='storageUnit'
+                value={storageUnit}
+                onChange={(e) => setStorageUnit(e.target.value)}
+                placeholder='Enter Storage Unit'
                 className='w-full'
               />
               <Button onClick={handleFetchMaterial} disabled={loading}>
@@ -183,10 +226,10 @@ const ShippingComponent = () => {
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='storageUnit'>Storage Unit</Label>
+            <Label htmlFor='materialCode'>Material Code</Label>
             <Input
               id='storageUnit'
-              value={material.storageUnit}
+              value={material.materialCode}
               readOnly
               placeholder='Auto-filled'
             />
@@ -207,12 +250,12 @@ const ShippingComponent = () => {
   )
 }
 
-const PaymentComponent = () => {
+const PaymentComponent = ({ setCurrentData }) => {
   const [learPN, setLearPN] = useState('')
   const [part, setPart] = useState({
     tescaPN: '',
     desc: '',
-    qtyPerBox: ''
+    qtyPerBox: '',
   })
   const [loading, setLoading] = useState(false)
 
@@ -230,11 +273,14 @@ const PaymentComponent = () => {
       )
       if (!response.ok) throw new Error('Part not found')
       const data = await response.json()
-
+      setCurrentData((prev: any) => ({
+        ...prev,
+        part: data,
+      }))
       setPart({
         tescaPN: data.tescaPN || '',
         desc: data.desc || '',
-        qtyPerBox: data.qtyPerBox || ''
+        qtyPerBox: data.qtyPerBox || '',
       })
 
       console.log({
@@ -307,96 +353,149 @@ const PaymentComponent = () => {
               placeholder='Auto-filled'
             />
           </div>
-
-         
         </CardContent>
       </Card>
     </div>
   )
 }
 
-const CompleteComponent = () => {
-  const [barcode1, setBarcode1] = useState("")
-  const [barcode2, setBarcode2] = useState("")
-  const [barcodes, setBarcodes] = useState<{ barcode1: string; barcode2: string }[]>([])
-  const [generatedCode, setGeneratedCode] = useState("")
+const CompleteComponent = ({ currentData, setCurrentData }) => {
+  const [ticketCode, setTicketCode] = useState(null)
 
-  // Generate random uppercase alphanumeric string
-  const randomCode = (length: number) => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join("")
+  const [barcode1, setBarcode1] = useState('')
+  const [barcode2, setBarcode2] = useState('')
+  const [barcodes, setBarcodes] = useState<
+    { barcode1: string; barcode2: string }[]
+  >([])
+
+  const handleGenerate = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/ticketscode/creat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ suffix: currentData.part.learPN.slice(-5) }),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.message || 'Failed to create ticket code')
+      }
+
+      const data = await res.json()
+      console.log(data.code)
+
+      setTicketCode(data.code)
+    } catch (err: any) {
+      console.error(err.message)
+    }
   }
 
   const handleAdd = () => {
     if (!barcode1.trim() || !barcode2.trim()) {
-      toast.error("Please enter both barcodes.")
+      toast.error('Please enter both barcodes.')
       return
     }
 
-    if (barcodes.length >= 6) {
-      toast.warning("You can only add up to 6 barcode pairs.")
+    if (barcodes.length >= currentData.part.qtyPerBox) {
+      toast.warning(
+        `You can only add up to ${currentData.part.qtyPerBox}barcode pairs.`
+      )
       return
     }
 
     const newList = [...barcodes, { barcode1, barcode2 }]
     setBarcodes(newList)
-    setBarcode1("")
-    setBarcode2("")
-
-    if (newList.length === 6) {
-      const lastBarcode1 = newList[newList.length - 1].barcode1
-      const lastTwo = lastBarcode1.slice(-2)
-      const newCode = randomCode(8) + lastTwo
-      setGeneratedCode(newCode)
-      toast.success(`✅ Code generated: ${newCode}`)
-    } else {
-      toast.info(`Added pair ${newList.length} successfully.`)
-    }
+    setBarcode1('')
+    setBarcode2('')
   }
 
+  const handleValidate = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/tickets/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          barcodes.map((b) => ({
+            learPN: b.barcode1,
+            barcode: b.barcode2,
+            ticketCode,
+          }))
+        ),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.message || 'Failed to create ticket code')
+      }
+
+      toast.warning(
+        `You can have succesfully added ${barcodes.length}`
+      )
+    } catch (err: any) {
+      console.error(err.message)
+    }
+  }
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 space-y-6">
-      <Card className="shadow-lg rounded-2xl">
+    <div className='mx-auto w-full max-w-2xl space-y-6 p-6'>
+      <Card className='rounded-2xl shadow-lg'>
         <CardHeader>
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className='space-y-4'>
+          <div className='overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100 shadow-md'>
+            <pre className='text-sm whitespace-pre-wrap'>
+              {JSON.stringify(currentData, null, 2)}
+            </pre>
+          </div>
+
           {/* Input fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="barcode1">Barcode 1</Label>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            <div className='space-y-2'>
+              <Label htmlFor='barcode1'>Barcode 1</Label>
               <Input
-                id="barcode1"
+                id='barcode1'
                 value={barcode1}
                 onChange={(e) => setBarcode1(e.target.value)}
-                placeholder="Enter barcode 1"
+                placeholder='Enter barcode 1'
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="barcode2">Barcode 2</Label>
+            <div className='space-y-2'>
+              <Label htmlFor='barcode2'>Barcode 2</Label>
               <Input
-                id="barcode2"
+                id='barcode2'
                 value={barcode2}
                 onChange={(e) => setBarcode2(e.target.value)}
-                placeholder="Enter barcode 2"
+                placeholder='Enter barcode 2'
               />
             </div>
           </div>
+          <div className='flex justify-between'>
+            <p>{ticketCode}</p>
+            {barcodes.length >= currentData.part.qtyPerBox ? (
+              <Button onClick={handleGenerate} className='w-full sm:w-auto'>
+                generate code
+              </Button>
+            ) : (
+              <Button onClick={handleAdd} className='w-full sm:w-auto'>
+                add
+              </Button>
+            )}
 
-          <Button
-            onClick={handleAdd}
-            disabled={barcodes.length >= 6}
-            className="w-full sm:w-auto"
-          >
-            {barcodes.length >= 6 ? "Limit Reached" : "Add"}
-          </Button>
+            <Button className='border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-white'>
+              scan code
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
       {/* Table */}
       {barcodes.length > 0 && (
-        <Card className="shadow-md rounded-2xl">
+        <Card className='rounded-2xl shadow-md'>
           <CardHeader>
             <CardTitle>Added Barcodes</CardTitle>
           </CardHeader>
@@ -424,12 +523,15 @@ const CompleteComponent = () => {
       )}
 
       {/* Generated Code */}
-      {generatedCode && (
-        <div className="text-center mt-4">
-          <p className="text-lg font-semibold">
-            ✅ Generated Code:{" "}
-            <span className="font-mono text-primary">{generatedCode}</span>
+      {ticketCode && (
+        <div className='mt-4 text-center'>
+          <p className='text-lg font-semibold'>
+            ✅ Generated Code:{' '}
+            <span className='text-primary font-mono'>{ticketCode}</span>
           </p>
+          <Button onClick={handleValidate} className='w-full sm:w-auto'>
+            validate
+          </Button>
         </div>
       )}
     </div>
