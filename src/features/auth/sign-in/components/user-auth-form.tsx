@@ -106,6 +106,7 @@ export function UserAuthForm({
       // ✅ Successful login
       const userData = await res.json() // optional, backend can return user info
       toast.success(`Welcome back, ${data.username}!`)
+      // Mock successful authentication with expiry computed at success time
 
       // Set user in auth store if you want client-side access
       auth.setUser(userData)

@@ -78,7 +78,7 @@ export const sidebarData: SidebarData = {
           url: '/users',
           icon: Users,
         },
-        {
+        /*{
           title: 'Secured by Clerk',
           icon: ClerkLogo,
           items: [
@@ -95,10 +95,10 @@ export const sidebarData: SidebarData = {
               url: '/clerk/user-management',
             },
           ],
-        },
+        },*/
       ],
     },
-    {
+    /*{
       title: 'Pages',
       items: [
         {
@@ -159,7 +159,7 @@ export const sidebarData: SidebarData = {
           ],
         },
       ],
-    },
+    },*/
     {
       title: 'Other',
       items: [

@@ -10,7 +10,8 @@ export function RecentSales() {
         </Avatar>
         <div className='flex flex-1 flex-wrap items-center justify-between'>
           <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>Olivia Martin</p>
+            <p className='text-sm leading-none font-medium'>Abderrahmen Daai
+            </p>
             <p className='text-muted-foreground text-sm'>
               olivia.martin@email.com
             </p>

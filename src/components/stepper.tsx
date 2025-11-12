@@ -28,16 +28,16 @@ import {
 
 const { useStepper, steps, utils } = defineStepper(
   {
-    id: 'shipping',
-    title: 'Shipping',
-    description: 'Enter your shipping details',
+    id: 'LearPN',
+    title: 'Check Réf Galia',
+    description: 'Enter your LearPN details',
   },
   {
-    id: 'payment',
-    title: 'Payment',
-    description: 'Enter your payment details',
+    id: 'Payment',
+    title: 'Check HU Galia',
+    description: 'Enter your HU Galia details',
   },
-  { id: 'complete', title: 'Complete', description: 'Checkout complete' }
+  { id: 'complete', title: 'Check traceability Label', description: 'Checkout complete' }
 )
 
 function StepperDemo() {
@@ -113,8 +113,8 @@ function StepperDemo() {
       </nav>
       <div className='space-y-4'>
         {stepper.switch({
-          shipping: () => <PaymentComponent setCurrentData={setCurrentData} />,
-          payment: () => <ShippingComponent setCurrentData={setCurrentData} />,
+          LearPN: () => <PaymentComponent setCurrentData={setCurrentData} />,
+          Payment: () => <LearPNComponent setCurrentData={setCurrentData} />,
           complete: () => (
             <CompleteComponent
               currentData={currentData}
@@ -143,7 +143,7 @@ function StepperDemo() {
   )
 }
 
-const ShippingComponent = ({ setCurrentData }) => {
+const LearPNComponent = ({ setCurrentData }) => {
   const [storageUnit, setStorageUnit] = useState('')
 
   const [material, setMaterial] = useState({
@@ -178,7 +178,7 @@ const ShippingComponent = ({ setCurrentData }) => {
         materialCode: data.material || '',
         availableStock: data.availStock || '',
       })
-      console.log({
+       console.log({
         title: 'Material found',
         description: 'Fields filled automatically',
       })
@@ -199,49 +199,25 @@ const ShippingComponent = ({ setCurrentData }) => {
         <CardContent className='space-y-4'>
           {/* Material Code */}
           <div className='space-y-2'>
-            <Label htmlFor='storageUnit'>Storage Unit</Label>
+            <Label htmlFor='storageUnit'>HU Galia</Label>
             <div className='flex gap-2'>
               <Input
                 id='storageUnit'
                 value={storageUnit}
                 onChange={(e) => setStorageUnit(e.target.value)}
-                placeholder='Enter Storage Unit'
+                placeholder='Enter HU Galia'
                 className='w-full'
               />
-              <Button onClick={handleFetchMaterial} disabled={loading}>
-                {loading ? 'Loading...' : 'Search'}
-              </Button>
             </div>
-          </div>
-
-          {/* Auto-filled fields */}
-          <div className='space-y-2'>
-            <Label htmlFor='description'>Material Description</Label>
-            <Input
-              id='description'
-              value={material.description}
-              readOnly
-              placeholder='Auto-filled'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label htmlFor='materialCode'>Material Code</Label>
-            <Input
-              id='storageUnit'
-              value={material.materialCode}
-              readOnly
-              placeholder='Auto-filled'
-            />
           </div>
 
           <div className='space-y-2'>
             <Label htmlFor='availableStock'>Available Stock</Label>
             <Input
               id='availableStock'
-              value={material.availableStock}
-              readOnly
-              placeholder='Auto-filled'
+              onChange={(e) => setStorageUnit(e.target.value)}
+              placeholder='Enter Quantity Galia'
+              className='w-full'
             />
           </div>
         </CardContent>
@@ -343,16 +319,6 @@ const PaymentComponent = ({ setCurrentData }) => {
               placeholder='Auto-filled'
             />
           </div>
-
-          <div className='space-y-2'>
-            <Label htmlFor='qtyPerBox'>Quantity per Box</Label>
-            <Input
-              id='qtyPerBox'
-              value={part.qtyPerBox}
-              readOnly
-              placeholder='Auto-filled'
-            />
-          </div>
         </CardContent>
       </Card>
     </div>
@@ -446,31 +412,27 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <div className='overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100 shadow-md'>
-            <pre className='text-sm whitespace-pre-wrap'>
-              {JSON.stringify(currentData, null, 2)}
-            </pre>
-          </div>
+          
 
           {/* Input fields */}
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='barcode1'>Barcode 1</Label>
+              <Label htmlFor='barcode1'>Réf Lear</Label>
               <Input
                 id='barcode1'
                 value={barcode1}
                 onChange={(e) => setBarcode1(e.target.value)}
-                placeholder='Enter barcode 1'
+                placeholder='Réf Lear'
               />
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='barcode2'>Barcode 2</Label>
+              <Label htmlFor='barcode2'>Traceability Code</Label>
               <Input
                 id='barcode2'
                 value={barcode2}
                 onChange={(e) => setBarcode2(e.target.value)}
-                placeholder='Enter barcode 2'
+                placeholder='Traceability Code'
               />
             </div>
           </div>
@@ -497,15 +459,15 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
       {barcodes.length > 0 && (
         <Card className='rounded-2xl shadow-md'>
           <CardHeader>
-            <CardTitle>Added Barcodes</CardTitle>
+            <CardTitle> Traceability Code Added</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>#</TableHead>
-                  <TableHead>Barcode 1</TableHead>
-                  <TableHead>Barcode 2</TableHead>
+                  <TableHead>Réf Lear </TableHead>
+                  <TableHead>Traceability Code</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
