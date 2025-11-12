@@ -4,6 +4,7 @@ export function showSubmittedData(
   data: unknown,
   title: string = 'You submitted the following values:'
 ) {
+  console.log('New data submitted:', data)
   toast.message(title, {
     description: (
       // w-[340px]

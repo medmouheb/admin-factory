@@ -57,7 +57,7 @@ export const apps = [
     name: 'Stripe',
     logo: <IconStripe />,
     connected: false,
-    desc: 'Easily manage Stripe transactions and payments.',
+    desc: 'Easily manage Stripe transactions and Payments.',
   },
   {
     name: 'Gmail',

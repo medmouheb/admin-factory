@@ -168,7 +168,7 @@ export function UsersActionDialog({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='John'
+                        placeholder='abderrahmen'
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -188,7 +188,7 @@ export function UsersActionDialog({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Doe'
+                        placeholder='Daai'
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -208,7 +208,7 @@ export function UsersActionDialog({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='john_doe'
+                        placeholder='dai'
                         className='col-span-4'
                         {...field}
                       />
@@ -225,7 +225,7 @@ export function UsersActionDialog({
                     <FormLabel className='col-span-2 text-end'>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='john.doe@gmail.com'
+                        placeholder='abderrahmen.dai.11@gmail.com'
                         className='col-span-4'
                         {...field}
                       />

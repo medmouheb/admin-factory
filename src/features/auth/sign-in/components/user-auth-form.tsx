@@ -64,7 +64,6 @@ export function UserAuthForm({
           accountNo: 'ACC001',
           email: data.email,
           role: ['user'],
-          exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
         }
 
         // Set user and access token
