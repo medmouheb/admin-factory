@@ -33,11 +33,10 @@ const { useStepper, steps, utils } = defineStepper(
     description: 'Enter your LearPN details',
   },
   {
-    id: 'Payment',
-    title: 'Check HU Galia',
-    description: 'Enter your HU Galia details',
-  },
-  { id: 'complete', title: 'Check traceability Label', description: 'Checkout complete' }
+    id: 'complete',
+    title: 'Check traceability Label',
+    description: 'Checkout complete',
+  }
 )
 
 function StepperDemo() {
@@ -68,6 +67,9 @@ function StepperDemo() {
     <div className='l m-4 p-4'>
       <div className='flex justify-between'>
         <h2 className='text-lg font-medium'>Checkout</h2>
+        {/* <div className='overflow-x-auto rounded-xl bg-gray-900 p-4 text-green-400'>
+          <pre>{JSON.stringify(currentData, null, 2)}</pre>
+        </div> */}
         <div className='flex items-center gap-2'>
           <span className='text-muted-foreground text-sm'>
             Step {currentIndex + 1} of {steps.length}
@@ -113,8 +115,12 @@ function StepperDemo() {
       </nav>
       <div className='space-y-4'>
         {stepper.switch({
-          LearPN: () => <PaymentComponent setCurrentData={setCurrentData} />,
-          Payment: () => <LearPNComponent setCurrentData={setCurrentData} />,
+          LearPN: () => (
+            <div className='flex justify-around gap-4 align-middle'>
+              <PaymentComponent setCurrentData={setCurrentData} />
+              <LearPNComponent setCurrentData={setCurrentData} />
+            </div>
+          ),
           complete: () => (
             <CompleteComponent
               currentData={currentData}
@@ -144,52 +150,6 @@ function StepperDemo() {
 }
 
 const LearPNComponent = ({ setCurrentData }) => {
-  const [storageUnit, setStorageUnit] = useState('')
-
-  const [material, setMaterial] = useState({
-    description: '',
-    availableStock: '',
-    materialCode: '',
-  })
-  const [loading, setLoading] = useState(false)
-
-  const handleFetchMaterial = async () => {
-    if (!storageUnit.trim()) {
-      console.log({
-        title: 'Error',
-        description: 'Please enter a material code',
-      })
-      return
-    }
-    setLoading(true)
-    try {
-      // 👇 Replace this with your backend API endpoint
-      const response = await fetch(
-        `http://localhost:8080/api/materials/storageunit?storageUn=${storageUnit}`
-      )
-      if (!response.ok) throw new Error('Material not found')
-      const data = await response.json()
-      setCurrentData((prev: any) => ({
-        ...prev,
-        materile: data,
-      }))
-      setMaterial({
-        description: data.materialDescription || '',
-        materialCode: data.material || '',
-        availableStock: data.availStock || '',
-      })
-       console.log({
-        title: 'Material found',
-        description: 'Fields filled automatically',
-      })
-    } catch (error) {
-      console.log({ title: 'Error', description: 'Material not found' })
-      setMaterial({ description: '', materialCode: '', availableStock: '' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className='mx-auto w-full max-w-md p-6'>
       <Card className='rounded-2xl shadow-lg'>
@@ -203,8 +163,14 @@ const LearPNComponent = ({ setCurrentData }) => {
             <div className='flex gap-2'>
               <Input
                 id='storageUnit'
-                value={storageUnit}
-                onChange={(e) => setStorageUnit(e.target.value)}
+                onChange={(e) => {
+                  setCurrentData((prev: any) => {
+                    return {
+                      ...prev,
+                      materile: { ...prev.materile, storageUn: e.target.value },
+                    }
+                  })
+                }}
                 placeholder='Enter HU Galia'
                 className='w-full'
               />
@@ -215,7 +181,14 @@ const LearPNComponent = ({ setCurrentData }) => {
             <Label htmlFor='availableStock'>Available Stock</Label>
             <Input
               id='availableStock'
-              onChange={(e) => setStorageUnit(e.target.value)}
+              onChange={(e) => {
+                setCurrentData((prev: any) => {
+                  return {
+                    ...prev,
+                    materile: { ...prev.materile, availStock: e.target.value },
+                  }
+                })
+              }}
               placeholder='Enter Quantity Galia'
               className='w-full'
             />
@@ -326,13 +299,25 @@ const PaymentComponent = ({ setCurrentData }) => {
 }
 
 const CompleteComponent = ({ currentData, setCurrentData }) => {
+  const total = currentData.part.qtyPerBox
+
   const [ticketCode, setTicketCode] = useState(null)
+  const [current, setCurrent] = useState(0)
 
   const [barcode1, setBarcode1] = useState('')
   const [barcode2, setBarcode2] = useState('')
   const [barcodes, setBarcodes] = useState<
     { barcode1: string; barcode2: string }[]
   >([])
+
+  const handleNext = () => {
+    if (current < total) {
+      setCurrent((prev) => prev + 1)
+    }
+  }
+
+  const itemsLeft = total - current
+  const progress = (current / total) * 100
 
   const handleGenerate = async () => {
     try {
@@ -364,6 +349,11 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
       return
     }
 
+    if (barcode1 != currentData.part.learPN) {
+      toast.error('Please this must match trhe lear pn code')
+      return
+    }
+
     if (barcodes.length >= currentData.part.qtyPerBox) {
       toast.warning(
         `You can only add up to ${currentData.part.qtyPerBox}barcode pairs.`
@@ -375,6 +365,7 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
     setBarcodes(newList)
     setBarcode1('')
     setBarcode2('')
+    handleNext()
   }
 
   const handleValidate = async () => {
@@ -398,9 +389,7 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
         throw new Error(errData.message || 'Failed to create ticket code')
       }
 
-      toast.warning(
-        `You can have succesfully added ${barcodes.length}`
-      )
+      toast.warning(`You can have succesfully added ${barcodes.length}`)
     } catch (err: any) {
       console.error(err.message)
     }
@@ -412,8 +401,6 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          
-
           {/* Input fields */}
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='space-y-2'>
@@ -436,6 +423,27 @@ const CompleteComponent = ({ currentData, setCurrentData }) => {
               />
             </div>
           </div>
+          <Card className='mx-auto mt-10 w-full max-w-md'>
+            <CardHeader>
+              <CardTitle className='text-center'>Progress Tracker</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+              <div className='text-muted-foreground flex justify-between text-sm'>
+                <span>
+                  {itemsLeft > 0
+                    ? `${itemsLeft} item${itemsLeft > 1 ? 's' : ''} left`
+                    : 'All done 🎉'}
+                </span>
+                <span className='text-primary font-medium'>
+                  {Math.round(progress)}%
+                </span>
+              </div>
+
+              <Progress value={progress} className='h-3' />
+
+              
+            </CardContent>
+          </Card>
           <div className='flex justify-between'>
             <p>{ticketCode}</p>
             {barcodes.length >= currentData.part.qtyPerBox ? (
