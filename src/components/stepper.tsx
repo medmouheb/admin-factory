@@ -43,22 +43,14 @@ function StepperDemo() {
   const stepper = useStepper()
   const [currentData, setCurrentData] = useState({
     part: {
-      id: '',
       learPN: '',
       tescaPN: '',
       desc: '',
-      qtyPerBox: '',
-      createdAt: '',
-      updatedAt: '',
+      qtyPerBox: ''
     },
     materile: {
-      id: '',
-      material: '',
-      materialDescription: '',
       storageUn: '',
-      availStock: '',
-      createdAt: '',
-      updatedAt: '',
+      availStock: ''
     },
   })
 
@@ -118,7 +110,7 @@ function StepperDemo() {
           LearPN: () => (
             <div className='flex justify-around gap-4 align-middle'>
               <PaymentComponent setCurrentData={setCurrentData} />
-              <LearPNComponent setCurrentData={setCurrentData} />
+              <LearPNComponent nextFunction={stepper.next} setCurrentData={setCurrentData} />
             </div>
           ),
           complete: () => (
@@ -149,154 +141,210 @@ function StepperDemo() {
   )
 }
 
-const LearPNComponent = ({ setCurrentData }) => {
+const LearPNComponent = ({ nextFunction, setCurrentData }) => {
+  const [storageUnit, setStorageUnit] = useState("");
+    const [availStock, setAvailStock] = useState("Q0");
+
+  const [loading, setLoading] = useState(false);
+
+  const handleFetchMaterial = async () => {
+    let su = storageUnit.trim();
+
+    // VALIDATION
+    if (su.length !== 10) {
+      toast.error("HU Galia must be 10 characters");
+      return;
+    }
+
+    if (!su.toLowerCase().startsWith("s")) {
+      toast.error('HU Galia must start with "s"');
+      return;
+    }
+
+    setLoading(true);
+    su = su.substring(1);
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/materials/storageunit?storageUn=${su}`
+      );
+
+      if (!response.ok) throw new Error("Material not found");
+
+      const data = await response.json();
+      setAvailStock("Q" + ((+data.availStock )|| "0"));
+
+      // Auto-fill availStock with "Q"+value
+      setCurrentData((prev) => ({
+        ...prev,
+        materile: {
+          ...prev.materile,
+          storageUn: su,
+          availStock: "Q" + ((+data.availStock )|| "0"),
+        },
+      }));
+
+      toast.success("HU Galia fetched successfully");
+
+      // Go to next page after 2 seconds
+      setTimeout(() => {
+        nextFunction();
+      }, 2000);
+    } catch (error) {
+      toast.error("HU Galia not found");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ENTER key trigger
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading) {
+      handleFetchMaterial();
+    }
+  };
+
   return (
-    <div className='mx-auto w-full max-w-md p-6'>
-      <Card className='rounded-2xl shadow-lg'>
+    <div className="mx-auto w-full max-w-md p-6">
+      <Card className="rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle>Material Information</CardTitle>
         </CardHeader>
-        <CardContent className='space-y-4'>
-          {/* Material Code */}
-          <div className='space-y-2'>
-            <Label htmlFor='storageUnit'>HU Galia</Label>
-            <div className='flex gap-2'>
-              <Input
-                id='storageUnit'
-                onChange={(e) => {
-                  setCurrentData((prev: any) => {
-                    return {
-                      ...prev,
-                      materile: { ...prev.materile, storageUn: e.target.value },
-                    }
-                  })
-                }}
-                placeholder='Enter HU Galia'
-                className='w-full'
-              />
-            </div>
+
+        <CardContent className="space-y-4">
+          {/* HU Galia */}
+          <div className="space-y-2">
+            <Label htmlFor="storageUnit">HU Galia</Label>
+            <Input
+              id="storageUnit"
+              value={storageUnit}
+              onChange={(e) => setStorageUnit(e.target.value)}
+              onKeyDown={handleKeyDown}
+              maxLength={10}
+              placeholder="Enter HU Galia"
+              className="w-full"
+            />
           </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='availableStock'>Available Stock</Label>
+          {/* Available Stock */}
+          <div className="space-y-2">
+            <Label htmlFor="availableStock">Available Stock</Label>
             <Input
-              id='availableStock'
-              onChange={(e) => {
-                setCurrentData((prev: any) => {
-                  return {
-                    ...prev,
-                    materile: { ...prev.materile, availStock: e.target.value },
-                  }
-                })
-              }}
-              placeholder='Enter Quantity Galia'
-              className='w-full'
+              id="availableStock"
+              readOnly
+              value={availStock} // Only auto-filled; manual typing removed
+              placeholder="Filled automatically"
+              className="w-full"
             />
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
+
 
 const PaymentComponent = ({ setCurrentData }) => {
-  const [learPN, setLearPN] = useState('')
+  const [learPN, setLearPN] = useState("");
   const [part, setPart] = useState({
-    tescaPN: '',
-    desc: '',
-    qtyPerBox: '',
-  })
-  const [loading, setLoading] = useState(false)
+    tescaPN: "",
+    desc: "",
+    qtyPerBox: "",
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleFetchPart = async () => {
-    if (!learPN.trim()) {
-      console.log({ title: 'Error', description: 'Please enter a Lear PN' })
-      return
+    let pn = learPN.trim();
+
+    // VALIDATION
+    if (pn.length !== 16) {
+      toast.error("Lear PN must be 16 characters");
+      return;
     }
 
-    setLoading(true)
+    if (!pn.toLowerCase().startsWith("p")) {
+      toast.error('Lear PN must start with "p"');
+      return;
+    }
+
+    // REMOVE FIRST CHARACTER "p"
+    pn = pn.substring(1);
+
+    setLoading(true);
     try {
-      // 👇 Replace this URL with your backend endpoint
       const response = await fetch(
-        `http://localhost:8080/api/parts/lear?learPN=${learPN}`
-      )
-      if (!response.ok) throw new Error('Part not found')
-      const data = await response.json()
-      setCurrentData((prev: any) => ({
+        `http://localhost:8080/api/parts/lear?learPN=${pn}`
+      );
+
+      if (!response.ok) throw new Error("Part not found");
+
+      const data = await response.json();
+
+      setCurrentData((prev) => ({
         ...prev,
         part: data,
-      }))
-      setPart({
-        tescaPN: data.tescaPN || '',
-        desc: data.desc || '',
-        qtyPerBox: data.qtyPerBox || '',
-      })
+      }));
 
-      console.log({
-        title: 'Part found',
-        description: 'Fields filled automatically',
-      })
-    } catch (error) {
-      console.log({ title: 'Error', description: 'Part not found' })
       setPart({
-        tescaPN: '',
-        desc: '',
-        qtyPerBox: '',
-      })
+        tescaPN: data.tescaPN || "",
+        desc: data.desc || "",
+        qtyPerBox: data.qtyPerBox || "",
+      });
+
+      toast.success("Part found. Fields filled automatically.");
+    } catch (error) {
+      toast.error("Part not found");
+      setPart({ tescaPN: "", desc: "", qtyPerBox: "" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  // Trigger search on ENTER
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !loading) {
+      handleFetchPart();
+    }
+  };
 
   return (
-    <div className='mx-auto w-full max-w-md p-6'>
-      <Card className='rounded-2xl shadow-lg'>
+    <div className="mx-auto w-full max-w-md p-6">
+      <Card className="rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle>Part Information</CardTitle>
         </CardHeader>
-        <CardContent className='space-y-4'>
+
+        <CardContent className="space-y-4">
           {/* Lear PN */}
-          <div className='space-y-2'>
-            <Label htmlFor='learPN'>Lear PN</Label>
-            <div className='flex gap-2'>
-              <Input
-                id='learPN'
-                value={learPN}
-                onChange={(e) => setLearPN(e.target.value)}
-                placeholder='Enter Lear PN'
-                className='w-full'
-              />
-              <Button onClick={handleFetchPart} disabled={loading}>
-                {loading ? 'Loading...' : 'Search'}
-              </Button>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="learPN">Lear PN</Label>
+            <Input
+              id="learPN"
+              value={learPN}
+              onChange={(e) => setLearPN(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter Lear PN"
+              className="w-full"
+              maxLength={16}
+            />
           </div>
 
           {/* Auto-filled fields */}
-          <div className='space-y-2'>
-            <Label htmlFor='tescaPN'>Tesca PN</Label>
-            <Input
-              id='tescaPN'
-              value={part.tescaPN}
-              readOnly
-              placeholder='Auto-filled'
-            />
+          <div className="space-y-2">
+            <Label htmlFor="tescaPN">Tesca PN</Label>
+            <Input id="tescaPN" value={part.tescaPN} readOnly placeholder="Auto-filled" />
           </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='desc'>Description</Label>
-            <Input
-              id='desc'
-              value={part.desc}
-              readOnly
-              placeholder='Auto-filled'
-            />
+          <div className="space-y-2">
+            <Label htmlFor="desc">Description</Label>
+            <Input id="desc" value={part.desc} readOnly placeholder="Auto-filled" />
           </div>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
+
 
 const CompleteComponent = ({ currentData, setCurrentData }) => {
   const total = currentData.part.qtyPerBox
