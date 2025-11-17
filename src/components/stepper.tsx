@@ -22,9 +22,11 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table'
+import jsPDF from 'jspdf'
+import JsBarcode from 'jsbarcode'
 
 /* -----------------------------
-   Global stepper
+   Stepper definition
    ----------------------------- */
 const { useStepper, steps, utils } = defineStepper(
   {
@@ -40,23 +42,15 @@ const { useStepper, steps, utils } = defineStepper(
 )
 
 /* -----------------------------
-   CurrentData context (in-file)
+   Context: CurrentData
    ----------------------------- */
 const CurrentDataContext = createContext(null)
 function CurrentDataProvider({ children }) {
   const [currentData, setCurrentData] = useState({
-    part: {
-      learPN: '',
-      tescaPN: '',
-      desc: '',
-      qtyPerBox: '',
-    },
-    materile: {
-      storageUn: '',
-      availStock: '',
-      barcodes: [],
-    },
+    part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
+    materile: { storageUn: '', availStock: '', barcodes: [] },
     ticketCode: null,
+    hasCompletedStep1: false, // ✅ flag for first step completion
   })
 
   return (
@@ -73,7 +67,7 @@ function useCurrentData() {
 }
 
 /* -----------------------------
-   Main Stepper component (single-file)
+   Main exported component
    ----------------------------- */
 export default function StepperFull() {
   return (
@@ -83,58 +77,57 @@ export default function StepperFull() {
   )
 }
 
+/* -----------------------------
+   Stepper UI & navigation
+   ----------------------------- */
 function StepperInner() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
   const currentIndex = utils.getIndex(stepper.current.id)
 
-  // Reset handler: clear global data and reset stepper
   const handleFullReset = () => {
     setCurrentData({
       part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
       materile: { storageUn: '', availStock: '', barcodes: [] },
       ticketCode: null,
+      hasCompletedStep1: false,
     })
     stepper.reset()
   }
 
   return (
-    <div className="m-4 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Checkout</h2>
-
-        <pre className="hidden md:block max-w-md overflow-auto text-xs">
-          {JSON.stringify(currentData, null, 2)}
-        </pre>
-
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">
+    <div className='m-4 p-4'>
+      <div className='flex items-center justify-between'>
+        <h2 className='text-lg font-medium'>Checkout</h2>
+        <div className='flex items-center gap-2'>
+          <span className='text-muted-foreground text-sm'>
             Step {currentIndex + 1} of {steps.length}
           </span>
         </div>
       </div>
 
-      <nav aria-label="Checkout Steps" className="group my-4">
+      <nav aria-label='Checkout Steps' className='group my-4'>
         <ol
-          className="flex items-center justify-between gap-2"
-          aria-orientation="horizontal"
+          className='flex items-center justify-between gap-2'
+          aria-orientation='horizontal'
         >
           {stepper.all.map((step, index, array) => (
             <React.Fragment key={step.id}>
-              <li className="flex flex-shrink-0 items-center gap-4">
+              <li className='flex flex-shrink-0 items-center gap-4'>
                 <Button
-                  type="button"
-                  role="tab"
+                  type='button'
+                  role='tab'
                   variant={index <= currentIndex ? 'default' : 'secondary'}
-                  aria-current={stepper.current.id === step.id ? 'step' : undefined}
+                  aria-current={
+                    stepper.current.id === step.id ? 'step' : undefined
+                  }
                   onClick={() => stepper.goTo(step.id)}
-                  className="flex size-10 items-center justify-center rounded-full"
+                  className='flex size-10 items-center justify-center rounded-full'
                 >
                   {index + 1}
                 </Button>
-                <span className="text-sm font-medium">{step.title}</span>
+                <span className='text-sm font-medium'>{step.title}</span>
               </li>
-
               {index < array.length - 1 && (
                 <Separator
                   className={`flex-1 ${index < currentIndex ? 'bg-primary' : 'bg-muted'}`}
@@ -145,16 +138,16 @@ function StepperInner() {
         </ol>
       </nav>
 
-      <div className="space-y-4">
+      <div className='space-y-4'>
         {stepper.switch({
           LearPN: () => <MaterialAndPartForm nextFunction={stepper.next} />,
           complete: () => <CompleteComponent />,
         })}
 
         {!stepper.isLast ? (
-          <div className="flex justify-end gap-4">
+          <div className='flex justify-end gap-4'>
             <Button
-              variant="secondary"
+              variant='secondary'
               onClick={stepper.prev}
               disabled={stepper.isFirst}
             >
@@ -174,18 +167,14 @@ function StepperInner() {
 
 /* -----------------------------
    MaterialAndPartForm
-   - live updates to currentData
-   - focus flow: learPN -> storageUnit -> availStock -> next
-   - LearPN rules: 16 chars, starts with P, api call with substring(1)
-   - restores values from global on mount so fields persist when navigating
    ----------------------------- */
 function MaterialAndPartForm({ nextFunction }) {
+  const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
 
   const [learPN, setLearPN] = useState('')
   const [storageUnit, setStorageUnit] = useState('')
   const [availStock, setAvailStock] = useState('')
-
   const [part, setPart] = useState({ tescaPN: '', desc: '', qtyPerBox: '' })
   const [loading, setLoading] = useState(false)
 
@@ -193,7 +182,7 @@ function MaterialAndPartForm({ nextFunction }) {
   const storageRef = useRef(null)
   const availRef = useRef(null)
 
-  // restore saved global data when this step mounts
+  // restore values on mount
   useEffect(() => {
     setLearPN(currentData.part.learPN || '')
     setPart({
@@ -201,94 +190,65 @@ function MaterialAndPartForm({ nextFunction }) {
       desc: currentData.part.desc || '',
       qtyPerBox: currentData.part.qtyPerBox || '',
     })
-    // storageUn in global could be saved without the leading 's' per your logic;
-    // show the stored value (if you store without 's', keep it; if you stored with 's', adjust)
     setStorageUnit(currentData.materile.storageUn || '')
     setAvailStock(currentData.materile.availStock || '')
-    // focus after restore
-    setTimeout(() => learPNRef.current?.focus(), 50)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // focus on first render (already ensured by restore effect, but keep fallback)
+  // focus step
   useEffect(() => {
-    learPNRef.current?.focus()
-  }, [])
+    if (stepper.current.id === 'LearPN')
+      setTimeout(() => learPNRef.current?.focus(), 60)
+  }, [stepper.current.id])
 
-  // live update learPN into global currentData as user types
+  // sync local → global
   useEffect(() => {
-    setCurrentData((prev) => ({
-      ...prev,
-      part: {
-        ...prev.part,
-        learPN,
-      },
-    }))
-  }, [learPN, setCurrentData])
-
-  // live update storageUnit into global currentData as user types
+    setCurrentData((prev) => ({ ...prev, part: { ...prev.part, learPN } }))
+  }, [learPN])
   useEffect(() => {
     setCurrentData((prev) => ({
       ...prev,
-      materile: {
-        ...prev.materile,
-        storageUn: storageUnit,
-      },
+      materile: { ...prev.materile, storageUn: storageUnit },
     }))
-  }, [storageUnit, setCurrentData])
-
-  // live update availStock into global currentData as user types
+  }, [storageUnit])
   useEffect(() => {
     setCurrentData((prev) => ({
       ...prev,
-      materile: {
-        ...prev.materile,
-        availStock,
-      },
+      materile: { ...prev.materile, availStock },
     }))
-  }, [availStock, setCurrentData])
+  }, [availStock])
 
-  // fetch part on Enter
+  // fetch part
   const handleFetchPart = async () => {
-    const pnRaw = learPN.trim()
-    if (pnRaw.length !== 16) {
-      toast.error('Lear PN must be 16 characters')
-      return
-    }
-    if (!pnRaw.toLowerCase().startsWith('p')) {
-      toast.error('Lear PN must start with "P"')
-      return
-    }
+    const pn = learPN.trim()
+    if (!pn.toLowerCase().startsWith('p'))
+      return toast.error('Lear PN must start with P')
+    if (pn.length !== 16) return toast.error('Lear PN must be 16 characters')
 
-    const apiPN = pnRaw.substring(1) // remove leading char for API
     setLoading(true)
-
     try {
-      const res = await fetch(`http://localhost:8080/api/parts/lear?learPN=${apiPN}`)
-      if (!res.ok) throw new Error('Part not found')
+      const res = await fetch(
+        `http://localhost:8080/api/parts/lear?learPN=${pn.substring(1)}`
+      )
+      if (!res.ok) throw new Error('Not found')
       const data = await res.json()
-
-      // update local and global
+      const qtyStr = data.qtyPerBox != null ? String(data.qtyPerBox) : ''
       setPart({
         tescaPN: data.tescaPN || '',
         desc: data.desc || '',
-        qtyPerBox: data.qtyPerBox || '',
+        qtyPerBox: qtyStr,
       })
-
       setCurrentData((prev) => ({
         ...prev,
         part: {
-          ...prev.part,
-          learPN: pnRaw,
+          learPN: pn,
           tescaPN: data.tescaPN || '',
           desc: data.desc || '',
-          qtyPerBox: data.qtyPerBox || '',
+          qtyPerBox: qtyStr,
         },
       }))
-
-      toast.success('Part fetched. Continue...')
-      setTimeout(() => storageRef.current?.focus(), 200)
-    } catch (err) {
+      toast.success('Part loaded')
+      setTimeout(() => storageRef.current?.focus(), 250)
+    } catch {
       toast.error('Part not found')
       setPart({ tescaPN: '', desc: '', qtyPerBox: '' })
     } finally {
@@ -296,41 +256,44 @@ function MaterialAndPartForm({ nextFunction }) {
     }
   }
 
-  // storage done on Enter: validate length and 's' prefix, then remove leading 's'
+  // validate storage
   const handleStorageDone = () => {
-    let su = storageUnit.trim()
-    if (su.length !== 10) {
-      toast.error('HU Galia must be 10 characters')
-      return
-    }
-    if (!su.toLowerCase().startsWith('s')) {
-      toast.error('HU Galia must start with "s"')
-      return
-    }
-    // remove leading 's' before storing (as you requested previously)
-    const suStored = su.substring(1)
-
-    // Show input as typed (we don't change the visible input here),
-    // but store the value without 's' (this mirrors your previous behavior)
+    const su = storageUnit.trim()
+    if (!su.toLowerCase().startsWith('s'))
+      return toast.error('HU Galia must start with s')
+    if (su.length !== 10) return toast.error('HU Galia must be 10 characters')
     setCurrentData((prev) => ({
       ...prev,
-      materile: {
-        ...prev.materile,
-        storageUn: suStored,
-      },
+      materile: { ...prev.materile, storageUn: su.substring(1) },
     }))
-
-    toast.success('HU Galia accepted. Enter available stock.')
-    setTimeout(() => availRef.current?.focus(), 200)
+    toast.success('HU accepted')
+    setTimeout(() => availRef.current?.focus(), 250)
   }
 
-  // when availStock matches Q\d{2} -> go next
+  // validation functions
+  const isLearPNValid = () =>
+    learPN.trim().length === 16 && learPN.trim().toLowerCase().startsWith('p')
+  const isPartFetched = () =>
+    part.tescaPN.trim() && part.desc.trim() && part.qtyPerBox.trim()
+  const isStorageValid = () =>
+    storageUnit.trim().length === 10 &&
+    storageUnit.trim().toLowerCase().startsWith('s')
+  const isAvailValid = () => /^Q\d{2}$/.test(availStock)
+
+  // auto-next only first time
   useEffect(() => {
-    if (/^Q\d{2}$/.test(availStock)) {
+    if (
+      isLearPNValid() &&
+      isPartFetched() &&
+      isStorageValid() &&
+      isAvailValid() &&
+      !currentData.hasCompletedStep1
+    ) {
+      setCurrentData((prev) => ({ ...prev, hasCompletedStep1: true }))
       toast.success('All fields complete. Proceeding...')
       setTimeout(() => nextFunction(), 600)
     }
-  }, [availStock, nextFunction])
+  }, [learPN, part, storageUnit, availStock])
 
   const handleKeyDown = (e, type) => {
     if (e.key !== 'Enter' || loading) return
@@ -421,271 +384,207 @@ function MaterialAndPartForm({ nextFunction }) {
 }
 
 /* -----------------------------
-   CompleteComponent
-   - barcode1 = currentData.part.learPN (forced)
-   - barcode2 must start with learPN.slice(3,9)
-   - barcode2 length 13, unique
-   - auto-add, auto-generate, auto-validate
-   - store barcodes in currentData.materile.barcodes
-   - restores state from global on mount
+   CompleteComponent remains unchanged
    ----------------------------- */
+   
 function CompleteComponent() {
-  const { currentData, setCurrentData } = useCurrentData()
+  const stepper = useStepper();
+  const { currentData, setCurrentData } = useCurrentData();
 
-  const qty =
-    Number((currentData.part.qtyPerBox ?? 0).toString().replace(/\D/g, '')) || 0
-  const learPN = currentData.part.learPN.substring(1, 16) || ''
-  const prefix6 = learPN.slice(4, 10) // as user confirmed
+  const qty = Number(String(currentData.part.qtyPerBox ?? "0").replace(/\D/g, "")) || 0;
+  const learPNFull = String(currentData.part.learPN || "");
+  const learPN = learPNFull.substring(1, 16) || "";
+  const prefix6 = learPN.slice(4, 10);
 
-  // local UI state but also push to global on changes
-  const [barcode1, setBarcode1] = useState(learPN)
-  const [barcode2, setBarcode2] = useState('')
-  const [barcodesLocal, setBarcodesLocal] = useState(currentData.materile.barcodes || [])
-  const [ticketCode, setTicketCode] = useState(currentData.ticketCode || null)
-  const [processing, setProcessing] = useState(false)
+  const [barcode1, setBarcode1] = useState(learPN);
+  const [barcode2, setBarcode2] = useState("");
+  const [barcodesLocal, setBarcodesLocal] = useState(currentData.materile.barcodes || []);
+  const [ticketCode, setTicketCode] = useState(currentData.ticketCode || null);
+  const [processing, setProcessing] = useState(false);
+  const [showPdfButton, setShowPdfButton] = useState(false);
 
-  const barcode1Ref = useRef(null)
-  const barcode2Ref = useRef(null)
+  const barcode1Ref = useRef(null);
+  const barcode2Ref = useRef(null);
 
-  // restore on mount (helps if global was updated while component unmounted)
+  // Restore state
   useEffect(() => {
-    setBarcode1(currentData.part.learPN.substring(1, 16) || '')
-    setBarcodesLocal(currentData.materile.barcodes || [])
-    setTicketCode(currentData.ticketCode || null)
-    setTimeout(() => barcode1Ref.current?.focus(), 50)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    setBarcode1(learPN);
+    setBarcodesLocal(currentData.materile.barcodes || []);
+    setTicketCode(currentData.ticketCode || null);
+  }, []);
 
-  // keep barcode1 in sync with global learPN
   useEffect(() => {
-    setBarcode1(learPN)
-  }, [learPN])
+    if (stepper.current.id === "complete") {
+      setTimeout(() => barcode1Ref.current?.focus(), 60);
+    }
+  }, [stepper.current.id]);
 
-  // focus barcode1 on mount (already attempted above)
   useEffect(() => {
-    barcode1Ref.current?.focus()
-  }, [])
+    setBarcode1(learPN);
+  }, [learPN]);
 
-  // keep global barcodes in sync when local changes
+  // Keep global state in sync
   useEffect(() => {
-    setCurrentData((prev) => ({
+    setCurrentData(prev => ({
       ...prev,
-      materile: {
-        ...prev.materile,
-        barcodes: barcodesLocal,
-      },
-    }))
-  }, [barcodesLocal, setCurrentData])
+      materile: { ...prev.materile, barcodes: barcodesLocal },
+      ticketCode
+    }));
+  }, [barcodesLocal, ticketCode]);
 
-  // keep ticket in global when changes
-  useEffect(() => {
-    setCurrentData((prev) => ({ ...prev, ticketCode }))
-  }, [ticketCode, setCurrentData])
-
-  // VALIDATION helpers
-  const isBarcode2Unique = (b2) => !barcodesLocal.some((b) => b.barcode2 === b2)
+  // Validation
+  const isBarcode2Unique = (b2) => !barcodesLocal.some((b) => b.barcode2 === b2);
 
   const validateBarcode2 = (value) => {
-    if (!prefix6) {
-      toast.error('Lear PN is missing or invalid (needed for prefix).')
-      return false
-    }
-    if (!value.startsWith(prefix6)) {
-      toast.error(`Traceability code must start with ${prefix6}`)
-      return false
-    }
-    if (value.length !== 13) {
-      toast.error('Traceability code must be exactly 13 characters')
-      return false
-    }
-    if (!isBarcode2Unique(value)) {
-      toast.error('This traceability code is already used')
-      return false
-    }
-    if (barcodesLocal.length >= qty) {
-      toast.error('You have reached the required quantity')
-      return false
-    }
-    return true
-  }
+    if (!prefix6) { toast.error("Lear PN is missing."); return false; }
+    if (!value.startsWith(prefix6)) { toast.error(`Must start with ${prefix6}`); return false; }
+    if (value.length !== 13) { toast.error("Must be 13 chars"); return false; }
+    if (!isBarcode2Unique(value)) { toast.error("Already used"); return false; }
+    if (barcodesLocal.length >= qty) { toast.error("Reached required quantity"); return false; }
+    return true;
+  };
 
-  // ADD handler (called after barcode2 validated)
   const handleAdd = () => {
-    if (barcode1 !== learPN) {
-      toast.error('Réf Lear must match the Lear PN')
-      return
-    }
+    if (barcode1 !== learPN) { toast.error("Réf Lear must match"); return; }
+    if (!validateBarcode2(barcode2)) return;
 
-    if (!validateBarcode2(barcode2)) return
+    const newList = [...barcodesLocal, { barcode1, barcode2 }];
+    setBarcodesLocal(newList);
+    setBarcode2("");
+    setTimeout(() => barcode1Ref.current?.focus(), 80);
+  };
 
-    const newList = [...barcodesLocal, { barcode1, barcode2 }]
-    setBarcodesLocal(newList)
-    setBarcode2('')
-    setTimeout(() => barcode1Ref.current?.focus(), 80)
-  }
-
-  // auto-add when barcode2 is typed/scanned and reaches length 13
+  // Auto-add
   useEffect(() => {
-    if (barcode2.length === 13) {
-      // attempt to add automatically
-      if (validateBarcode2(barcode2)) {
-        handleAdd()
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcode2])
+    if (barcode2.length === 13 && validateBarcode2(barcode2)) handleAdd();
+  }, [barcode2]);
 
-  // generate ticket code when qty reached
+  // Auto-generate ticket
   useEffect(() => {
-    if (qty > 0 && barcodesLocal.length === qty && !ticketCode) {
-      generateTicketCode()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [barcodesLocal])
+    if (qty > 0 && barcodesLocal.length === qty && !ticketCode) generateTicketCode();
+  }, [barcodesLocal]);
 
   const generateTicketCode = async () => {
     try {
-      setProcessing(true)
-      const res = await fetch('http://localhost:8080/api/ticketscode/creat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      setProcessing(true);
+      const res = await fetch("http://localhost:8080/api/ticketscode/creat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ suffix: learPN.slice(-5) }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || 'Failed to generate ticket')
-      }
-      const data = await res.json()
-      setTicketCode(data.code)
-      toast.success('Ticket generated automatically.')
-      // auto validate shortly after
-      setTimeout(() => bulkValidate(data.code), 300)
-    } catch (err) {
-      toast.error(err.message || 'Ticket generation failed')
-    } finally {
-      setProcessing(false)
-    }
-  }
+      });
+      const data = await res.json();
+      setTicketCode(data.code);
+      toast.success("Ticket generated.");
+      await bulkValidate(data.code);
+    } catch (err) { toast.error(err.message || "Ticket generation failed"); }
+    finally { setProcessing(false); }
+  };
 
   const bulkValidate = async (code = ticketCode) => {
     try {
-      setProcessing(true)
-      const res = await fetch('http://localhost:8080/api/tickets/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          barcodesLocal.map((b) => ({
-            learPN: b.barcode1,
-            barcode: b.barcode2,
-            ticketCode: code,
-          }))
-        ),
-      })
+      setProcessing(true);
+      await fetch("http://localhost:8080/api/tickets/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(barcodesLocal.map(b => ({
+          learPN: b.barcode1,
+          barcode: b.barcode2,
+          ticketCode: code
+        }))),
+      });
+      toast.success(`Saved ${barcodesLocal.length} codes.`);
+      setShowPdfButton(true); // show PDF button here
+    } catch (err) { toast.error(err.message || "Bulk save failed"); }
+    finally { setProcessing(false); }
+  };
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || 'Bulk save failed')
-      }
 
-      toast.success(`Saved ${barcodesLocal.length} traceability codes.`)
-    } catch (err) {
-      toast.error(err.message || 'Bulk save failed')
-    } finally {
-      setProcessing(false)
+const generatePDF = () => {
+  const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+  const labels = [
+    { learPN: 'LEARN123456', storageUn: 'STO123456', ticketCode: 'TCK12345' },
+    { learPN: 'LEARN987654', storageUn: 'STO987654', ticketCode: 'TCK98765' },
+  ];
+
+  let y = 0.3; // top margin
+
+  labels.forEach((label) => {
+    doc.setFontSize(5);
+    doc.text(`LearPN: ${label.learPN}`, 0.2, y); y += 0.4;
+    doc.text(`Storage: ${label.storageUn}`, 0.2, y); y += 0.4;
+    doc.text(`Ticket: ${label.ticketCode}`, 0.2, y); y += 0.4;
+
+    // LearPN barcode
+    const canvas1 = document.createElement('canvas');
+    JsBarcode(canvas1, label.learPN, { format: 'CODE128', width: 1, height: 20, displayValue: false });
+    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    y += 1.2;
+
+    // Storage barcode
+    const canvas2 = document.createElement('canvas');
+    JsBarcode(canvas2, label.storageUn, { format: 'CODE128', width: 1, height: 20, displayValue: false });
+    doc.addImage(canvas2.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    y += 1.2;
+
+    // Ticket barcode
+    const canvas3 = document.createElement('canvas');
+    JsBarcode(canvas3, label.ticketCode, { format: 'CODE128', width: 1, height: 20, displayValue: false });
+    doc.addImage(canvas3.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    y += 2;
+
+    // New page if needed
+    if (y > 4) {
+      doc.addPage();
+      y = 0.3;
     }
-  }
+  });
 
-  const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
-  const itemsLeft = Math.max(0, qty - barcodesLocal.length)
+  doc.save('labels.pdf');
+};
+
+
+
+  // PDF generator
+
+
+
+  const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100;
+  const itemsLeft = Math.max(0, qty - barcodesLocal.length);
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 p-6">
+      {/* Existing Barcode Collector UI */}
       <Card className="rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
-
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* BARCODE 1: forced read-only */}
             <div className="space-y-2">
               <Label>Réf Lear</Label>
-              <Input
-                ref={barcode1Ref}
-                value={barcode1}
-                readOnly
-                className="bg-gray-100"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') barcode2Ref.current?.focus()
-                }}
-              />
+              <Input ref={barcode1Ref} value={barcode1} readOnly className="bg-gray-100" onKeyDown={e => e.key === "Enter" && barcode2Ref.current?.focus()} />
             </div>
-
-            {/* BARCODE 2: typed or scanned */}
             <div className="space-y-2">
               <Label>Traceability Code</Label>
-              <Input
-                ref={barcode2Ref}
-                value={barcode2}
-                onChange={(e) => setBarcode2(e.target.value)}
-                placeholder={
-                  prefix6 ? `Must start with ${prefix6} (13 chars)` : 'LearPN missing'
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    if (validateBarcode2(barcode2)) {
-                      handleAdd()
-                    }
-                  }
-                }}
-              />
+              <Input ref={barcode2Ref} value={barcode2} onChange={e => setBarcode2(e.target.value)} placeholder={prefix6 ? `Must start with ${prefix6} (13 chars)` : "LearPN missing"} />
             </div>
           </div>
 
-          {/* Progress card */}
           <Card className="mt-6 w-full">
             <CardHeader>
               <CardTitle className="text-center">Progress</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="mb-2 flex justify-between text-sm">
-                <span>{itemsLeft > 0 ? `${itemsLeft} left` : 'All captured 🎉'}</span>
+                <span>{itemsLeft > 0 ? `${itemsLeft} left` : "All captured 🎉"}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-3" />
             </CardContent>
           </Card>
-
-          <div className="mt-4 flex justify-between gap-2">
-            <div className="flex gap-2">
-              <Button
-                onClick={() => {
-                  if (validateBarcode2(barcode2)) handleAdd()
-                }}
-                disabled={processing}
-              >
-                Add
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                onClick={() => generateTicketCode()}
-                disabled={processing || barcodesLocal.length < qty}
-                title={barcodesLocal.length < qty ? 'Capture all barcodes first' : 'Generate ticket'}
-              >
-                Generate code
-              </Button>
-
-              <Button onClick={() => bulkValidate()} disabled={processing || !ticketCode} variant="secondary">
-                Validate
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
       {barcodesLocal.length > 0 && (
         <Card className="rounded-2xl shadow-md">
           <CardHeader>
@@ -700,7 +599,6 @@ function CompleteComponent() {
                   <TableHead>Traceability Code</TableHead>
                 </TableRow>
               </TableHeader>
-
               <TableBody>
                 {barcodesLocal.map((b, i) => (
                   <TableRow key={i}>
@@ -715,7 +613,6 @@ function CompleteComponent() {
         </Card>
       )}
 
-      {/* Ticket Code */}
       {ticketCode && (
         <div className="mt-4 text-center">
           <p className="text-lg font-semibold">
@@ -723,6 +620,15 @@ function CompleteComponent() {
           </p>
         </div>
       )}
+
+      {/* PDF button appears after bulkValidate */}
+      {/* {showPdfButton && ( */}
+        <div className="mt-4 text-center">
+          <button onClick={generatePDF} className="bg-green-600 text-white px-4 py-2 rounded">
+            Generate PDF
+          </button>
+        </div>
+      {/* )} */}
     </div>
-  )
+  );
 }
