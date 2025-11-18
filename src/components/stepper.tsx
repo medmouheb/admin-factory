@@ -418,12 +418,12 @@ const generateTicketPDF = () => {
   // First code
   doc.setFontSize(5);
   doc.setFont('helvetica', 'normal');
-  doc.text('L002525407NCPAF', 0.2, y);
+  doc.text(learPN, 0.2, y);
   y += 0.5;
 
   // Barcode for first code
   const canvas1 = document.createElement('canvas');
-  JsBarcode(canvas1, 'L002525407NCPAF', {
+  JsBarcode(canvas1, ticketCode, {
     format: 'CODE128',
     width: 1,
     height: 20,
