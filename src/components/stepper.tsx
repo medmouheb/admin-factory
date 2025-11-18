@@ -389,6 +389,15 @@ function MaterialAndPartForm({ nextFunction }) {
    CompleteComponent remains unchanged
    ----------------------------- */
 
+
+
+// Mock toast
+const toast = {
+  success: (msg) => console.log('✅', msg),
+  error: (msg) => console.log('❌', msg),
+  info: (msg) => console.log('ℹ️', msg)
+}
+
 function CompleteComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
@@ -407,6 +416,10 @@ function CompleteComponent() {
   const [ticketCode, setTicketCode] = useState(currentData.ticketCode || null)
   const [processing, setProcessing] = useState(false)
   const [showPdfButton, setShowPdfButton] = useState(false)
+  const [operatorNumber, setOperatorNumber] = useState(
+    currentData.operatorNumber || '332110'
+  )
+  const [showPreview, setShowPreview] = useState(false)
 
   const barcode1Ref = useRef(null)
   const barcode2Ref = useRef(null)
@@ -434,8 +447,9 @@ function CompleteComponent() {
       ...prev,
       materile: { ...prev.materile, barcodes: barcodesLocal },
       ticketCode,
+      operatorNumber,
     }))
-  }, [barcodesLocal, ticketCode])
+  }, [barcodesLocal, ticketCode, operatorNumber])
 
   // Validation
   const isBarcode2Unique = (b2) => !barcodesLocal.some((b) => b.barcode2 === b2)
@@ -522,7 +536,7 @@ function CompleteComponent() {
         ),
       })
       toast.success(`Saved ${barcodesLocal.length} codes.`)
-      setShowPdfButton(true) // show PDF button here
+      setShowPdfButton(true)
     } catch (err) {
       toast.error(err.message || 'Bulk save failed')
     } finally {
@@ -530,55 +544,182 @@ function CompleteComponent() {
     }
   }
 
- const generateZPL = () => {
-  const zpl = `
+  // Génération du code ZPL pour étiquette Galia format Tesca
+  const generateZPL = () => {
+    // Code-barres combiné: LearPN + TicketCode
+    const combinedBarcode = `${learPN}${ticketCode}`
+    
+    // Date et heure actuelles
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric' 
+    })
+    const timeStr = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    })
+    
+    const zpl = `
 ^XA
-^PW400
-^LH0,0
+^CI28
+^PW812
+^LL406
 
-^CF0,30
-^FO20,20^FDLEAR PN: ${learPN}^FS
+^FO20,20^A0N,35,35^FDtesca^FS
 
-^FO20,60
-^BCN,80,Y,N,N
-^FD${learPN}^FS
+^FO20,80^A0N,25,25^FD${learPN}^FS
 
+^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
 
-^CF0,30
-^FO20,160^FDSTORAGE: ${currentData.materile.storageUn}^FS
+^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
 
-^FO20,200
-^BCN,80,Y,N,N
-^FD${currentData.materile.storageUn}^FS
+^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
 
-
-^CF0,30
-^FO20,300^FDTICKET: ${ticketCode}^FS
-
-^FO20,340
-^BCN,80,Y,N,N
-^FD${ticketCode}^FS
+^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
 
 ^XZ
-`.trim();
+`
+    return zpl.trim()
+  }
 
-  // Download file
-  const blob = new Blob([zpl], { type: "text/plain" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "label.zpl";
-  link.click();
-  URL.revokeObjectURL(link.href);
-};
+  // Envoi du ZPL à l'imprimante Zebra via backend
+  const printToZebra = async () => {
+    try {
+      setProcessing(true)
+      const zplCode = generateZPL()
 
-  // PDF generator
+      const res = await fetch('http://localhost:8080/api/print/zebra', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zpl: zplCode,
+          printerName: 'Zebra GK420d',
+          copies: 1
+        }),
+      })
+
+      if (!res.ok) throw new Error('Print failed')
+      
+      toast.success('Étiquette envoyée à l\'imprimante!')
+    } catch (err) {
+      toast.error(err.message || 'Impression échouée')
+      downloadZPL()
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  // Télécharger le code ZPL
+  const downloadZPL = () => {
+    const zplCode = generateZPL()
+    const blob = new Blob([zplCode], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `galia_label_${ticketCode}.zpl`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.info('Fichier ZPL téléchargé.')
+  }
+
+  // Preview du ticket
+  const PreviewTicket = () => {
+    if (!showPreview || !ticketCode) return null
+
+    const combinedBarcode = `${learPN}${ticketCode}`
+    
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: 'numeric' 
+    })
+    const timeStr = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    })
+
+    return (
+      <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+        <div className='relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-white p-6'>
+          <button
+            onClick={() => setShowPreview(false)}
+            className='absolute right-4 top-4 text-2xl font-bold text-gray-600 hover:text-gray-800'
+          >
+            ×
+          </button>
+          
+          <h2 className='mb-4 text-center text-xl font-bold'>
+            Prévisualisation du Ticket Galia
+          </h2>
+          
+          <div className='mx-auto w-[400px] border-2 border-gray-800 bg-white p-4'>
+            <div className='space-y-2'>
+              <div className='text-3xl font-bold'>tesca</div>
+              
+              <div className='mt-3 text-sm font-semibold'>
+                {learPN}
+              </div>
+              
+              <div className='my-3 flex flex-col items-center gap-2'>
+                <svg className='w-full' height='80' viewBox='0 0 400 80'>
+                  {combinedBarcode.split('').map((char, idx) => {
+                    const barWidth = char.charCodeAt(0) % 3 + 2;
+                    const xPos = idx * 12;
+                    return (
+                      <rect 
+                        key={idx} 
+                        x={xPos} 
+                        y='0' 
+                        width={barWidth} 
+                        height='60' 
+                        fill='black'
+                      />
+                    );
+                  })}
+                </svg>
+                <div className='text-xs font-mono tracking-wider'>{combinedBarcode}</div>
+              </div>
+              
+              <div className='text-center text-lg font-bold'>
+                {learPN} {ticketCode}
+              </div>
+              
+              <div className='mt-4 space-y-1 text-sm'>
+                <div className='font-semibold'>Oper: {operatorNumber}</div>
+                <div className='font-semibold'>Date: {dateStr} Time: {timeStr}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className='mt-6 text-center'>
+            <button
+              onClick={() => setShowPreview(false)}
+              className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
 
   return (
     <div className='mx-auto w-full max-w-2xl space-y-6 p-6'>
-      {/* Existing Barcode Collector UI */}
+      <PreviewTicket />
+      
       <Card className='rounded-2xl shadow-lg'>
         <CardHeader>
           <CardTitle>Barcode Collector</CardTitle>
@@ -612,6 +753,15 @@ function CompleteComponent() {
             </div>
           </div>
 
+          <div className='space-y-2'>
+            <Label>Numéro Opérateur</Label>
+            <Input
+              value={operatorNumber}
+              onChange={(e) => setOperatorNumber(e.target.value)}
+              placeholder="Ex: 332110"
+            />
+          </div>
+
           <Card className='mt-6 w-full'>
             <CardHeader>
               <CardTitle className='text-center'>Progress</CardTitle>
@@ -635,24 +785,26 @@ function CompleteComponent() {
             <CardTitle>Traceability Codes Added</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Lear PN</TableHead>
-                  <TableHead>Traceability Code</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {barcodesLocal.map((b, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{i + 1}</TableCell>
-                    <TableCell>{b.barcode1}</TableCell>
-                    <TableCell>{b.barcode2}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className='overflow-x-auto'>
+              <table className='w-full'>
+                <thead className='border-b'>
+                  <tr>
+                    <th className='p-2 text-left'>#</th>
+                    <th className='p-2 text-left'>Lear PN</th>
+                    <th className='p-2 text-left'>Traceability Code</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {barcodesLocal.map((b, i) => (
+                    <tr key={i} className='border-b'>
+                      <td className='p-2'>{i + 1}</td>
+                      <td className='p-2'>{b.barcode1}</td>
+                      <td className='p-2'>{b.barcode2}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -661,22 +813,36 @@ function CompleteComponent() {
         <div className='mt-4 text-center'>
           <p className='text-lg font-semibold'>
             Ticket Code:{' '}
-            <span className='text-primary font-mono'>{ticketCode}</span>
+            <span className='font-mono text-blue-600'>{ticketCode}</span>
           </p>
         </div>
       )}
 
-      {/* PDF button appears after bulkValidate */}
       {showPdfButton && (
-        <div className='mt-4 text-center'>
+        <div className='mt-4 flex flex-wrap justify-center gap-3'>
           <button
-            onClick={generateZPL}
-            className='rounded bg-green-600 px-4 py-2 text-white'
+            onClick={() => setShowPreview(true)}
+            className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
           >
-            Generate PDF
+            👁️ Voir Ticket
+          </button>
+          <button
+            onClick={printToZebra}
+            disabled={processing}
+            className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400'
+          >
+            {processing ? 'Impression...' : '🖨️ Imprimer Zebra'}
+          </button>
+          <button
+            onClick={downloadZPL}
+            className='rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700'
+          >
+            📥 Télécharger ZPL
           </button>
         </div>
       )}
     </div>
   )
 }
+
+
