@@ -8,6 +8,8 @@ import React, {
 } from 'react'
 import { defineStepper } from '@stepperize/react'
 import JsBarcode from 'jsbarcode'
+import QRCode from 'qrcode';
+
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -404,59 +406,7 @@ const toast = {
 function CompleteComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
-const generateTicketPDF = () => {
-  const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
 
-  let y = 0.3; // top margin
-
-  // Title
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('tesca', 0.2, y);
-  y += 0.6;
-
-  // First code
-  doc.setFontSize(5);
-  doc.setFont('helvetica', 'normal');
-  doc.text(learPN, 0.2, y);
-  y += 0.5;
-
-  // Barcode for first code
-  const canvas1 = document.createElement('canvas');
-  JsBarcode(canvas1, ticketCode, {
-    format: 'CODE128',
-    width: 1,
-    height: 20,
-    displayValue: false,
-  });
-  doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
-  y += 1.2;
-
-  // Only the second code, centered
-  const combinedCode = 'YNQI9NCPAF';
-  doc.setFont('helvetica', 'bold');
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const textWidth = doc.getTextWidth(combinedCode);
-  const xCentered = (pageWidth - textWidth) / 2;
-  doc.text(combinedCode, xCentered, y);
-  y += 0.8;
-
-  // Operator
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(4);
-  doc.text('Oper: 332110', 0.2, y);
-  y += 0.4;
-
-  // Date & Time
-  const now = new Date();
-  const dateStr = now.toLocaleDateString();
-  const timeStr = now.toLocaleTimeString();
-  doc.text(`Date: ${dateStr} Time: ${timeStr}`, 0.2, y);
-
-  // Print instead of download
-  doc.autoPrint(); // trigger print dialog
-  window.open(doc.output('bloburl'), '_blank');
-};
 
   const qty =
     Number(String(currentData.part.qtyPerBox ?? '0').replace(/\D/g, '')) || 0
@@ -783,6 +733,71 @@ const generateTicketPDF = () => {
       </div>
     )
   }
+
+  const generateTicketPDF = async () => {
+  const doc = new jsPDF({ unit: 'cm', format: [5, 12] });
+
+  let y = 0.3; // top margin
+
+  // --- QR Code at top ---
+  const qrData = barcodesLocal;
+  const qrSizeCm = 2.5; // QR code size
+  const dpi = 96;
+  const qrCanvas = document.createElement('canvas');
+  qrCanvas.width = qrSizeCm * dpi / 2.54; // convert cm -> px
+  qrCanvas.height = qrCanvas.width;
+
+  await QRCode.toCanvas(qrCanvas, JSON.stringify(qrData), { width: qrCanvas.width, margin: 1 });
+  doc.addImage(qrCanvas.toDataURL('image/png'), 'PNG', 1.25, y, qrSizeCm, qrSizeCm); // centered horizontally
+  y += qrSizeCm + 0.2;
+
+  // Title
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('tesca', 0.2, y);
+  y += 0.6;
+
+  // First code
+  doc.setFontSize(5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(learPN, 0.2, y);
+  y += 0.5;
+
+  // Barcode for first code
+  const canvas1 = document.createElement('canvas');
+  JsBarcode(canvas1, ticketCode, {
+    format: 'CODE128',
+    width: 1,
+    height: 20,
+    displayValue: false,
+  });
+  doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+  y += 1.2;
+
+  // Second code centered
+  const combinedCode = 'YNQI9NCPAF';
+  doc.setFont('helvetica', 'bold');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const textWidth = doc.getTextWidth(combinedCode);
+  const xCentered = (pageWidth - textWidth) / 2;
+  doc.text(combinedCode, xCentered, y);
+  y += 0.8;
+
+  // Operator
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(4);
+  doc.text('Oper: 332110', 0.2, y);
+  y += 0.4;
+
+  // Date & Time
+  const now = new Date();
+  doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
+  y += 0.4;
+
+  // Print
+  doc.autoPrint();
+  window.open(doc.output('bloburl'), '_blank');
+};
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
