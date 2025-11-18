@@ -530,60 +530,46 @@ function CompleteComponent() {
     }
   }
 
-  const generatePDF = () => {
-    const doc = new jsPDF({ unit: 'cm', format: [5, 5] })
+ const generateZPL = () => {
+  const zpl = `
+^XA
+^PW400
+^LH0,0
 
-    let y = 0.3 // top margin
+^CF0,30
+^FO20,20^FDLEAR PN: ${learPN}^FS
 
-    doc.setFontSize(5)
-    doc.text(`LearPN: ${learPN}`, 0.2, y)
-    y += 0.4
-    const canvas1 = document.createElement('canvas')
-    JsBarcode(canvas1, learPN, {
-      format: 'CODE128',
-      width: 1,
-      height: 20,
-      displayValue: false,
-    })
-    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1)
-    y += 1.2
+^FO20,60
+^BCN,80,Y,N,N
+^FD${learPN}^FS
 
-    doc.text(`Storage: ${currentData.materile.storageUn}`, 0.2, y)
-    y += 0.4
 
-    // Storage barcode
-    const canvas2 = document.createElement('canvas')
-    JsBarcode(canvas2, currentData.materile.storageUn, {
-      format: 'CODE128',
-      width: 1,
-      height: 20,
-      displayValue: false,
-    })
-    doc.addImage(canvas2.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1)
-    y += 1.2
+^CF0,30
+^FO20,160^FDSTORAGE: ${currentData.materile.storageUn}^FS
 
-    doc.text(`Ticket: ${ticketCode}`, 0.2, y)
-    y += 0.4
+^FO20,200
+^BCN,80,Y,N,N
+^FD${currentData.materile.storageUn}^FS
 
-    // Ticket barcode
-    const canvas3 = document.createElement('canvas')
-    JsBarcode(canvas3, ticketCode, {
-      format: 'CODE128',
-      width: 1,
-      height: 20,
-      displayValue: false,
-    })
-    doc.addImage(canvas3.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1)
-    y += 2
 
-    // New page if needed
-    if (y > 4) {
-      doc.addPage()
-      y = 0.3
-    }
+^CF0,30
+^FO20,300^FDTICKET: ${ticketCode}^FS
 
-    doc.save('labels.pdf')
-  }
+^FO20,340
+^BCN,80,Y,N,N
+^FD${ticketCode}^FS
+
+^XZ
+`.trim();
+
+  // Download file
+  const blob = new Blob([zpl], { type: "text/plain" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "label.zpl";
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
 
   // PDF generator
 
