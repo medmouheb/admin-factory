@@ -670,7 +670,7 @@ function CompleteComponent() {
       {showPdfButton && (
         <div className='mt-4 text-center'>
           <button
-            onClick={generatePDF}
+            onClick={generateZPL}
             className='rounded bg-green-600 px-4 py-2 text-white'
           >
             Generate PDF
