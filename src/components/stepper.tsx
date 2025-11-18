@@ -16,6 +16,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 import {
   Table,
   TableBody,
@@ -24,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table'
+pdfMake.vfs = pdfFonts.vfs;
 
 /* -----------------------------
    Stepper definition
@@ -401,6 +404,59 @@ const toast = {
 function CompleteComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
+const generateTicketPDF = () => {
+  const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+
+  let y = 0.3; // top margin
+
+  // Title
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('tesca', 0.2, y);
+  y += 0.6;
+
+  // First code
+  doc.setFontSize(5);
+  doc.setFont('helvetica', 'normal');
+  doc.text('L002525407NCPAF', 0.2, y);
+  y += 0.5;
+
+  // Barcode for first code
+  const canvas1 = document.createElement('canvas');
+  JsBarcode(canvas1, 'L002525407NCPAF', {
+    format: 'CODE128',
+    width: 1,
+    height: 20,
+    displayValue: false,
+  });
+  doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+  y += 1.2;
+
+  // Only the second code, centered
+  const combinedCode = 'YNQI9NCPAF';
+  doc.setFont('helvetica', 'bold');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const textWidth = doc.getTextWidth(combinedCode);
+  const xCentered = (pageWidth - textWidth) / 2;
+  doc.text(combinedCode, xCentered, y);
+  y += 0.8;
+
+  // Operator
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(4);
+  doc.text('Oper: 332110', 0.2, y);
+  y += 0.4;
+
+  // Date & Time
+  const now = new Date();
+  const dateStr = now.toLocaleDateString();
+  const timeStr = now.toLocaleTimeString();
+  doc.text(`Date: ${dateStr} Time: ${timeStr}`, 0.2, y);
+
+  // Print instead of download
+  doc.autoPrint(); // trigger print dialog
+  window.open(doc.output('bloburl'), '_blank');
+};
 
   const qty =
     Number(String(currentData.part.qtyPerBox ?? '0').replace(/\D/g, '')) || 0
@@ -714,6 +770,14 @@ function CompleteComponent() {
             >
               Fermer
             </button>
+            <button
+                onClick={() =>
+    generateTicketPDF()
+  }
+              className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'
+            >
+              pdf
+            </button>
           </div>
         </div>
       </div>
@@ -825,7 +889,7 @@ function CompleteComponent() {
         </div>
       )}
 
-      {showPdfButton && (
+      {/* {showPdfButton && ( */}
         <div className='mt-4 flex flex-wrap justify-center gap-3'>
           <button
             onClick={() => setShowPreview(true)}
@@ -847,7 +911,7 @@ function CompleteComponent() {
             📥 Télécharger ZPL
           </button>
         </div>
-      )}
+      {/* )} */}
     </div>
   )
 }
