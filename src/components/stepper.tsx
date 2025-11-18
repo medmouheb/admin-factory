@@ -587,31 +587,38 @@ function CompleteComponent() {
   }
 
   // Envoi du ZPL à l'imprimante Zebra via backend
-  const printToZebra = async () => {
-    try {
-      setProcessing(true)
-      const zplCode = generateZPL()
-
-      const res = await fetch('http://localhost:8080/api/print/zebra', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          zpl: zplCode,
-          printerName: 'Zebra GK420d',
-          copies: 1
-        }),
-      })
-
-      if (!res.ok) throw new Error('Print failed')
-      
-      toast.success('Étiquette envoyée à l\'imprimante!')
-    } catch (err) {
-      toast.error(err.message || 'Impression échouée')
-      downloadZPL()
-    } finally {
-      setProcessing(false)
-    }
+  const printToGodex = async () => {
+  try {
+    setProcessing(true);
+    const ezplCode = generateZPL();
+    
+    // Convertir le code EZPL en Blob
+    const blob = new Blob([ezplCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    // Créer un iframe caché pour l'impression
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    iframe.onload = function() {
+      iframe.contentWindow.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    };
+   console.log(" hggvhbh", ezplCode);
+    toast.success('Impression lancée sur l\'imprimante par défaut');
+    
+  } catch (err) {
+    toast.error(err.message || 'Impression échouée');
+    downloadZPL();
+  } finally {
+    setProcessing(false);
   }
+};
 
   // Télécharger le code ZPL
   const downloadZPL = () => {
@@ -827,7 +834,7 @@ function CompleteComponent() {
             👁️ Voir Ticket
           </button>
           <button
-            onClick={printToZebra}
+            onClick={printToGodex}
             disabled={processing}
             className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400'
           >
