@@ -3,7 +3,6 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,9 +22,16 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
-import { SelectDropdown } from '@/components/select-dropdown'
-import { roles } from '../data/data'
+import { Checkbox } from '@/components/ui/checkbox'
 import { type User } from '../data/schema'
+import { useState } from 'react'
+import { toast } from 'sonner'
+
+const roleOptions = [
+  { label: 'operateur', value: 'operateur' },
+  { label: 'superviseur', value: 'superviseur' },
+  { label: 'admin', value: 'admin' },
+] as const
 
 const formSchema = z
   .object({
@@ -37,7 +43,9 @@ const formSchema = z
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
     password: z.string().transform((pwd) => pwd.trim()),
-    role: z.string().min(1, 'Role is required.'),
+    roles: z
+      .array(z.enum(['operateur', 'superviseur', 'admin']))
+      .min(1, 'At least one role is required.'),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
     isEdit: z.boolean(),
   })
@@ -110,6 +118,7 @@ export function UsersActionDialog({
     defaultValues: isEdit
       ? {
           ...currentRow,
+          roles: currentRow?.role ? [currentRow.role] : [],
           password: '',
           confirmPassword: '',
           isEdit,
@@ -119,7 +128,7 @@ export function UsersActionDialog({
           lastName: '',
           username: '',
           email: '',
-          role: '',
+          roles: [],
           phoneNumber: '',
           password: '',
           confirmPassword: '',
@@ -127,10 +136,56 @@ export function UsersActionDialog({
         },
   })
 
-  const onSubmit = (values: UserForm) => {
-    form.reset()
-    showSubmittedData(values)
-    onOpenChange(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const onSubmit = async (values: UserForm) => {
+    try {
+      setIsLoading(true)
+      const payload: Record<string, any> = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        username: values.username,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
+        roles: values.roles,
+      }
+      if (values.password) payload.password = values.password
+
+      if (isEdit && currentRow?.id) {
+        const res = await fetch(`http://localhost:8080/api/users/${currentRow.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => null)
+          toast.error(err?.message || 'Update failed')
+          return
+        }
+        toast.success('User updated')
+      } else {
+        const res = await fetch('http://localhost:8080/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => null)
+          toast.error(err?.message || 'Sign up failed')
+          return
+        }
+        toast.success('User created')
+      }
+
+      form.reset()
+      onOpenChange(false)
+    } catch (error) {
+      toast.error('Server error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isPasswordTouched = !!form.formState.dirtyFields.password
@@ -255,21 +310,35 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='role'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Role</FormLabel>
-                    <SelectDropdown
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                      placeholder='Select a role'
-                      className='col-span-4'
-                      items={roles.map(({ label, value }) => ({
-                        label,
-                        value,
-                      }))}
-                    />
-                    <FormMessage className='col-span-4 col-start-3' />
+                name='roles'
+                render={() => (
+                  <FormItem className='grid grid-cols-6 items-start space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
+                    <div className='col-span-4 space-y-2'>
+                      {roleOptions.map((opt) => (
+                        <FormField
+                          key={opt.value}
+                          control={form.control}
+                          name='roles'
+                          render={({ field }) => (
+                            <FormItem className='flex flex-row items-center gap-2'>
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(opt.value)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...(field.value || []), opt.value])
+                                      : field.onChange((field.value || []).filter((v) => v !== opt.value))
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className='font-normal'>{opt.label}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -316,7 +385,7 @@ export function UsersActionDialog({
           </Form>
         </div>
         <DialogFooter>
-          <Button type='submit' form='user-form'>
+          <Button type='submit' form='user-form' disabled={isLoading}>
             Save changes
           </Button>
         </DialogFooter>
