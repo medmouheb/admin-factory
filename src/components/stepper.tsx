@@ -5,6 +5,7 @@ import React, {
   useState,
   createContext,
   useContext,
+  useMemo,
 } from 'react'
 import { defineStepper } from '@stepperize/react'
 import JsBarcode from 'jsbarcode'
@@ -24,8 +25,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from './ui/table'
 pdfMake.vfs = pdfFonts.vfs;
@@ -396,13 +395,6 @@ function MaterialAndPartForm({ nextFunction }) {
 
 
 
-// Mock toast
-const toast = {
-  success: (msg) => console.log('✅', msg),
-  error: (msg) => console.log('❌', msg),
-  info: (msg) => console.log('ℹ️', msg)
-}
-
 function CompleteComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
@@ -426,6 +418,22 @@ function CompleteComponent() {
     currentData.operatorNumber || '332110'
   )
   const [showPreview, setShowPreview] = useState(false)
+
+  const qrData = useMemo(
+    () => ({
+      ticketCode: ticketCode || '',
+      learPN: learPN || '',
+      operatorNumber: operatorNumber || '',
+      date: new Date().toISOString(),
+      barcodes: barcodesLocal,
+      qty: qty || 0,
+    }),
+    [ticketCode, learPN, operatorNumber, barcodesLocal, qty]
+  )
+  const shouldShowQrSnapshot = useMemo(
+    () => Boolean(ticketCode || barcodesLocal.length > 0 || barcode2.length > 0),
+    [ticketCode, barcodesLocal.length, barcode2.length]
+  )
 
   const barcode1Ref = useRef(null)
   const barcode2Ref = useRef(null)
@@ -734,65 +742,64 @@ function CompleteComponent() {
     )
   }
 
-  const generateTicketPDF = async () => {
-  const doc = new jsPDF({ unit: 'cm', format: [5, 12] });
+ const generateTicketPDF = () => {
+  const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
 
-  let y = 0.3; // top margin
+  let y = 0.3;
 
-  // --- QR Code at top ---
-  const qrData = barcodesLocal;
-  const qrSizeCm = 2.5; // QR code size
+  // QR Code with all data
+  const qrSizeCm = 1.2;
   const dpi = 96;
   const qrCanvas = document.createElement('canvas');
-  qrCanvas.width = qrSizeCm * dpi / 2.54; // convert cm -> px
+  qrCanvas.width = qrSizeCm * dpi / 2.54;
   qrCanvas.height = qrCanvas.width;
 
-  await QRCode.toCanvas(qrCanvas, JSON.stringify(qrData), { width: qrCanvas.width, margin: 1 });
-  doc.addImage(qrCanvas.toDataURL('image/png'), 'PNG', 1.25, y, qrSizeCm, qrSizeCm); // centered horizontally
-  y += qrSizeCm + 0.2;
+  ;
+  
+  
 
   // Title
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('tesca', 0.2, y);
   y += 0.6;
 
-  // First code
-  doc.setFontSize(5);
+  // Lear PN
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.text(learPN, 0.2, y);
   y += 0.5;
 
-  // Barcode for first code
+  // Barcode for ticket code
   const canvas1 = document.createElement('canvas');
   JsBarcode(canvas1, ticketCode, {
     format: 'CODE128',
     width: 1,
-    height: 20,
+    height: 25,
     displayValue: false,
   });
   doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
   y += 1.2;
 
-  // Second code centered
-  const combinedCode = 'YNQI9NCPAF';
+  // Ticket code (centered)
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const textWidth = doc.getTextWidth(combinedCode);
-  const xCentered = (pageWidth - textWidth) / 2;
-  doc.text(combinedCode, xCentered, y);
+  const textWidth = doc.getTextWidth(ticketCode);
+  const xCentered = ( textWidth) / 2;
+  doc.text(ticketCode, xCentered, y);
   y += 0.8;
 
-  // Operator
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(4);
-  doc.text('Oper: 332110', 0.2, y);
-  y += 0.4;
+  // Operator (bold and larger)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Oper: ${operatorNumber}`, 0.2, y);
+  y += 0.5;
 
   // Date & Time
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
   const now = new Date();
   doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
-  y += 0.4;
 
   // Print
   doc.autoPrint();
@@ -865,31 +872,72 @@ function CompleteComponent() {
         </CardContent>
       </Card>
 
-      {barcodesLocal.length > 0 && (
+      {shouldShowQrSnapshot && (
         <Card className='rounded-2xl shadow-md'>
           <CardHeader>
             <CardTitle>Traceability Codes Added</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='overflow-x-auto'>
-              <table className='w-full'>
-                <thead className='border-b'>
-                  <tr>
-                    <th className='p-2 text-left'>#</th>
-                    <th className='p-2 text-left'>Lear PN</th>
-                    <th className='p-2 text-left'>Traceability Code</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {barcodesLocal.map((b, i) => (
-                    <tr key={i} className='border-b'>
-                      <td className='p-2'>{i + 1}</td>
-                      <td className='p-2'>{b.barcode1}</td>
-                      <td className='p-2'>{b.barcode2}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className='mt-4 rounded-lg border bg-muted/50 p-4'>
+              <p className='mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+                QR Data Snapshot
+              </p>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className='font-medium'>Ticket Code</TableCell>
+                    <TableCell className='font-mono'>
+                      {qrData.ticketCode || '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Lear PN</TableCell>
+                    <TableCell className='font-mono'>
+                      {qrData.learPN || '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Operator</TableCell>
+                    <TableCell>{qrData.operatorNumber || '—'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Date</TableCell>
+                    <TableCell>
+                      {qrData.date
+                        ? new Date(qrData.date).toLocaleString()
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Qty Required</TableCell>
+                    <TableCell>{qrData.qty || 0}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Barcodes</TableCell>
+                    <TableCell>
+                      {qrData.barcodes.length > 0 ? (
+                        <div className='space-y-1 text-sm'>
+                          {qrData.barcodes.map(
+                            (
+                              b: { barcode2: string },
+                              index: number
+                            ) => (
+                              <div key={`${b.barcode2}-${index}`}>
+                                #{index + 1}:{' '}
+                                <span className='font-mono'>{b.barcode2}</span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      ) : (
+                        <span className='text-muted-foreground'>
+                          No scans yet
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
@@ -904,27 +952,84 @@ function CompleteComponent() {
         </div>
       )}
 
+      {shouldShowQrSnapshot && (
+        <Card className='rounded-2xl shadow-md'>
+          <CardHeader>
+            <CardTitle>QR Data Snapshot</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='overflow-x-auto'>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className='font-medium'>Ticket Code</TableCell>
+                    <TableCell className='font-mono'>
+                      {qrData.ticketCode || '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Lear PN</TableCell>
+                    <TableCell className='font-mono'>
+                      {qrData.learPN || '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Operator</TableCell>
+                    <TableCell>{qrData.operatorNumber || '—'}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Date</TableCell>
+                    <TableCell>
+                      {qrData.date
+                        ? new Date(qrData.date).toLocaleString()
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Qty Required</TableCell>
+                    <TableCell>{qrData.qty || 0}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className='font-medium'>Barcodes</TableCell>
+                    <TableCell>
+                      {qrData.barcodes.length > 0 ? (
+                        <div className='space-y-1 text-sm'>
+                          {qrData.barcodes.map(
+                            (
+                              b: { barcode2: string },
+                              index: number
+                            ) => (
+                            <div key={`${b.barcode2}-${index}`}>
+                              #{index + 1}:{' '}
+                              <span className='font-mono'>{b.barcode2}</span>
+                            </div>
+                            )
+                          )}
+                        </div>
+                      ) : (
+                        <span className='text-muted-foreground'>
+                          No scans yet
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* {showPdfButton && ( */}
         <div className='mt-4 flex flex-wrap justify-center gap-3'>
           <button
             onClick={() => setShowPreview(true)}
             className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
           >
-            👁️ Voir Ticket
+            👁️ Show Ticket and Download
           </button>
-          <button
-            onClick={printToGodex}
-            disabled={processing}
-            className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400'
-          >
-            {processing ? 'Impression...' : '🖨️ Imprimer Zebra'}
-          </button>
-          <button
-            onClick={downloadZPL}
-            className='rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700'
-          >
-            📥 Télécharger ZPL
-          </button>
+          
+         
         </div>
       {/* )} */}
     </div>
