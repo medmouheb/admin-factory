@@ -2,6 +2,7 @@ import { SearchIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSearch } from '@/context/search-provider'
 import { Button } from './ui/button'
+import { useNavigate } from '@tanstack/react-router'
 
 type SearchProps = {
   className?: string
@@ -14,6 +15,7 @@ export function Search({
   placeholder = 'Search',
 }: SearchProps) {
   const { setOpen } = useSearch()
+  const navigate = useNavigate()
   return (
     <Button
       variant='outline'
@@ -21,7 +23,19 @@ export function Search({
         'bg-muted/25 group text-muted-foreground hover:bg-accent relative h-8 w-full flex-1 justify-start rounded-md text-sm font-normal shadow-none sm:w-40 sm:pe-12 md:flex-none lg:w-52 xl:w-64',
         className
       )}
-      onClick={() => setOpen(true)}
+      onClick={() => {
+        navigate({
+          to: '/users',
+          search: {
+            username: 'ann',
+            role: ['superviseur'],
+            page: 2,
+            pageSize: 5,
+            status: [],
+          },
+        })
+        setOpen(true)
+      }}
     >
       <SearchIcon
         aria-hidden='true'

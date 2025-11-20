@@ -24,8 +24,10 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { roles } from '../data/data'
 import { type User } from '../data/schema'
-import { DataTableBulkActions } from './data-table-bulk-actions'
+
 import { usersColumns as columns } from './users-columns'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 type DataTableProps = {
   data: User[]
@@ -35,9 +37,57 @@ type DataTableProps = {
 
 export function UsersTable({ data, search, navigate }: DataTableProps) {
   // Local UI-only states
-  const [rowSelection, setRowSelection] = useState({})
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+
+  // Server-backed data
+  const [rows, setRows] = useState<User[]>([])
+  const [isFetching, setIsFetching] = useState(false)
+
+  async function fetchUsers() {
+    try {
+      setIsFetching(true)
+      const params = new URLSearchParams()
+      if (search.username) params.set('username', search.username as string)
+      const roleParam = Array.isArray(search.role) && search.role.length ? (search.role as string[])[0] : ''
+      if (roleParam) params.set('role', roleParam)
+      params.set('page', String((search.page ?? 1)))
+      params.set('size', String((search.pageSize ?? 10)))
+      const res = await fetch(`http://localhost:8080/api/users/search?${params.toString()}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => null)
+        toast.error(err?.message || 'Search failed')
+        return
+      }
+      const json = await res.json()
+      const list = Array.isArray(json?.users) ? json.users : []
+      setRows(
+        list.map((u: any) => ({
+          id: String(u.id),
+          username: u.username ?? '',
+          email: u.email ?? '',
+          phoneNumber: u.phoneNumber ?? '',
+          status: 'active',
+          role: ((u.roles?.[0]?.name === 'operateur' ? 'opperateur' : u.roles?.[0]?.name) ?? 'opperateur'),
+          firstName: u.firstName ?? '',
+          lastName: u.lastName ?? '',
+          createdAt: new Date(u.createdAt),
+          updatedAt: new Date(u.updatedAt),
+        })) as User[]
+      )
+    } catch (e) {
+      toast.error('Server error')
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [search.username, search.role, search.page, search.pageSize])
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
@@ -65,19 +115,18 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data,
+    data: rows,
     columns,
     state: {
       sorting,
       pagination,
-      rowSelection,
       columnFilters,
       columnVisibility,
     },
-    enableRowSelection: true,
+
     onPaginationChange,
     onColumnFiltersChange,
-    onRowSelectionChange: setRowSelection,
+
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     getPaginationRowModel: getPaginationRowModel(),
@@ -188,7 +237,6 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
-      <DataTableBulkActions table={table} />
     </div>
   )
 }
