@@ -9,16 +9,14 @@ import React, {
 } from 'react'
 import { defineStepper } from '@stepperize/react'
 import JsBarcode from 'jsbarcode'
-import QRCode from 'qrcode';
-
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Progress } from './ui/progress'
+
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import {
@@ -27,32 +25,45 @@ import {
   TableCell,
   TableRow,
 } from './ui/table'
+import { cn } from '@/lib/utils'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Stepper, Step } from '@/components/ui/stepper'
 pdfMake.vfs = pdfFonts.vfs;
 
 /* -----------------------------
-   Stepper definition
    ----------------------------- */
 const { useStepper, steps, utils } = defineStepper(
   {
     id: 'LearPN',
     title: 'Check Réf Galia',
-    description: 'Enter your LearPN details',
+    description: 'Scan Lear PN & Galia',
+  },
+  {
+    id: 'RepairDetails',
+    title: 'Repair Details',
+    description: 'Enter repair info',
   },
   {
     id: 'complete',
     title: 'Check traceability Label',
-    description: 'Checkout complete',
+    description: 'Scan & Print Labels',
   }
 )
 
-/* -----------------------------
-   Context: CurrentData
-   ----------------------------- */
 const CurrentDataContext = createContext(null)
 function CurrentDataProvider({ children }) {
   const [currentData, setCurrentData] = useState({
     part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
     materile: { storageUn: '', availStock: '', barcodes: [] },
+    repair: { codePiece: '', checklist: [] },
     ticketCode: null,
     hasCompletedStep1: false, // ✅ flag for first step completion
   })
@@ -93,78 +104,182 @@ function StepperInner() {
     setCurrentData({
       part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
       materile: { storageUn: '', availStock: '', barcodes: [] },
+      repair: { codePiece: '', checklist: [] },
       ticketCode: null,
       hasCompletedStep1: false,
     })
     stepper.reset()
   }
 
+  const isStep1Valid = useMemo(() => {
+    const { part, materile } = currentData
+    const isLearPN =
+      part.learPN?.trim().length === 16 &&
+      part.learPN.toLowerCase().startsWith('p')
+    const isPartLoaded = !!part.tescaPN
+    const isStorage =
+      materile.storageUn?.trim().length === 10 &&
+      materile.storageUn.toLowerCase().startsWith('s')
+    const isAvail = /^Q\d{2}$/.test(materile.availStock || '')
+    return isLearPN && isPartLoaded && isStorage && isAvail
+  }, [currentData])
+
+  const isStep2Valid = useMemo(() => {
+    const { repair } = currentData
+    return repair?.codePiece?.trim().length > 0
+  }, [currentData])
+
   return (
-    <div className='m-4 p-4'>
-      <div className='flex items-center justify-between'>
-        <h2 className='text-lg font-medium'>Checkout</h2>
+    <div className='container mx-auto p-6'>
+      <div className='mb-8 flex items-center justify-between'>
+        <div>
+          <h2 className='text-2xl font-bold tracking-tight'>Reapirage Process</h2>
+          <p className='text-muted-foreground'>
+            Follow the steps to complete the check.
+          </p>
+        </div>
         <div className='flex items-center gap-2'>
-          <span className='text-muted-foreground text-sm'>
+          <span className='rounded-full bg-muted px-3 py-1 text-sm font-medium'>
             Step {currentIndex + 1} of {steps.length}
           </span>
         </div>
       </div>
 
-      <nav aria-label='Checkout Steps' className='group my-4'>
-        <ol
-          className='flex items-center justify-between gap-2'
-          aria-orientation='horizontal'
-        >
-          {stepper.all.map((step, index, array) => (
-            <React.Fragment key={step.id}>
-              <li className='flex flex-shrink-0 items-center gap-4'>
-                <Button
-                  type='button'
-                  role='tab'
-                  variant={index <= currentIndex ? 'default' : 'secondary'}
-                  aria-current={
-                    stepper.current.id === step.id ? 'step' : undefined
-                  }
-                  onClick={() => stepper.goTo(step.id)}
-                  className='flex size-10 items-center justify-center rounded-full'
-                >
-                  {index + 1}
-                </Button>
-                <span className='text-sm font-medium'>{step.title}</span>
-              </li>
-              {index < array.length - 1 && (
-                <Separator
-                  className={`flex-1 ${index < currentIndex ? 'bg-primary' : 'bg-muted'}`}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </ol>
-      </nav>
+      <div className='grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]'>
+        <div className='hidden md:block'>
+          <Card className='h-full border-none shadow-none bg-transparent'>
+            <CardContent className='p-0'>
+              <Stepper orientation='vertical' activeStep={currentIndex}>
+                {stepper.all.map((step, index) => (
+                  <Step
+                    key={step.id}
+                    label={step.title}
+                    description={step.description}
+                    onClick={() => {
+                      if (index === 1 && !isStep1Valid) return
+                      if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
+                      stepper.goTo(step.id)
+                    }}
+                  />
+                ))}
+              </Stepper>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className='space-y-4'>
-        {stepper.switch({
-          LearPN: () => <MaterialAndPartForm nextFunction={stepper.next} />,
-          complete: () => <CompleteComponent />,
-        })}
+        {/* Mobile Stepper (Horizontal) */}
+        <div className='md:hidden'>
+          <Stepper orientation='horizontal' activeStep={currentIndex}>
+            {stepper.all.map((step, index) => (
+              <Step
+                key={step.id}
+                // label={step.title} // Hide label on mobile to save space
+                onClick={() => {
+                  if (index === 1 && !isStep1Valid) return
+                  if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
+                  stepper.goTo(step.id)
+                }}
+              />
+            ))}
+          </Stepper>
+        </div>
 
-        {!stepper.isLast ? (
-          <div className='flex justify-end gap-4'>
-            <Button
-              variant='secondary'
-              onClick={stepper.prev}
-              disabled={stepper.isFirst}
-            >
-              Back
-            </Button>
-            <Button onClick={stepper.next}>
-              {stepper.isLast ? 'Complete' : 'Next'}
-            </Button>
+        <div className='flex flex-col gap-6'>
+          <div className='min-h-[400px]'>
+            {stepper.switch({
+              LearPN: () => <MaterialAndPartForm nextFunction={stepper.next} />,
+              RepairDetails: () => <RepairDetailsForm nextFunction={stepper.next} />,
+              complete: () => <CompleteComponent />,
+            })}
           </div>
-        ) : (
-          <Button onClick={handleFullReset}>Reset</Button>
-        )}
+
+          {!stepper.isLast ? (
+            <div className='flex justify-end gap-4 border-t pt-6'>
+              <Button
+                variant='outline'
+                onClick={stepper.prev}
+                disabled={stepper.isFirst}
+                className='w-32'
+              >
+                Back
+              </Button>
+              <Button
+                onClick={stepper.next}
+                disabled={
+                  (stepper.current.id === 'LearPN' && !isStep1Valid) ||
+                  (stepper.current.id === 'RepairDetails' && !isStep2Valid)
+                }
+                className='w-32'
+              >
+                {stepper.isLast ? 'Complete' : 'Next'}
+              </Button>
+            </div>
+          ) : (
+            <div className='flex justify-end border-t pt-6'>
+              <Button onClick={handleFullReset} className='w-32'>
+                Reset
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+    </div>
+  )
+}
+
+/* -----------------------------
+   RepairDetailsForm
+   ----------------------------- */
+function RepairDetailsForm({ nextFunction }) {
+  const { currentData, setCurrentData } = useCurrentData()
+  const [codePiece, setCodePiece] = useState(currentData.repair?.codePiece || '')
+  const [checklist, setChecklist] = useState(currentData.repair?.checklist || [])
+
+  const handleChecklistChange = (item, checked) => {
+    setChecklist(prev =>
+      checked ? [...prev, item] : prev.filter(i => i !== item)
+    )
+  }
+
+  useEffect(() => {
+    setCurrentData(prev => ({
+      ...prev,
+      repair: { codePiece, checklist }
+    }))
+  }, [codePiece, checklist])
+
+  return (
+    <div className='w-full p-6'>
+      <Card className='w-full rounded-2xl p-6 shadow-lg border-t-4 border-t-primary'>
+        <CardHeader>
+          <CardTitle className='text-2xl'>Repair Details</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-6'>
+          <div className='space-y-2'>
+            <Label>Code Pièce</Label>
+            <Input
+              value={codePiece}
+              onChange={e => setCodePiece(e.target.value)}
+              placeholder='Enter Code Pièce'
+            />
+          </div>
+          <div className='space-y-2'>
+            <Label>Checklist</Label>
+            <div className='flex flex-col gap-2'>
+              {['Check 1', 'Check 2', 'Check 3'].map(item => (
+                <div key={item} className='flex items-center gap-2'>
+                  <input
+                    type='checkbox'
+                    checked={checklist.includes(item)}
+                    onChange={e => handleChecklistChange(item, e.target.checked)}
+                  />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -185,6 +300,19 @@ function MaterialAndPartForm({ nextFunction }) {
   const learPNRef = useRef(null)
   const storageRef = useRef(null)
   const availRef = useRef(null)
+
+  const [errorOpen, setErrorOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [shakingField, setShakingField] = useState(null)
+
+  const showError = (msg, fieldId = null) => {
+    setErrorMessage(msg)
+    setErrorOpen(true)
+    if (fieldId) {
+      setShakingField(fieldId)
+      setTimeout(() => setShakingField(null), 500)
+    }
+  }
 
   // restore values on mount
   useEffect(() => {
@@ -225,8 +353,8 @@ function MaterialAndPartForm({ nextFunction }) {
   const handleFetchPart = async () => {
     const pn = learPN.trim()
     if (!pn.toLowerCase().startsWith('p'))
-      return toast.error('Lear PN must start with P')
-    if (pn.length !== 16) return toast.error('Lear PN must be 16 characters')
+      return showError('Lear PN must start with P', 'learPN')
+    if (pn.length !== 16) return showError('Lear PN must be 16 characters', 'learPN')
 
     setLoading(true)
     try {
@@ -253,7 +381,7 @@ function MaterialAndPartForm({ nextFunction }) {
       toast.success('Part loaded')
       setTimeout(() => storageRef.current?.focus(), 250)
     } catch {
-      toast.error('Part not found')
+      showError('Part not found', 'learPN')
       setPart({ tescaPN: '', desc: '', qtyPerBox: '' })
     } finally {
       setLoading(false)
@@ -264,8 +392,8 @@ function MaterialAndPartForm({ nextFunction }) {
   const handleStorageDone = () => {
     const su = storageUnit.trim()
     if (!su.toLowerCase().startsWith('s'))
-      return toast.error('HU Galia must start with s')
-    if (su.length !== 10) return toast.error('HU Galia must be 10 characters')
+      return showError('HU Galia must start with s', 'storage')
+    if (su.length !== 10) return showError('HU Galia must be 10 characters', 'storage')
     setCurrentData((prev) => ({
       ...prev,
       materile: { ...prev.materile, storageUn: su.substring(1) },
@@ -307,7 +435,7 @@ function MaterialAndPartForm({ nextFunction }) {
 
   return (
     <div className='w-full p-6'>
-      <Card className='w-full rounded-2xl p-6 shadow-lg'>
+      <Card className='w-full rounded-2xl p-6 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-xl transition-all border-t-4 border-t-primary'>
         <CardHeader>
           <CardTitle className='text-2xl'>
             Part & Material Information
@@ -323,7 +451,11 @@ function MaterialAndPartForm({ nextFunction }) {
               <div className='space-y-2'>
                 <Label className='text-lg font-medium'>Lear PN</Label>
                 <Input
-                  className='h-12 px-4 text-lg'
+                  className={cn(
+                    'h-12 px-4 text-lg transition-all duration-200',
+                    shakingField === 'learPN' &&
+                    'animate-shake border-destructive ring-2 ring-destructive/20'
+                  )}
                   ref={learPNRef}
                   value={learPN}
                   onChange={(e) => setLearPN(e.target.value)}
@@ -361,7 +493,11 @@ function MaterialAndPartForm({ nextFunction }) {
               <div className='space-y-2'>
                 <Label className='text-lg font-medium'>HU Galia</Label>
                 <Input
-                  className='h-12 px-4 text-lg'
+                  className={cn(
+                    'h-12 px-4 text-lg transition-all duration-200',
+                    shakingField === 'storage' &&
+                    'animate-shake border-destructive ring-2 ring-destructive/20'
+                  )}
                   ref={storageRef}
                   value={storageUnit}
                   onChange={(e) => setStorageUnit(e.target.value)}
@@ -385,16 +521,18 @@ function MaterialAndPartForm({ nextFunction }) {
           </div>
         </CardContent>
       </Card>
+      <ErrorPopup
+        open={errorOpen}
+        onOpenChange={setErrorOpen}
+        message={errorMessage}
+      />
     </div>
   )
 }
 
 /* -----------------------------
-   CompleteComponent remains unchanged
+   CompleteComponent
    ----------------------------- */
-
-
-
 function CompleteComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
@@ -438,6 +576,19 @@ function CompleteComponent() {
   const barcode1Ref = useRef(null)
   const barcode2Ref = useRef(null)
 
+  const [errorOpen, setErrorOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [shakingField, setShakingField] = useState(null)
+
+  const showError = (msg, fieldId = null) => {
+    setErrorMessage(msg)
+    setErrorOpen(true)
+    if (fieldId) {
+      setShakingField(fieldId)
+      setTimeout(() => setShakingField(null), 500)
+    }
+  }
+
   // Restore state
   useEffect(() => {
     setBarcode1(learPN)
@@ -470,23 +621,23 @@ function CompleteComponent() {
 
   const validateBarcode2 = (value) => {
     if (!prefix6) {
-      toast.error('Lear PN is missing.')
+      showError('Lear PN is missing.', 'barcode2')
       return false
     }
     if (!value.startsWith(prefix6)) {
-      toast.error(`Must start with ${prefix6}`)
+      showError(`Must start with ${prefix6}`, 'barcode2')
       return false
     }
     if (value.length !== 13) {
-      toast.error('Must be 13 chars')
+      showError('Must be 13 chars', 'barcode2')
       return false
     }
     if (!isBarcode2Unique(value)) {
-      toast.error('Already used')
+      showError('Already used', 'barcode2')
       return false
     }
     if (barcodesLocal.length >= qty) {
-      toast.error('Reached required quantity')
+      showError('Reached required quantity', 'barcode2')
       return false
     }
     return true
@@ -494,7 +645,7 @@ function CompleteComponent() {
 
   const handleAdd = () => {
     if (barcode1 !== learPN) {
-      toast.error('Réf Lear must match')
+      showError('Réf Lear must match', 'barcode1')
       return
     }
     if (!validateBarcode2(barcode2)) return
@@ -562,77 +713,77 @@ function CompleteComponent() {
   const generateZPL = () => {
     // Code-barres combiné: LearPN + TicketCode
     const combinedBarcode = `${learPN}${ticketCode}`
-    
+
     // Date et heure actuelles
     const now = new Date()
-    const dateStr = now.toLocaleDateString('en-US', { 
-      month: '2-digit', 
-      day: '2-digit', 
-      year: 'numeric' 
+    const dateStr = now.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
     })
-    const timeStr = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
       second: '2-digit',
-      hour12: true 
+      hour12: true
     })
-    
+
     const zpl = `
-^XA
-^CI28
-^PW812
-^LL406
+        ^XA
+        ^CI28
+        ^PW812
+        ^LL406
 
-^FO20,20^A0N,35,35^FDtesca^FS
+        ^FO20,20^A0N,35,35^FDtesca^FS
 
-^FO20,80^A0N,25,25^FD${learPN}^FS
+        ^FO20,80^A0N,25,25^FD${learPN}^FS
 
-^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
+        ^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
 
-^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
+        ^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
 
-^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
+        ^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
 
-^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
+        ^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
 
-^XZ
-`
+        ^XZ
+        `
     return zpl.trim()
   }
 
   // Envoi du ZPL à l'imprimante Zebra via backend
   const printToGodex = async () => {
-  try {
-    setProcessing(true);
-    const ezplCode = generateZPL();
-    
-    // Convertir le code EZPL en Blob
-    const blob = new Blob([ezplCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    // Créer un iframe caché pour l'impression
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = url;
-    document.body.appendChild(iframe);
-    
-    iframe.onload = function() {
-      iframe.contentWindow.print();
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(url);
-      }, 1000);
-    };
-   console.log(" hggvhbh", ezplCode);
-    toast.success('Impression lancée sur l\'imprimante par défaut');
-    
-  } catch (err) {
-    toast.error(err.message || 'Impression échouée');
-    downloadZPL();
-  } finally {
-    setProcessing(false);
-  }
-};
+    try {
+      setProcessing(true);
+      const ezplCode = generateZPL();
+
+      // Convertir le code EZPL en Blob
+      const blob = new Blob([ezplCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      // Créer un iframe caché pour l'impression
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = function () {
+        iframe.contentWindow.print();
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      };
+      console.log(" hggvhbh", ezplCode);
+      toast.success('Impression lancée sur l\'imprimante par défaut');
+
+    } catch (err) {
+      toast.error(err.message || 'Impression échouée');
+      downloadZPL();
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   // Télécharger le code ZPL
   const downloadZPL = () => {
@@ -654,18 +805,18 @@ function CompleteComponent() {
     if (!showPreview || !ticketCode) return null
 
     const combinedBarcode = `${learPN}${ticketCode}`
-    
+
     const now = new Date()
-    const dateStr = now.toLocaleDateString('en-US', { 
-      month: '2-digit', 
-      day: '2-digit', 
-      year: 'numeric' 
+    const dateStr = now.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
     })
-    const timeStr = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
       second: '2-digit',
-      hour12: true 
+      hour12: true
     })
 
     return (
@@ -677,31 +828,31 @@ function CompleteComponent() {
           >
             ×
           </button>
-          
+
           <h2 className='mb-4 text-center text-xl font-bold'>
             Prévisualisation du Ticket Galia
           </h2>
-          
+
           <div className='mx-auto w-[400px] border-2 border-gray-800 bg-white p-4'>
             <div className='space-y-2'>
               <div className='text-3xl font-bold'>tesca</div>
-              
+
               <div className='mt-3 text-sm font-semibold'>
                 {learPN}
               </div>
-              
+
               <div className='my-3 flex flex-col items-center gap-2'>
                 <svg className='w-full' height='80' viewBox='0 0 400 80'>
                   {combinedBarcode.split('').map((char, idx) => {
                     const barWidth = char.charCodeAt(0) % 3 + 2;
                     const xPos = idx * 12;
                     return (
-                      <rect 
-                        key={idx} 
-                        x={xPos} 
-                        y='0' 
-                        width={barWidth} 
-                        height='60' 
+                      <rect
+                        key={idx}
+                        x={xPos}
+                        y='0'
+                        width={barWidth}
+                        height='60'
                         fill='black'
                       />
                     );
@@ -709,18 +860,18 @@ function CompleteComponent() {
                 </svg>
                 <div className='text-xs font-mono tracking-wider'>{combinedBarcode}</div>
               </div>
-              
+
               <div className='text-center text-lg font-bold'>
                 {learPN} {ticketCode}
               </div>
-              
+
               <div className='mt-4 space-y-1 text-sm'>
                 <div className='font-semibold'>Oper: {operatorNumber}</div>
                 <div className='font-semibold'>Date: {dateStr} Time: {timeStr}</div>
               </div>
             </div>
           </div>
-          
+
           <div className='mt-6 text-center'>
             <button
               onClick={() => setShowPreview(false)}
@@ -729,9 +880,9 @@ function CompleteComponent() {
               Fermer
             </button>
             <button
-                onClick={() =>
-    generateTicketPDF()
-  }
+              onClick={() =>
+                generateTicketPDF()
+              }
               className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'
             >
               pdf
@@ -742,69 +893,69 @@ function CompleteComponent() {
     )
   }
 
- const generateTicketPDF = () => {
-  const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+  const generateTicketPDF = () => {
+    const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
 
-  let y = 0.3;
+    let y = 0.3;
 
-  // QR Code with all data
-  const qrSizeCm = 1.2;
-  const dpi = 96;
-  const qrCanvas = document.createElement('canvas');
-  qrCanvas.width = qrSizeCm * dpi / 2.54;
-  qrCanvas.height = qrCanvas.width;
+    // QR Code with all data
+    const qrSizeCm = 1.2;
+    const dpi = 96;
+    const qrCanvas = document.createElement('canvas');
+    qrCanvas.width = qrSizeCm * dpi / 2.54;
+    qrCanvas.height = qrCanvas.width;
 
-  ;
-  
-  
+    ;
 
-  // Title
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('tesca', 0.2, y);
-  y += 0.6;
 
-  // Lear PN
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(learPN, 0.2, y);
-  y += 0.5;
 
-  // Barcode for ticket code
-  const canvas1 = document.createElement('canvas');
-  JsBarcode(canvas1, ticketCode, {
-    format: 'CODE128',
-    width: 1,
-    height: 25,
-    displayValue: false,
-  });
-  doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
-  y += 1.2;
+    // Title
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('tesca', 0.2, y);
+    y += 0.6;
 
-  // Ticket code (centered)
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  const textWidth = doc.getTextWidth(ticketCode);
-  const xCentered = ( textWidth) / 2;
-  doc.text(ticketCode, xCentered, y);
-  y += 0.8;
+    // Lear PN
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(learPN, 0.2, y);
+    y += 0.5;
 
-  // Operator (bold and larger)
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Oper: ${operatorNumber}`, 0.2, y);
-  y += 0.5;
+    // Barcode for ticket code
+    const canvas1 = document.createElement('canvas');
+    JsBarcode(canvas1, ticketCode, {
+      format: 'CODE128',
+      width: 1,
+      height: 25,
+      displayValue: false,
+    });
+    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    y += 1.2;
 
-  // Date & Time
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  const now = new Date();
-  doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
+    // Ticket code (centered)
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    const textWidth = doc.getTextWidth(ticketCode);
+    const xCentered = (textWidth) / 2;
+    doc.text(ticketCode, xCentered, y);
+    y += 0.8;
 
-  // Print
-  doc.autoPrint();
-  window.open(doc.output('bloburl'), '_blank');
-};
+    // Operator (bold and larger)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Oper: ${operatorNumber}`, 0.2, y);
+    y += 0.5;
+
+    // Date & Time
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    const now = new Date();
+    doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
+
+    // Print
+    doc.autoPrint();
+    window.open(doc.output('bloburl'), '_blank');
+  };
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
@@ -812,8 +963,8 @@ function CompleteComponent() {
   return (
     <div className='mx-auto w-full max-w-2xl space-y-6 p-6'>
       <PreviewTicket />
-      
-      <Card className='rounded-2xl shadow-lg'>
+
+      <Card className='rounded-2xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-xl transition-all border-t-4 border-t-primary'>
         <CardHeader>
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
@@ -837,6 +988,11 @@ function CompleteComponent() {
                 ref={barcode2Ref}
                 value={barcode2}
                 onChange={(e) => setBarcode2(e.target.value)}
+                className={cn(
+                  'transition-all duration-200',
+                  shakingField === 'barcode2' &&
+                  'animate-shake border-destructive ring-2 ring-destructive/20'
+                )}
                 placeholder={
                   prefix6
                     ? `Must start with ${prefix6} (13 chars)`
@@ -855,7 +1011,7 @@ function CompleteComponent() {
             />
           </div>
 
-          <Card className='mt-6 w-full'>
+          <Card className='mt-6 w-full animate-in zoom-in-95 duration-500 hover:scale-[1.02] transition-transform'>
             <CardHeader>
               <CardTitle className='text-center'>Progress</CardTitle>
             </CardHeader>
@@ -873,7 +1029,7 @@ function CompleteComponent() {
       </Card>
 
       {shouldShowQrSnapshot && (
-        <Card className='rounded-2xl shadow-md'>
+        <Card className='rounded-2xl shadow-md animate-in fade-in slide-in-from-bottom-8 duration-700 hover:shadow-lg transition-all'>
           <CardHeader>
             <CardTitle>Traceability Codes Added</CardTitle>
           </CardHeader>
@@ -953,7 +1109,7 @@ function CompleteComponent() {
       )}
 
       {shouldShowQrSnapshot && (
-        <Card className='rounded-2xl shadow-md'>
+        <Card className='rounded-2xl shadow-md animate-in fade-in slide-in-from-bottom-8 duration-700 hover:shadow-lg transition-all'>
           <CardHeader>
             <CardTitle>QR Data Snapshot</CardTitle>
           </CardHeader>
@@ -999,10 +1155,10 @@ function CompleteComponent() {
                               b: { barcode2: string },
                               index: number
                             ) => (
-                            <div key={`${b.barcode2}-${index}`}>
-                              #{index + 1}:{' '}
-                              <span className='font-mono'>{b.barcode2}</span>
-                            </div>
+                              <div key={`${b.barcode2}-${index}`}>
+                                #{index + 1}:{' '}
+                                <span className='font-mono'>{b.barcode2}</span>
+                              </div>
                             )
                           )}
                         </div>
@@ -1021,19 +1177,63 @@ function CompleteComponent() {
       )}
 
       {/* {showPdfButton && ( */}
-        <div className='mt-4 flex flex-wrap justify-center gap-3'>
-          <button
-            onClick={() => setShowPreview(true)}
-            className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
-          >
-            👁️ Show Ticket and Download
-          </button>
-          
-         
-        </div>
+      <div className='mt-4 flex flex-wrap justify-center gap-3'>
+        <button
+          onClick={() => setShowPreview(true)}
+          className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
+        >
+          👁️ Show Ticket and Download
+        </button>
+
+
+      </div>
       {/* )} */}
+      <ErrorPopup
+        open={errorOpen}
+        onOpenChange={setErrorOpen}
+        message={errorMessage}
+      />
     </div>
   )
 }
 
-
+function ErrorPopup({ open, onOpenChange, message }) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className='border-l-8 border-destructive data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg'>
+        <AlertDialogHeader>
+          <AlertDialogTitle className='flex items-center gap-2 text-2xl text-destructive'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='24'
+              height='24'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className='h-6 w-6'
+            >
+              <circle cx='12' cy='12' r='10' />
+              <line x1='12' x2='12' y1='8' y2='12' />
+              <line x1='12' x2='12.01' y1='16' y2='16' />
+            </svg>
+            Error Detected
+          </AlertDialogTitle>
+          <AlertDialogDescription className='text-base font-medium text-foreground'>
+            {message}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction
+            onClick={() => onOpenChange(false)}
+            className='bg-destructive text-destructive-foreground transition-transform hover:scale-105 hover:bg-destructive/90 active:scale-95'
+          >
+            OK
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}

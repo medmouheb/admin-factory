@@ -10,7 +10,7 @@ import { Main } from '@/components/layout/main'
 import { ThemeSwitch } from '@/components/theme-switch'
 import StepperDemo from '@/components/stepper'
 
-export const Route = createFileRoute('/clerk')({
+export const Route = createFileRoute('/check-export')({
   component: RouteComponent,
 })
 

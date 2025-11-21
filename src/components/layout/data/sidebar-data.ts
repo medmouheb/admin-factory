@@ -20,7 +20,7 @@ import {
   ShieldCheck,
   AudioWaveform,
   Command,
-  
+  ListOrdered,
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
@@ -37,11 +37,11 @@ export const sidebarData: SidebarData = {
       logo: Command,
       plan: '',
     },
- /*  {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },*/
+    /*  {
+         name: 'Acme Inc',
+         logo: GalleryVerticalEnd,
+         plan: 'Enterprise',
+       },*/
     {
       name: 'Acme Corp.',
       logo: AudioWaveform,
@@ -78,24 +78,29 @@ export const sidebarData: SidebarData = {
           url: '/users',
           icon: Users,
         },
-        /*{
-          title: 'Secured by Clerk',
-          icon: ClerkLogo,
+        {
+          title: 'Reapirage',
+          url: '/reapirage',
+          icon: ListOrdered,
+        },
+        {
+          title: 'Check Export',
+          icon: ShieldCheck,
           items: [
             {
               title: 'Sign In',
-              url: '/clerk/sign-in',
+              url: '/check-export/sign-in',
             },
             {
               title: 'Sign Up',
-              url: '/clerk/sign-up',
+              url: '/check-export/sign-up',
             },
             {
               title: 'User Management',
-              url: '/clerk/user-management',
+              url: '/check-export/user-management',
             },
           ],
-        },*/
+        },
       ],
     },
     /*{
@@ -120,6 +125,7 @@ export const sidebarData: SidebarData = {
             {
               title: 'Forgot Password',
               url: '/forgot-password',
+              icon: Lock,
             },
             {
               title: 'OTP',

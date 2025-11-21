@@ -3,7 +3,7 @@ import { ClerkFullLogo } from '@/assets/clerk-full-logo'
 import { Logo } from '@/assets/logo'
 import { LearnMore } from '@/components/learn-more'
 
-export const Route = createFileRoute('/clerk/(auth)')({
+export const Route = createFileRoute('/check-export/(auth)')({
   component: ClerkAuthLayout,
 })
 

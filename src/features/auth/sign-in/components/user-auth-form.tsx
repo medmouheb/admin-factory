@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
@@ -152,12 +152,22 @@ export function UserAuthForm({
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
               <FormMessage />
-              <Link
-                to='/forgot-password'
+              <button
+                type='button'
+                onClick={() => {
+                  toast.promise(
+                    new Promise((resolve) => setTimeout(resolve, 1000)),
+                    {
+                      loading: 'Sending notification...',
+                      success: 'Notification sent to abderrahmen.dai.11@gmail.com',
+                      error: 'Failed to send notification',
+                    }
+                  )
+                }}
                 className='text-muted-foreground absolute end-0 -top-0.5 text-sm font-medium hover:opacity-75'
               >
                 Forgot password?
-              </Link>
+              </button>
             </FormItem>
           )}
         />
