@@ -89,17 +89,15 @@ Start the server
 
 ## Sponsoring this project ❤️
 
-If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/satnaing) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/satnaing) as well. Don’t worry, every penny helps. Thank you! 🙏
+If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/abderrahmen) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/abderrahmen) as well. Don’t worry, every penny helps. Thank you! 🙏
 
-For questions or sponsorship inquiries, feel free to reach out at [satnaingdev@gmail.com](mailto:satnaingdev@gmail.com).
+For questions or sponsorship inquiries, feel free to reach out at [abderrahmen@tescagroup.com](mailto:abderrahmen@tescagroup.com).
 
-### Current Sponsor
 
-- [Clerk](https://go.clerk.com/GttUAaK) - authentication and user management for the modern web
 
 ## Author
 
-Crafted with 🤍 by [@satnaing](https://github.com/satnaing)
+Crafted with 🤍 by [@abderrahmen](https://github.com/abderrahmen)
 
 ## License
 

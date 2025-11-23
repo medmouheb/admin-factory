@@ -33,7 +33,9 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
               'peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]'
             )}
           >
-            {children ?? <Outlet />}
+            <div className="animate-in fade-in zoom-in-95 duration-500">
+              {children ?? <Outlet />}
+            </div>
           </SidebarInset>
         </SidebarProvider>
       </LayoutProvider>

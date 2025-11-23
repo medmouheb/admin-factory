@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   AudioWaveform,
   Command,
-  ListOrdered,
+  ClipboardCheck,
+  Truck,
 } from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
@@ -58,9 +59,24 @@ export const sidebarData: SidebarData = {
           icon: LayoutDashboard,
         },
         {
-          title: 'Tasks',
-          url: '/tasks',
+          title: 'Check Export',
+          url: '/reapirage',
+          icon: ShieldCheck,
+        },
+        {
+          title: 'Retouch Packets',
+          url: '/retouch-packets',
           icon: ListTodo,
+        },
+        {
+          title: 'Quality Check',
+          url: '/quality-check',
+          icon: ClipboardCheck,
+        },
+        {
+          title: 'Transfer Management',
+          url: '/transfer-management',
+          icon: Truck,
         },
         {
           title: 'Apps',
@@ -78,29 +94,8 @@ export const sidebarData: SidebarData = {
           url: '/users',
           icon: Users,
         },
-        {
-          title: 'Reapirage',
-          url: '/reapirage',
-          icon: ListOrdered,
-        },
-        {
-          title: 'Check Export',
-          icon: ShieldCheck,
-          items: [
-            {
-              title: 'Sign In',
-              url: '/check-export/sign-in',
-            },
-            {
-              title: 'Sign Up',
-              url: '/check-export/sign-up',
-            },
-            {
-              title: 'User Management',
-              url: '/check-export/user-management',
-            },
-          ],
-        },
+
+
       ],
     },
     /*{

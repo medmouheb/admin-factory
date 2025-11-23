@@ -65,7 +65,7 @@ function NavBadge({ children }: { children: ReactNode }) {
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem className="animate-in fade-in slide-in-from-left-2 duration-300">
       <SidebarMenuButton
         asChild
         isActive={checkIsActive(href, item)}

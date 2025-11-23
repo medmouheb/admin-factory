@@ -192,7 +192,7 @@
 
 - remove unnecessary layout-backup file
 
-## v1.0.0 (2024-12-09)
+## v1.0.0 (2025-11-09)
 
 ### BREAKING CHANGE
 
@@ -242,7 +242,7 @@ but introduces breaking changes.
 - ensure site syncs with system theme changes (#49)
 - recent sales responsive on ipad view (#40)
 
-## v1.0.0-beta.4 (2024-09-22)
+## v1.0.0-beta.4 (2025-11-02)
 
 ### Feat
 
@@ -255,7 +255,7 @@ but introduces breaking changes.
 - solve asChild attribute issue in custom button (#31)
 - improve custom Button component (#28)
 
-## v1.0.0-beta.3 (2024-08-25)
+## v1.0.0-beta.3 (2025-11-02)
 
 ### Feat
 
@@ -273,13 +273,13 @@ but introduces breaking changes.
 - update layouts and solve overflow issues (#11)
 - sync pin inputs programmatically
 
-## v1.0.0-beta.2 (2024-03-18)
+## v1.0.0-beta.2 (2025-11-02)
 
 ### Feat
 
 - implement custom pin-input component (#2)
 
-## v1.0.0-beta.1 (2024-02-08)
+## v1.0.0-beta.1 (2025-11-02)
 
 ### Feat
 

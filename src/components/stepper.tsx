@@ -42,30 +42,49 @@ pdfMake.vfs = pdfFonts.vfs;
    ----------------------------- */
 const { useStepper, steps, utils } = defineStepper(
   {
-    id: 'LearPN',
-    title: 'Check Réf Galia',
-    description: 'Scan Lear PN & Galia',
+    id: 'ContainerManagement',
+    title: 'Container Management',
+    description: 'Identify & Isolate HU',
   },
   {
-    id: 'RepairDetails',
-    title: 'Repair Details',
-    description: 'Enter repair info',
+    id: 'ImpactAnalysis',
+    title: 'Impact Analysis',
+    description: 'Identify Defects',
   },
   {
-    id: 'complete',
-    title: 'Check traceability Label',
-    description: 'Scan & Print Labels',
+    id: 'TransferPrep',
+    title: 'Transfer Preparation',
+    description: 'Generate Transfer Label',
   }
 )
 
-const CurrentDataContext = createContext(null)
-function CurrentDataProvider({ children }) {
-  const [currentData, setCurrentData] = useState({
+interface BarcodeEntry {
+  barcode1: string; // LearPN
+  barcode2: string; // Traceability Code
+  errorCode: string;
+}
+
+interface CurrentData {
+  part: { learPN: string; tescaPN: string; desc: string; qtyPerBox: string };
+  materile: { storageUn: string; availStock: string; barcodes: BarcodeEntry[] };
+  ticketCode: string | null;
+  hasCompletedStep1: boolean;
+  operatorNumber?: string;
+}
+
+interface CurrentDataContextType {
+  currentData: CurrentData;
+  setCurrentData: React.Dispatch<React.SetStateAction<CurrentData>>;
+}
+
+const CurrentDataContext = createContext<CurrentDataContextType | null>(null)
+function CurrentDataProvider({ children }: { children: React.ReactNode }) {
+  const [currentData, setCurrentData] = useState<CurrentData>({
     part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
     materile: { storageUn: '', availStock: '', barcodes: [] },
     repair: { codePiece: '', checklist: [] },
     ticketCode: null,
-    hasCompletedStep1: false, // ✅ flag for first step completion
+    hasCompletedStep1: false,
   })
 
   return (
@@ -81,13 +100,18 @@ function useCurrentData() {
   return ctx
 }
 
+import RetouchPacketsList from './RetouchPacketsList'
+
 /* -----------------------------
    Main exported component
    ----------------------------- */
 export default function StepperFull() {
   return (
     <CurrentDataProvider>
-      <StepperInner />
+      <div className='space-y-8'>
+        <StepperInner />
+        <RetouchPacketsList />
+      </div>
     </CurrentDataProvider>
   )
 }
@@ -120,7 +144,7 @@ function StepperInner() {
     const isStorage =
       materile.storageUn?.trim().length === 10 &&
       materile.storageUn.toLowerCase().startsWith('s')
-    const isAvail = /^Q\d{2}$/.test(materile.availStock || '')
+    const isAvail = part.qtyPerBox && !isNaN(Number(part.qtyPerBox))
     return isLearPN && isPartLoaded && isStorage && isAvail
   }, [currentData])
 
@@ -130,97 +154,114 @@ function StepperInner() {
   }, [currentData])
 
   return (
-    <div className='container mx-auto p-6'>
-      <div className='mb-8 flex items-center justify-between'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Reapirage Process</h2>
-          <p className='text-muted-foreground'>
-            Follow the steps to complete the check.
-          </p>
-        </div>
-        <div className='flex items-center gap-2'>
-          <span className='rounded-full bg-muted px-3 py-1 text-sm font-medium'>
-            Step {currentIndex + 1} of {steps.length}
-          </span>
-        </div>
-      </div>
-
-      <div className='grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]'>
-        <div className='hidden md:block'>
-          <Card className='h-full border-none shadow-none bg-transparent'>
-            <CardContent className='p-0'>
-              <Stepper orientation='vertical' activeStep={currentIndex}>
-                {stepper.all.map((step, index) => (
-                  <Step
-                    key={step.id}
-                    label={step.title}
-                    description={step.description}
-                    onClick={() => {
-                      if (index === 1 && !isStep1Valid) return
-                      if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
-                      stepper.goTo(step.id)
-                    }}
-                  />
-                ))}
-              </Stepper>
-            </CardContent>
-          </Card>
+    <div className='min-h-[calc(100vh-2rem)] w-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 md:p-8'>
+      <div className='mx-auto max-w-7xl rounded-3xl bg-white/60 p-6 shadow-xl backdrop-blur-xl ring-1 ring-white/60 dark:bg-slate-900/60 dark:ring-slate-800 md:p-10'>
+        <div className='mb-10 flex items-center justify-between border-b border-slate-200/60 pb-6 dark:border-slate-800'>
+          <div>
+            <h2 className='bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold tracking-tight text-transparent'>
+              Reapirage Process
+            </h2>
+            <p className='text-muted-foreground mt-2 text-lg'>
+              Follow the steps to complete the check.
+            </p>
+          </div>
+          <div className='flex items-center gap-2'>
+            <span className='rounded-full bg-white/80 px-4 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700'>
+              Step {currentIndex + 1} of {steps.length}
+            </span>
+          </div>
         </div>
 
-        {/* Mobile Stepper (Horizontal) */}
-        <div className='md:hidden'>
-          <Stepper orientation='horizontal' activeStep={currentIndex}>
-            {stepper.all.map((step, index) => (
-              <Step
-                key={step.id}
-                // label={step.title} // Hide label on mobile to save space
-                onClick={() => {
-                  if (index === 1 && !isStep1Valid) return
-                  if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
-                  stepper.goTo(step.id)
-                }}
-              />
-            ))}
-          </Stepper>
-        </div>
-
-        <div className='flex flex-col gap-6'>
-          <div className='min-h-[400px]'>
-            {stepper.switch({
-              LearPN: () => <MaterialAndPartForm nextFunction={stepper.next} />,
-              RepairDetails: () => <RepairDetailsForm nextFunction={stepper.next} />,
-              complete: () => <CompleteComponent />,
-            })}
+        <div className='grid gap-8 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]'>
+          <div className='hidden md:block'>
+            <Card className='h-full border-none shadow-none bg-transparent'>
+              <CardContent className='p-0'>
+                <Stepper orientation='vertical' activeStep={currentIndex}>
+                  {stepper.all.map((step, index) => (
+                    <Step
+                      key={step.id}
+                      label={step.title}
+                      description={step.description}
+                      onClick={() => {
+                        if (index === 1 && !isStep1Valid) return
+                        if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
+                        stepper.goTo(step.id)
+                      }}
+                    />
+                  ))}
+                </Stepper>
+              </CardContent>
+            </Card>
           </div>
 
-          {!stepper.isLast ? (
-            <div className='flex justify-end gap-4 border-t pt-6'>
-              <Button
-                variant='outline'
-                onClick={stepper.prev}
-                disabled={stepper.isFirst}
-                className='w-32'
+          {/* Mobile Stepper (Horizontal) */}
+          <div className='md:hidden'>
+            <Stepper orientation='horizontal' activeStep={currentIndex}>
+              {stepper.all.map((step, index) => (
+                <Step
+                  key={step.id}
+                  // label={step.title} // Hide label on mobile to save space
+                  onClick={() => {
+                    if (index === 1 && !isStep1Valid) return
+                    if (index === 2 && (!isStep1Valid || !isStep2Valid)) return
+                    stepper.goTo(step.id)
+                  }}
+                />
+              ))}
+            </Stepper>
+          </div>
+
+          <div className='flex flex-col gap-6'>
+            <div className='min-h-[400px] overflow-hidden'>
+              <div
+                key={stepper.current.id}
+                className='animate-in fade-in slide-in-from-right-8 duration-500'
               >
-                Back
-              </Button>
-              <Button
-                onClick={stepper.next}
-                disabled={
-                  (stepper.current.id === 'LearPN' && !isStep1Valid) ||
-                  (stepper.current.id === 'RepairDetails' && !isStep2Valid)
-                }
-                className='w-32'
-              >
-                {stepper.isLast ? 'Complete' : 'Next'}
-              </Button>
+                {stepper.switch({
+                  ContainerManagement: () => (
+                    <MaterialAndPartForm nextFunction={stepper.next} />
+                  ),
+                  ImpactAnalysis: () => (
+                    <ImpactAnalysisForm nextFunction={stepper.next} />
+                  ),
+                  TransferPrep: () => <TransferPrepComponent />,
+                })}
+              </div>
             </div>
-          ) : (
-            <div className='flex justify-end border-t pt-6'>
-              <Button onClick={handleFullReset} className='w-32'>
-                Reset
-              </Button>
-            </div>
-          )}
+
+            {!stepper.isLast ? (
+              <div className='flex justify-center gap-6 pt-8'>
+                <Button
+                  variant='secondary'
+                  onClick={stepper.prev}
+                  disabled={stepper.isFirst}
+                  className='w-40 rounded-full shadow-md transition-all hover:scale-105 hover:shadow-lg'
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={stepper.next}
+                  disabled={
+                    (stepper.current.id === 'ContainerManagement' &&
+                      !isStep1Valid) ||
+                    (stepper.current.id === 'ImpactAnalysis' && !isStep2Valid)
+                  }
+                  className='w-40 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all hover:scale-105 hover:shadow-lg hover:from-blue-700 hover:to-indigo-700'
+                >
+                  {stepper.isLast ? 'Complete' : 'Next'}
+                </Button>
+              </div>
+            ) : (
+              <div className='flex justify-center pt-8'>
+                <Button
+                  onClick={handleFullReset}
+                  className='w-40 rounded-full bg-gradient-to-r from-red-500 to-pink-600 shadow-md transition-all hover:scale-105 hover:shadow-lg hover:from-red-600 hover:to-pink-700'
+                >
+                  Reset
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -230,50 +271,68 @@ function StepperInner() {
 /* -----------------------------
    RepairDetailsForm
    ----------------------------- */
-function RepairDetailsForm({ nextFunction }) {
+function ImpactAnalysisForm({ nextFunction }: { nextFunction: () => void }) {
   const { currentData, setCurrentData } = useCurrentData()
-  const [codePiece, setCodePiece] = useState(currentData.repair?.codePiece || '')
-  const [checklist, setChecklist] = useState(currentData.repair?.checklist || [])
+  const [barcode, setBarcode] = useState('')
+  const [errorCode, setErrorCode] = useState('')
+  const [defects, setDefects] = useState<BarcodeEntry[]>(currentData.materile.barcodes || [])
 
-  const handleChecklistChange = (item, checked) => {
-    setChecklist(prev =>
-      checked ? [...prev, item] : prev.filter(i => i !== item)
-    )
-  }
+  const handleAddDefect = () => {
+    if (!barcode || !errorCode) return
+    // Check if we have reached the quantity limit
+    const maxQty = parseInt(currentData.part.qtyPerBox || '0', 10)
+    if (defects.length >= maxQty && maxQty > 0) {
+      toast.error(`Cannot add more defects. Limit is ${maxQty}`)
+      return
+    }
 
-  useEffect(() => {
+    const newDefect = { barcode1: currentData.part.learPN, barcode2: barcode, errorCode }
+    const newDefects = [...defects, newDefect]
+    setDefects(newDefects)
     setCurrentData(prev => ({
       ...prev,
-      repair: { codePiece, checklist }
+      materile: { ...prev.materile, barcodes: newDefects }
     }))
-  }, [codePiece, checklist])
+    setBarcode('')
+    setErrorCode('')
+  }
 
   return (
     <div className='w-full p-6'>
       <Card className='w-full rounded-2xl p-6 shadow-lg border-t-4 border-t-primary'>
         <CardHeader>
-          <CardTitle className='text-2xl'>Repair Details</CardTitle>
+          <CardTitle className='text-2xl'>Impact Analysis</CardTitle>
         </CardHeader>
         <CardContent className='space-y-6'>
-          <div className='space-y-2'>
-            <Label>Code Pièce</Label>
-            <Input
-              value={codePiece}
-              onChange={e => setCodePiece(e.target.value)}
-              placeholder='Enter Code Pièce'
-            />
+          <div className='grid gap-4 sm:grid-cols-2'>
+            <div className='space-y-2'>
+              <Label>Part Barcode</Label>
+              <Input
+                value={barcode}
+                onChange={e => setBarcode(e.target.value)}
+                placeholder='Scan Part Barcode'
+                autoComplete='off'
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label>Error Code</Label>
+              <Input
+                value={errorCode}
+                onChange={e => setErrorCode(e.target.value)}
+                placeholder='Enter Error Code'
+                autoComplete='off'
+              />
+            </div>
           </div>
-          <div className='space-y-2'>
-            <Label>Checklist</Label>
-            <div className='flex flex-col gap-2'>
-              {['Check 1', 'Check 2', 'Check 3'].map(item => (
-                <div key={item} className='flex items-center gap-2'>
-                  <input
-                    type='checkbox'
-                    checked={checklist.includes(item)}
-                    onChange={e => handleChecklistChange(item, e.target.checked)}
-                  />
-                  <span>{item}</span>
+          <Button onClick={handleAddDefect} className='w-full'>Add Defect</Button>
+
+          <div className='mt-4'>
+            <h3 className='font-semibold mb-2'>Defects Logged ({defects.length})</h3>
+            <div className='border rounded-md p-2 max-h-40 overflow-y-auto space-y-2'>
+              {defects.map((d, i) => (
+                <div key={i} className='flex justify-between text-sm border-b pb-1 last:border-0'>
+                  <span>{d.barcode2}</span>
+                  <span className='font-mono bg-red-100 text-red-800 px-2 rounded'>{d.errorCode}</span>
                 </div>
               ))}
             </div>
@@ -287,7 +346,7 @@ function RepairDetailsForm({ nextFunction }) {
 /* -----------------------------
    MaterialAndPartForm
    ----------------------------- */
-function MaterialAndPartForm({ nextFunction }) {
+function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void }) {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
 
@@ -328,7 +387,7 @@ function MaterialAndPartForm({ nextFunction }) {
 
   // focus step
   useEffect(() => {
-    if (stepper.current.id === 'LearPN')
+    if (stepper.current.id === 'ContainerManagement')
       setTimeout(() => learPNRef.current?.focus(), 60)
   }, [stepper.current.id])
 
@@ -462,6 +521,7 @@ function MaterialAndPartForm({ nextFunction }) {
                   onKeyDown={(e) => handleKeyDown(e, 'part')}
                   maxLength={16}
                   placeholder='Enter Lear PN (starts with P, 16 chars)'
+                  autoComplete='off'
                 />
               </div>
 
@@ -504,17 +564,19 @@ function MaterialAndPartForm({ nextFunction }) {
                   onKeyDown={(e) => handleKeyDown(e, 'storage')}
                   maxLength={10}
                   placeholder='Enter HU Galia (starts with s, 10 chars)'
+                  autoComplete='off'
                 />
               </div>
 
               <div className='space-y-2'>
-                <Label className='text-lg font-medium'>Available Stock</Label>
+                <Label className='text-lg font-medium'>Quantity</Label>
                 <Input
                   className='h-12 px-4 text-lg'
                   ref={availRef}
-                  value={availStock}
-                  onChange={(e) => setAvailStock(e.target.value)}
-                  placeholder='Enter like "Q05"'
+                  value={part.qtyPerBox}
+                  onChange={(e) => setPart(prev => ({ ...prev, qtyPerBox: e.target.value }))}
+                  placeholder='Enter Quantity'
+                  autoComplete='off'
                 />
               </div>
             </div>
@@ -531,9 +593,9 @@ function MaterialAndPartForm({ nextFunction }) {
 }
 
 /* -----------------------------
-   CompleteComponent
+   TransferPrepComponent
    ----------------------------- */
-function CompleteComponent() {
+function TransferPrepComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
 
@@ -546,7 +608,7 @@ function CompleteComponent() {
 
   const [barcode1, setBarcode1] = useState(learPN)
   const [barcode2, setBarcode2] = useState('')
-  const [barcodesLocal, setBarcodesLocal] = useState(
+  const [barcodesLocal, setBarcodesLocal] = useState<BarcodeEntry[]>(
     currentData.materile.barcodes || []
   )
   const [ticketCode, setTicketCode] = useState(currentData.ticketCode || null)
@@ -597,7 +659,7 @@ function CompleteComponent() {
   }, [])
 
   useEffect(() => {
-    if (stepper.current.id === 'complete') {
+    if (stepper.current.id === 'TransferPrep') {
       setTimeout(() => barcode1Ref.current?.focus(), 60)
     }
   }, [stepper.current.id])
@@ -650,7 +712,7 @@ function CompleteComponent() {
     }
     if (!validateBarcode2(barcode2)) return
 
-    const newList = [...barcodesLocal, { barcode1, barcode2 }]
+    const newList = [...barcodesLocal, { barcode1, barcode2, errorCode: 'N/A' }]
     setBarcodesLocal(newList)
     setBarcode2('')
     setTimeout(() => barcode1Ref.current?.focus(), 80)
@@ -679,7 +741,7 @@ function CompleteComponent() {
       setTicketCode(data.code)
       toast.success('Ticket generated.')
       await bulkValidate(data.code)
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || 'Ticket generation failed')
     } finally {
       setProcessing(false)
@@ -702,10 +764,47 @@ function CompleteComponent() {
       })
       toast.success(`Saved ${barcodesLocal.length} codes.`)
       setShowPdfButton(true)
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || 'Bulk save failed')
     } finally {
       setProcessing(false)
+    }
+  }
+
+  const savePacket = async () => {
+    try {
+      const packetData = {
+        id: ticketCode,
+        huGalia: currentData.materile.storageUn,
+        location: '354D',
+        status: 'Ready for Transfer',
+        quantity: qty,
+        date: new Date().toISOString().split('T')[0],
+        pieces: barcodesLocal.map(b => ({ barcode: b.barcode2, status: 'OK' }))
+      }
+
+      const res = await fetch('http://localhost:8080/api/packets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(packetData)
+      })
+
+      if (!res.ok) throw new Error('Failed to save packet')
+      toast.success('Packet saved to database')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to save packet')
+      throw error
+    }
+  }
+
+  const handleGenerateAndPrint = async () => {
+    if (!ticketCode) return
+    try {
+      await savePacket()
+      generateTicketPDF()
+    } catch (e) {
+      // Error handled in savePacket
     }
   }
 
@@ -729,25 +828,25 @@ function CompleteComponent() {
     })
 
     const zpl = `
-        ^XA
-        ^CI28
-        ^PW812
-        ^LL406
+      ^XA
+      ^CI28
+      ^PW812
+      ^LL406
 
-        ^FO20,20^A0N,35,35^FDtesca^FS
+      ^FO20,20^A0N,35,35^FDtesca^FS
 
-        ^FO20,80^A0N,25,25^FD${learPN}^FS
+      ^FO20,80^A0N,25,25^FD${learPN}^FS
 
-        ^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
+      ^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
 
-        ^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
+      ^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
 
-        ^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
+      ^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
 
-        ^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
+      ^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
 
-        ^XZ
-        `
+      ^XZ
+      `
     return zpl.trim()
   }
 
@@ -777,7 +876,7 @@ function CompleteComponent() {
       console.log(" hggvhbh", ezplCode);
       toast.success('Impression lancée sur l\'imprimante par défaut');
 
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || 'Impression échouée');
       downloadZPL();
     } finally {
@@ -880,9 +979,10 @@ function CompleteComponent() {
               Fermer
             </button>
             <button
-              onClick={() =>
+              onClick={async () => {
+                await savePacket()
                 generateTicketPDF()
-              }
+              }}
               className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'
             >
               pdf
@@ -923,27 +1023,33 @@ function CompleteComponent() {
 
     // Barcode for ticket code
     const canvas1 = document.createElement('canvas');
-    JsBarcode(canvas1, ticketCode, {
-      format: 'CODE128',
-      width: 1,
-      height: 25,
-      displayValue: false,
-    });
-    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    if (ticketCode) {
+      JsBarcode(canvas1, ticketCode, {
+        format: 'CODE128',
+        width: 1,
+        height: 25,
+        displayValue: false,
+      });
+      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+    }
     y += 1.2;
 
     // Ticket code (centered)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    const textWidth = doc.getTextWidth(ticketCode);
+    const textWidth = doc.getTextWidth(ticketCode || '');
     const xCentered = (textWidth) / 2;
-    doc.text(ticketCode, xCentered, y);
+    doc.text(ticketCode || '', xCentered, y);
     y += 0.8;
 
     // Operator (bold and larger)
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text(`Oper: ${operatorNumber}`, 0.2, y);
+    y += 0.5;
+
+    // Quantity
+    doc.text(`Qty: ${qty}`, 0.2, y);
     y += 0.5;
 
     // Date & Time
@@ -998,6 +1104,7 @@ function CompleteComponent() {
                     ? `Must start with ${prefix6} (13 chars)`
                     : 'LearPN missing'
                 }
+                autoComplete='off'
               />
             </div>
           </div>
@@ -1008,6 +1115,7 @@ function CompleteComponent() {
               value={operatorNumber}
               onChange={(e) => setOperatorNumber(e.target.value)}
               placeholder="Ex: 332110"
+              autoComplete='off'
             />
           </div>
 
@@ -1108,74 +1216,6 @@ function CompleteComponent() {
         </div>
       )}
 
-      {shouldShowQrSnapshot && (
-        <Card className='rounded-2xl shadow-md animate-in fade-in slide-in-from-bottom-8 duration-700 hover:shadow-lg transition-all'>
-          <CardHeader>
-            <CardTitle>QR Data Snapshot</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='overflow-x-auto'>
-              <Table>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className='font-medium'>Ticket Code</TableCell>
-                    <TableCell className='font-mono'>
-                      {qrData.ticketCode || '—'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Lear PN</TableCell>
-                    <TableCell className='font-mono'>
-                      {qrData.learPN || '—'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Operator</TableCell>
-                    <TableCell>{qrData.operatorNumber || '—'}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Date</TableCell>
-                    <TableCell>
-                      {qrData.date
-                        ? new Date(qrData.date).toLocaleString()
-                        : '—'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Qty Required</TableCell>
-                    <TableCell>{qrData.qty || 0}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Barcodes</TableCell>
-                    <TableCell>
-                      {qrData.barcodes.length > 0 ? (
-                        <div className='space-y-1 text-sm'>
-                          {qrData.barcodes.map(
-                            (
-                              b: { barcode2: string },
-                              index: number
-                            ) => (
-                              <div key={`${b.barcode2}-${index}`}>
-                                #{index + 1}:{' '}
-                                <span className='font-mono'>{b.barcode2}</span>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      ) : (
-                        <span className='text-muted-foreground'>
-                          No scans yet
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* {showPdfButton && ( */}
       <div className='mt-4 flex flex-wrap justify-center gap-3'>
         <button
@@ -1184,8 +1224,12 @@ function CompleteComponent() {
         >
           👁️ Show Ticket and Download
         </button>
-
-
+        <button
+          onClick={handleGenerateAndPrint}
+          className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700'
+        >
+          🖨️ Generate & Print
+        </button>
       </div>
       {/* )} */}
       <ErrorPopup

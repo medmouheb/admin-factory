@@ -9,9 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
+import { Route as CheckExportRouteRouteImport } from './routes/check-export/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedTransferManagementRouteImport } from './routes/_authenticated/transfer-management'
+import { Route as AuthenticatedRetouchPacketsRouteImport } from './routes/_authenticated/retouch-packets'
+import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
+import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -22,8 +26,8 @@ import { Route as authSignIn2RouteImport } from './routes/(auth)/sign-in-2'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
-import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
-import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
+import { Route as CheckExportAuthenticatedRouteRouteImport } from './routes/check-export/_authenticated/route'
+import { Route as CheckExportauthRouteRouteImport } from './routes/check-export/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
@@ -31,18 +35,18 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
-import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
-import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
-import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as CheckExportAuthenticatedUserManagementRouteImport } from './routes/check-export/_authenticated/user-management'
+import { Route as CheckExportauthSignUpRouteImport } from './routes/check-export/(auth)/sign-up'
+import { Route as CheckExportauthSignInRouteImport } from './routes/check-export/(auth)/sign-in'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 
-const ClerkRouteRoute = ClerkRouteRouteImport.update({
-  id: '/clerk',
-  path: '/clerk',
+const CheckExportRouteRoute = CheckExportRouteRouteImport.update({
+  id: '/check-export',
+  path: '/check-export',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -54,6 +58,29 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTransferManagementRoute =
+  AuthenticatedTransferManagementRouteImport.update({
+    id: '/transfer-management',
+    path: '/transfer-management',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRetouchPacketsRoute =
+  AuthenticatedRetouchPacketsRouteImport.update({
+    id: '/retouch-packets',
+    path: '/retouch-packets',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedReapirageRoute = AuthenticatedReapirageRouteImport.update({
+  id: '/reapirage',
+  path: '/reapirage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQualityCheckRoute =
+  AuthenticatedQualityCheckRouteImport.update({
+    id: '/quality-check',
+    path: '/quality-check',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
   path: '/503',
@@ -104,13 +131,14 @@ const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClerkAuthenticatedRouteRoute = ClerkAuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => ClerkRouteRoute,
-} as any)
-const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
+const CheckExportAuthenticatedRouteRoute =
+  CheckExportAuthenticatedRouteRouteImport.update({
+    id: '/_authenticated',
+    getParentRoute: () => CheckExportRouteRoute,
+  } as any)
+const CheckExportauthRouteRoute = CheckExportauthRouteRouteImport.update({
   id: '/(auth)',
-  getParentRoute: () => ClerkRouteRoute,
+  getParentRoute: () => CheckExportRouteRoute,
 } as any)
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
@@ -150,21 +178,21 @@ const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
   path: '/apps/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ClerkAuthenticatedUserManagementRoute =
-  ClerkAuthenticatedUserManagementRouteImport.update({
+const CheckExportAuthenticatedUserManagementRoute =
+  CheckExportAuthenticatedUserManagementRouteImport.update({
     id: '/user-management',
     path: '/user-management',
-    getParentRoute: () => ClerkAuthenticatedRouteRoute,
+    getParentRoute: () => CheckExportAuthenticatedRouteRoute,
   } as any)
-const ClerkauthSignUpRoute = ClerkauthSignUpRouteImport.update({
+const CheckExportauthSignUpRoute = CheckExportauthSignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
-  getParentRoute: () => ClerkauthRouteRoute,
+  getParentRoute: () => CheckExportauthRouteRoute,
 } as any)
-const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
+const CheckExportauthSignInRoute = CheckExportauthSignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
-  getParentRoute: () => ClerkauthRouteRoute,
+  getParentRoute: () => CheckExportauthRouteRoute,
 } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
@@ -198,7 +226,7 @@ const AuthenticatedErrorsErrorRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/check-export': typeof CheckExportAuthenticatedRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -210,15 +238,19 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/quality-check': typeof AuthenticatedQualityCheckRoute
+  '/reapirage': typeof AuthenticatedReapirageRoute
+  '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/clerk/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/check-export/sign-in': typeof CheckExportauthSignInRoute
+  '/check-export/sign-up': typeof CheckExportauthSignUpRoute
+  '/check-export/user-management': typeof CheckExportAuthenticatedUserManagementRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
@@ -227,7 +259,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/check-export': typeof CheckExportAuthenticatedRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -238,15 +270,19 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/quality-check': typeof AuthenticatedQualityCheckRoute
+  '/reapirage': typeof AuthenticatedReapirageRoute
+  '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/clerk/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/check-export/sign-in': typeof CheckExportauthSignInRoute
+  '/check-export/sign-up': typeof CheckExportauthSignUpRoute
+  '/check-export/user-management': typeof CheckExportAuthenticatedUserManagementRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
@@ -257,10 +293,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/clerk': typeof ClerkRouteRouteWithChildren
+  '/check-export': typeof CheckExportRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
-  '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/check-export/(auth)': typeof CheckExportauthRouteRouteWithChildren
+  '/check-export/_authenticated': typeof CheckExportAuthenticatedRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
   '/(auth)/sign-in': typeof authSignInRoute
@@ -271,15 +307,19 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
+  '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
+  '/_authenticated/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/_authenticated/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
-  '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/check-export/(auth)/sign-in': typeof CheckExportauthSignInRoute
+  '/check-export/(auth)/sign-up': typeof CheckExportauthSignUpRoute
+  '/check-export/_authenticated/user-management': typeof CheckExportAuthenticatedUserManagementRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
@@ -290,7 +330,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/clerk'
+    | '/check-export'
     | '/settings'
     | '/forgot-password'
     | '/otp'
@@ -302,15 +342,19 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/quality-check'
+    | '/reapirage'
+    | '/retouch-packets'
+    | '/transfer-management'
     | '/'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
+    | '/check-export/sign-in'
+    | '/check-export/sign-up'
+    | '/check-export/user-management'
     | '/apps'
     | '/chats'
     | '/help-center'
@@ -319,7 +363,7 @@ export interface FileRouteTypes {
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/clerk'
+    | '/check-export'
     | '/forgot-password'
     | '/otp'
     | '/sign-in'
@@ -330,15 +374,19 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/quality-check'
+    | '/reapirage'
+    | '/retouch-packets'
+    | '/transfer-management'
     | '/'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
     | '/settings/notifications'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
+    | '/check-export/sign-in'
+    | '/check-export/sign-up'
+    | '/check-export/user-management'
     | '/apps'
     | '/chats'
     | '/help-center'
@@ -348,10 +396,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
-    | '/clerk'
+    | '/check-export'
     | '/_authenticated/settings'
-    | '/clerk/(auth)'
-    | '/clerk/_authenticated'
+    | '/check-export/(auth)'
+    | '/check-export/_authenticated'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
     | '/(auth)/sign-in'
@@ -362,15 +410,19 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/quality-check'
+    | '/_authenticated/reapirage'
+    | '/_authenticated/retouch-packets'
+    | '/_authenticated/transfer-management'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/notifications'
-    | '/clerk/(auth)/sign-in'
-    | '/clerk/(auth)/sign-up'
-    | '/clerk/_authenticated/user-management'
+    | '/check-export/(auth)/sign-in'
+    | '/check-export/(auth)/sign-up'
+    | '/check-export/_authenticated/user-management'
     | '/_authenticated/apps/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
@@ -381,7 +433,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
+  CheckExportRouteRoute: typeof CheckExportRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
   authSignInRoute: typeof authSignInRoute
@@ -396,11 +448,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/clerk': {
-      id: '/clerk'
-      path: '/clerk'
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkRouteRouteImport
+    '/check-export': {
+      id: '/check-export'
+      path: '/check-export'
+      fullPath: '/check-export'
+      preLoaderRoute: typeof CheckExportRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -415,6 +467,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transfer-management': {
+      id: '/_authenticated/transfer-management'
+      path: '/transfer-management'
+      fullPath: '/transfer-management'
+      preLoaderRoute: typeof AuthenticatedTransferManagementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/retouch-packets': {
+      id: '/_authenticated/retouch-packets'
+      path: '/retouch-packets'
+      fullPath: '/retouch-packets'
+      preLoaderRoute: typeof AuthenticatedRetouchPacketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reapirage': {
+      id: '/_authenticated/reapirage'
+      path: '/reapirage'
+      fullPath: '/reapirage'
+      preLoaderRoute: typeof AuthenticatedReapirageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quality-check': {
+      id: '/_authenticated/quality-check'
+      path: '/quality-check'
+      fullPath: '/quality-check'
+      preLoaderRoute: typeof AuthenticatedQualityCheckRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
@@ -487,19 +567,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clerk/_authenticated': {
-      id: '/clerk/_authenticated'
+    '/check-export/_authenticated': {
+      id: '/check-export/_authenticated'
       path: ''
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkAuthenticatedRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
+      fullPath: '/check-export'
+      preLoaderRoute: typeof CheckExportAuthenticatedRouteRouteImport
+      parentRoute: typeof CheckExportRouteRoute
     }
-    '/clerk/(auth)': {
-      id: '/clerk/(auth)'
+    '/check-export/(auth)': {
+      id: '/check-export/(auth)'
       path: ''
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkauthRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
+      fullPath: '/check-export'
+      preLoaderRoute: typeof CheckExportauthRouteRouteImport
+      parentRoute: typeof CheckExportRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -550,26 +630,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/clerk/_authenticated/user-management': {
-      id: '/clerk/_authenticated/user-management'
+    '/check-export/_authenticated/user-management': {
+      id: '/check-export/_authenticated/user-management'
       path: '/user-management'
-      fullPath: '/clerk/user-management'
-      preLoaderRoute: typeof ClerkAuthenticatedUserManagementRouteImport
-      parentRoute: typeof ClerkAuthenticatedRouteRoute
+      fullPath: '/check-export/user-management'
+      preLoaderRoute: typeof CheckExportAuthenticatedUserManagementRouteImport
+      parentRoute: typeof CheckExportAuthenticatedRouteRoute
     }
-    '/clerk/(auth)/sign-up': {
-      id: '/clerk/(auth)/sign-up'
+    '/check-export/(auth)/sign-up': {
+      id: '/check-export/(auth)/sign-up'
       path: '/sign-up'
-      fullPath: '/clerk/sign-up'
-      preLoaderRoute: typeof ClerkauthSignUpRouteImport
-      parentRoute: typeof ClerkauthRouteRoute
+      fullPath: '/check-export/sign-up'
+      preLoaderRoute: typeof CheckExportauthSignUpRouteImport
+      parentRoute: typeof CheckExportauthRouteRoute
     }
-    '/clerk/(auth)/sign-in': {
-      id: '/clerk/(auth)/sign-in'
+    '/check-export/(auth)/sign-in': {
+      id: '/check-export/(auth)/sign-in'
       path: '/sign-in'
-      fullPath: '/clerk/sign-in'
-      preLoaderRoute: typeof ClerkauthSignInRouteImport
-      parentRoute: typeof ClerkauthRouteRoute
+      fullPath: '/check-export/sign-in'
+      preLoaderRoute: typeof CheckExportauthSignInRouteImport
+      parentRoute: typeof CheckExportauthRouteRoute
     }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
@@ -634,6 +714,10 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
+  AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
+  AuthenticatedRetouchPacketsRoute: typeof AuthenticatedRetouchPacketsRoute
+  AuthenticatedTransferManagementRoute: typeof AuthenticatedTransferManagementRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -645,6 +729,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
+  AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,
+  AuthenticatedRetouchPacketsRoute: AuthenticatedRetouchPacketsRoute,
+  AuthenticatedTransferManagementRoute: AuthenticatedTransferManagementRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
@@ -657,52 +745,51 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface ClerkauthRouteRouteChildren {
-  ClerkauthSignInRoute: typeof ClerkauthSignInRoute
-  ClerkauthSignUpRoute: typeof ClerkauthSignUpRoute
+interface CheckExportauthRouteRouteChildren {
+  CheckExportauthSignInRoute: typeof CheckExportauthSignInRoute
+  CheckExportauthSignUpRoute: typeof CheckExportauthSignUpRoute
 }
 
-const ClerkauthRouteRouteChildren: ClerkauthRouteRouteChildren = {
-  ClerkauthSignInRoute: ClerkauthSignInRoute,
-  ClerkauthSignUpRoute: ClerkauthSignUpRoute,
+const CheckExportauthRouteRouteChildren: CheckExportauthRouteRouteChildren = {
+  CheckExportauthSignInRoute: CheckExportauthSignInRoute,
+  CheckExportauthSignUpRoute: CheckExportauthSignUpRoute,
 }
 
-const ClerkauthRouteRouteWithChildren = ClerkauthRouteRoute._addFileChildren(
-  ClerkauthRouteRouteChildren,
-)
+const CheckExportauthRouteRouteWithChildren =
+  CheckExportauthRouteRoute._addFileChildren(CheckExportauthRouteRouteChildren)
 
-interface ClerkAuthenticatedRouteRouteChildren {
-  ClerkAuthenticatedUserManagementRoute: typeof ClerkAuthenticatedUserManagementRoute
+interface CheckExportAuthenticatedRouteRouteChildren {
+  CheckExportAuthenticatedUserManagementRoute: typeof CheckExportAuthenticatedUserManagementRoute
 }
 
-const ClerkAuthenticatedRouteRouteChildren: ClerkAuthenticatedRouteRouteChildren =
+const CheckExportAuthenticatedRouteRouteChildren: CheckExportAuthenticatedRouteRouteChildren =
   {
-    ClerkAuthenticatedUserManagementRoute:
-      ClerkAuthenticatedUserManagementRoute,
+    CheckExportAuthenticatedUserManagementRoute:
+      CheckExportAuthenticatedUserManagementRoute,
   }
 
-const ClerkAuthenticatedRouteRouteWithChildren =
-  ClerkAuthenticatedRouteRoute._addFileChildren(
-    ClerkAuthenticatedRouteRouteChildren,
+const CheckExportAuthenticatedRouteRouteWithChildren =
+  CheckExportAuthenticatedRouteRoute._addFileChildren(
+    CheckExportAuthenticatedRouteRouteChildren,
   )
 
-interface ClerkRouteRouteChildren {
-  ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
-  ClerkAuthenticatedRouteRoute: typeof ClerkAuthenticatedRouteRouteWithChildren
+interface CheckExportRouteRouteChildren {
+  CheckExportauthRouteRoute: typeof CheckExportauthRouteRouteWithChildren
+  CheckExportAuthenticatedRouteRoute: typeof CheckExportAuthenticatedRouteRouteWithChildren
 }
 
-const ClerkRouteRouteChildren: ClerkRouteRouteChildren = {
-  ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
-  ClerkAuthenticatedRouteRoute: ClerkAuthenticatedRouteRouteWithChildren,
+const CheckExportRouteRouteChildren: CheckExportRouteRouteChildren = {
+  CheckExportauthRouteRoute: CheckExportauthRouteRouteWithChildren,
+  CheckExportAuthenticatedRouteRoute:
+    CheckExportAuthenticatedRouteRouteWithChildren,
 }
 
-const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
-  ClerkRouteRouteChildren,
-)
+const CheckExportRouteRouteWithChildren =
+  CheckExportRouteRoute._addFileChildren(CheckExportRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ClerkRouteRoute: ClerkRouteRouteWithChildren,
+  CheckExportRouteRoute: CheckExportRouteRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
   authSignInRoute: authSignInRoute,
