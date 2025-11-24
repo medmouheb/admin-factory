@@ -1,20 +1,14 @@
 import {
-  Construction,
   LayoutDashboard,
   Monitor,
-  Bug,
   ListTodo,
-  FileX,
   HelpCircle,
-  Lock,
   Bell,
   Package,
   Palette,
-  ServerOff,
   Settings,
   Wrench,
   UserCog,
-  UserX,
   Users,
   MessagesSquare,
   ShieldCheck,
@@ -22,8 +16,10 @@ import {
   Command,
   ClipboardCheck,
   Truck,
+  Briefcase,
+  User,
 } from 'lucide-react'
-import { ClerkLogo } from '@/assets/clerk-logo'
+
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -96,8 +92,16 @@ export const sidebarData: SidebarData = {
           icon: Users,
           roles: ['admin'],
         },
-
-
+        {
+          title: 'Workspace',
+          url: '/workspace',
+          icon: Briefcase,
+        },
+        {
+          title: 'Profile',
+          url: '/profile',
+          icon: User,
+        },
       ],
     },
     /*{

@@ -6,6 +6,8 @@ const ACCESS_TOKEN = 'thisisjustarandomstring'
 export interface AuthUser {
   accountNo: string
   email: string
+  username: string
+  matricule: string
   role: string[]
   exp: number
 }

@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from 'react'
 import { defineStepper } from '@stepperize/react'
+import { useAuthStore } from '@/stores/auth-store'
 import JsBarcode from 'jsbarcode'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
@@ -46,11 +47,7 @@ const { useStepper, steps, utils } = defineStepper(
     title: 'Container Management',
     description: 'Identify & Isolate HU',
   },
-  {
-    id: 'ImpactAnalysis',
-    title: 'Impact Analysis',
-    description: 'Identify Defects',
-  },
+
   {
     id: 'TransferPrep',
     title: 'Transfer Preparation',
@@ -271,77 +268,7 @@ function StepperInner() {
 /* -----------------------------
    RepairDetailsForm
    ----------------------------- */
-function ImpactAnalysisForm({ nextFunction }: { nextFunction: () => void }) {
-  const { currentData, setCurrentData } = useCurrentData()
-  const [barcode, setBarcode] = useState('')
-  const [errorCode, setErrorCode] = useState('')
-  const [defects, setDefects] = useState<BarcodeEntry[]>(currentData.materile.barcodes || [])
 
-  const handleAddDefect = () => {
-    if (!barcode || !errorCode) return
-    // Check if we have reached the quantity limit
-    const maxQty = parseInt(currentData.part.qtyPerBox || '0', 10)
-    if (defects.length >= maxQty && maxQty > 0) {
-      toast.error(`Cannot add more defects. Limit is ${maxQty}`)
-      return
-    }
-
-    const newDefect = { barcode1: currentData.part.learPN, barcode2: barcode, errorCode }
-    const newDefects = [...defects, newDefect]
-    setDefects(newDefects)
-    setCurrentData(prev => ({
-      ...prev,
-      materile: { ...prev.materile, barcodes: newDefects }
-    }))
-    setBarcode('')
-    setErrorCode('')
-  }
-
-  return (
-    <div className='w-full p-6'>
-      <Card className='w-full rounded-2xl p-6 shadow-lg border-t-4 border-t-primary'>
-        <CardHeader>
-          <CardTitle className='text-2xl'>Impact Analysis</CardTitle>
-        </CardHeader>
-        <CardContent className='space-y-6'>
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <div className='space-y-2'>
-              <Label>Part Barcode</Label>
-              <Input
-                value={barcode}
-                onChange={e => setBarcode(e.target.value)}
-                placeholder='Scan Part Barcode'
-                autoComplete='off'
-              />
-            </div>
-            <div className='space-y-2'>
-              <Label>Error Code</Label>
-              <Input
-                value={errorCode}
-                onChange={e => setErrorCode(e.target.value)}
-                placeholder='Enter Error Code'
-                autoComplete='off'
-              />
-            </div>
-          </div>
-          <Button onClick={handleAddDefect} className='w-full'>Add Defect</Button>
-
-          <div className='mt-4'>
-            <h3 className='font-semibold mb-2'>Defects Logged ({defects.length})</h3>
-            <div className='border rounded-md p-2 max-h-40 overflow-y-auto space-y-2'>
-              {defects.map((d, i) => (
-                <div key={i} className='flex justify-between text-sm border-b pb-1 last:border-0'>
-                  <span>{d.barcode2}</span>
-                  <span className='font-mono bg-red-100 text-red-800 px-2 rounded'>{d.errorCode}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
 
 /* -----------------------------
    MaterialAndPartForm
@@ -362,9 +289,9 @@ function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void }) {
 
   const [errorOpen, setErrorOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [shakingField, setShakingField] = useState(null)
+  const [shakingField, setShakingField] = useState<string | null>(null)
 
-  const showError = (msg, fieldId = null) => {
+  const showError = (msg: string, fieldId: string | null = null) => {
     setErrorMessage(msg)
     setErrorOpen(true)
     if (fieldId) {
@@ -598,6 +525,7 @@ function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void }) {
 function TransferPrepComponent() {
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
+  const { auth } = useAuthStore()
 
 
   const qty =
@@ -640,9 +568,9 @@ function TransferPrepComponent() {
 
   const [errorOpen, setErrorOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [shakingField, setShakingField] = useState(null)
+  const [shakingField, setShakingField] = useState<string | null>(null)
 
-  const showError = (msg, fieldId = null) => {
+  const showError = (msg: string, fieldId: string | null = null) => {
     setErrorMessage(msg)
     setErrorOpen(true)
     if (fieldId) {
@@ -780,7 +708,9 @@ function TransferPrepComponent() {
         status: 'Ready for Transfer',
         quantity: qty,
         date: new Date().toISOString().split('T')[0],
-        pieces: barcodesLocal.map(b => ({ barcode: b.barcode2, status: 'OK' }))
+        pieces: barcodesLocal.map(b => ({ barcode: b.barcode2, status: 'OK' })),
+        userId: auth.user?.username || 'Unknown',
+        userMatricule: auth.user?.matricule
       }
 
       const res = await fetch('http://localhost:8080/api/packets', {
@@ -867,37 +797,26 @@ function TransferPrepComponent() {
       document.body.appendChild(iframe);
 
       iframe.onload = function () {
-        iframe.contentWindow.print();
+        if (iframe.contentWindow) {
+          iframe.contentWindow.print();
+        }
         setTimeout(() => {
           document.body.removeChild(iframe);
           URL.revokeObjectURL(url);
         }, 1000);
       };
-      console.log(" hggvhbh", ezplCode);
+
       toast.success('Impression lancée sur l\'imprimante par défaut');
 
     } catch (err: any) {
       toast.error(err.message || 'Impression échouée');
-      downloadZPL();
+      // downloadZPL(); // Function not defined
     } finally {
       setProcessing(false);
     }
   };
 
-  // Télécharger le code ZPL
-  const downloadZPL = () => {
-    const zplCode = generateZPL()
-    const blob = new Blob([zplCode], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `galia_label_${ticketCode}.zpl`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    toast.info('Fichier ZPL téléchargé.')
-  }
+
 
   // Preview du ticket
   const PreviewTicket = () => {
@@ -1059,8 +978,24 @@ function TransferPrepComponent() {
     doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
 
     // Print
-    doc.autoPrint();
-    window.open(doc.output('bloburl'), '_blank');
+    // Print
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      }, 100);
+    };
   };
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
@@ -1241,7 +1176,13 @@ function TransferPrepComponent() {
   )
 }
 
-function ErrorPopup({ open, onOpenChange, message }) {
+interface ErrorPopupProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  message: string
+}
+
+function ErrorPopup({ open, onOpenChange, message }: ErrorPopupProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className='border-l-8 border-destructive data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg'>

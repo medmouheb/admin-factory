@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { CheckCircle, Truck, Eye, Plus, Trash2, Archive, Search, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { CheckCircle, Truck, Eye, Plus, Trash2, Archive, Search, ChevronLeft, ChevronRight, RotateCcw, History } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import {
     Dialog,
     DialogContent,
@@ -45,9 +46,16 @@ interface Packet {
     quantity: number
     date: string
     pieces: Piece[]
+    history?: {
+        action: string
+        user: string
+        date: string
+        details?: string
+    }[]
 }
 
 export default function TransferManagement() {
+    const { auth } = useAuthStore()
     const [packets, setPackets] = useState<Packet[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedPacket, setSelectedPacket] = useState<Packet | null>(null)
@@ -145,7 +153,12 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/transfer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ packetId: id, target })
+                body: JSON.stringify({
+                    packetId: id,
+                    target,
+                    userId: auth.user?.username || 'Unknown',
+                    userMatricule: auth.user?.matricule
+                })
             })
             if (!res.ok) throw new Error('Transfer failed')
 
@@ -162,7 +175,11 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/receive', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ packetId: id })
+                body: JSON.stringify({
+                    packetId: id,
+                    userId: auth.user?.username || 'Unknown',
+                    userMatricule: auth.user?.matricule
+                })
             })
             if (!res.ok) throw new Error('Receive failed')
 
@@ -179,7 +196,11 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ packetId: id })
+                body: JSON.stringify({
+                    packetId: id,
+                    userId: auth.user?.username || 'Unknown',
+                    userMatricule: auth.user?.matricule
+                })
             })
             if (!res.ok) throw new Error('Return failed')
 
@@ -196,7 +217,11 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/accept-return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ packetId: id })
+                body: JSON.stringify({
+                    packetId: id,
+                    userId: auth.user?.username || 'Unknown',
+                    userMatricule: auth.user?.matricule
+                })
             })
             if (!res.ok) throw new Error('Accept return failed')
 
@@ -622,12 +647,37 @@ export default function TransferManagement() {
                         </div>
                     </div>
 
+                    {selectedPacket?.history && selectedPacket.history.length > 0 && (
+                        <div className="mt-6">
+                            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                <History className="h-4 w-4" /> History
+                            </h4>
+                            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+                                {selectedPacket.history.map((record, idx) => (
+                                    <div key={idx} className="text-sm border-l-2 border-muted pl-3 py-1">
+                                        <div className="flex justify-between">
+                                            <span className="font-medium">{record.action}</span>
+                                            <span className="text-xs text-muted-foreground">{record.date}</span>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">
+                                            by {record.user}
+                                        </div>
+                                        {record.details && (
+                                            <div className="text-xs mt-1 italic">{record.details}</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
                         {isEditable && <Button onClick={handleSaveDetails}>Save Changes</Button>}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
