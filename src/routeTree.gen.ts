@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as CheckExportRouteRouteImport } from './routes/check-export/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedTransferManagementRouteImport } from './routes/_authenticated/transfer-management'
 import { Route as AuthenticatedRetouchPacketsRouteImport } from './routes/_authenticated/retouch-packets'
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
 import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -58,6 +60,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTransferManagementRoute =
   AuthenticatedTransferManagementRouteImport.update({
     id: '/transfer-management',
@@ -81,6 +88,11 @@ const AuthenticatedQualityCheckRoute =
     path: '/quality-check',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
   path: '/503',
@@ -238,10 +250,12 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -270,10 +284,12 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -307,10 +323,12 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
   '/_authenticated/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/_authenticated/transfer-management': typeof AuthenticatedTransferManagementRoute
+  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
@@ -342,10 +360,12 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/profile'
     | '/quality-check'
     | '/reapirage'
     | '/retouch-packets'
     | '/transfer-management'
+    | '/workspace'
     | '/'
     | '/errors/$error'
     | '/settings/account'
@@ -374,10 +394,12 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/profile'
     | '/quality-check'
     | '/reapirage'
     | '/retouch-packets'
     | '/transfer-management'
+    | '/workspace'
     | '/'
     | '/errors/$error'
     | '/settings/account'
@@ -410,10 +432,12 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/profile'
     | '/_authenticated/quality-check'
     | '/_authenticated/reapirage'
     | '/_authenticated/retouch-packets'
     | '/_authenticated/transfer-management'
+    | '/_authenticated/workspace'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
@@ -469,6 +493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transfer-management': {
       id: '/_authenticated/transfer-management'
       path: '/transfer-management'
@@ -495,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/quality-check'
       fullPath: '/quality-check'
       preLoaderRoute: typeof AuthenticatedQualityCheckRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
@@ -714,10 +752,12 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
   AuthenticatedRetouchPacketsRoute: typeof AuthenticatedRetouchPacketsRoute
   AuthenticatedTransferManagementRoute: typeof AuthenticatedTransferManagementRoute
+  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -729,10 +769,12 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,
   AuthenticatedRetouchPacketsRoute: AuthenticatedRetouchPacketsRoute,
   AuthenticatedTransferManagementRoute: AuthenticatedTransferManagementRoute,
+  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,

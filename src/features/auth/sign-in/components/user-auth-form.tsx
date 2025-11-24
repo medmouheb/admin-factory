@@ -112,8 +112,8 @@ export function UserAuthForm({
       auth.setUser(userData)
 
       // Redirect
-      // const targetPath = redirectTo || '/'
-      // navigate({ to: targetPath, replace: true })
+      const targetPath = redirectTo || '/'
+      navigate({ to: targetPath, replace: true })
     } catch (error) {
       console.error(error)
       toast.error('Server error')
