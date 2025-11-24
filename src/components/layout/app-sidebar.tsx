@@ -19,8 +19,8 @@ export function AppSidebar() {
 
   const user = auth.user ? {
     name: auth.user.username || 'User',
-    email: auth.user.email || '',
-    avatar: '/avatars/shadcn.jpg', // You might want to add avatar to auth user model later
+    email: auth.user.matricule || auth.user.email || '', // Show matricule if available, else email
+    avatar: '/avatars/shadcn.jpg',
   } : sidebarData.user
 
   return (
