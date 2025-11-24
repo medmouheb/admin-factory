@@ -110,6 +110,8 @@ export function UserAuthForm({
 
       // Set user in auth store if you want client-side access
       auth.setUser(userData)
+      console.log(auth);
+      
 
       // Redirect
       const targetPath = redirectTo || '/'

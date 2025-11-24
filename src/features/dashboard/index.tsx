@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/auth-store'
 
 export function Dashboard() {
   const { user, setUser } = useAuthStore((state) => state.auth)
-  const isAdmin = user?.role.includes('admin')
+  const isAdmin = user?.roles.includes('admin')
 
   return (
     <>
