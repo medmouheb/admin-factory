@@ -731,7 +731,6 @@ function TransferPrepComponent() {
   const handleGenerateAndPrint = async () => {
     if (!ticketCode) return
     try {
-      await savePacket()
       generateTicketPDF()
     } catch (e) {
       // Error handled in savePacket
@@ -899,7 +898,6 @@ function TransferPrepComponent() {
             </button>
             <button
               onClick={async () => {
-                await savePacket()
                 generateTicketPDF()
               }}
               className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'

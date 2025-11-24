@@ -1,5 +1,4 @@
 import { useLayout } from '@/context/layout-provider'
-import { useAuthStore } from '@/stores/auth-store'
 import {
   Sidebar,
   SidebarContent,
