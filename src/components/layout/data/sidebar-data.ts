@@ -73,6 +73,7 @@ export const sidebarData: SidebarData = {
           title: 'Transfer Management',
           url: '/transfer-management',
           icon: Truck,
+          roles: ['admin'],
         },
         {
           title: 'Apps',
@@ -89,6 +90,7 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/users',
           icon: Users,
+          roles: ['admin'],
         },
         {
           title: 'Workspace',
