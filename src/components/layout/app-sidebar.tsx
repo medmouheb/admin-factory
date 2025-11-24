@@ -13,19 +13,11 @@ import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
-import { useAuthStore } from '@/stores/auth-store'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useAuthStore((state) => state.auth)
 
-<<<<<<< HEAD
-  const user = auth.user ? {
-    name: auth.user.username || 'User',
-    email: auth.user.matricule || auth.user.email || '', // Show matricule if available, else email
-    avatar: '/avatars/shadcn.jpg',
-  } : sidebarData.user
-=======
   const checkAccess = (itemRoles: string[] | undefined) => {
     if (!itemRoles || itemRoles.length === 0) return true
     if (!user || !user.role) return false
@@ -41,11 +33,10 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   const navUser = {
-    name: user?.email || 'User',
-    email: user?.email || 'user@example.com',
+    name: user?.username || 'User',
+    email: user?.matricule || user?.email || 'user@example.com',
     avatar: '/avatars/shadcn.jpg',
   }
->>>>>>> 005667cb26ae3081890a368acd603eb55e3b577b
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>

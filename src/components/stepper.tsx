@@ -79,7 +79,6 @@ function CurrentDataProvider({ children }: { children: React.ReactNode }) {
   const [currentData, setCurrentData] = useState<CurrentData>({
     part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
     materile: { storageUn: '', availStock: '', barcodes: [] },
-    repair: { codePiece: '', checklist: [] },
     ticketCode: null,
     hasCompletedStep1: false,
   })
