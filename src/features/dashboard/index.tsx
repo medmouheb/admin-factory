@@ -7,36 +7,58 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ConfigDrawer } from '@/components/config-drawer'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { TopNav } from '@/components/layout/top-nav'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { Analytics } from './components/analytics'
 import { Overview } from './components/overview'
 import { RecentSales } from './components/recent-sales'
 
+import { useAuthStore } from '@/stores/auth-store'
+
 export function Dashboard() {
+  const { user, setUser } = useAuthStore((state) => state.auth)
+  const isAdmin = user?.role.includes('admin')
+
   return (
     <>
       {/* ===== Top Heading ===== */}
-      <Header>
-        <TopNav links={topNav} />
-        <div className='ms-auto flex items-center space-x-4'>
-          <Search />
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
-      </Header>
+
 
       {/* ===== Main ===== */}
       <Main>
         <div className='mb-2 flex items-center justify-between space-y-2'>
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
           <div className='flex items-center space-x-2'>
+            <div className='mr-4 flex items-center gap-2 text-sm text-muted-foreground'>
+              <span>Role: {user?.role?.join(', ') || 'Guest'}</span>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() =>
+                  setUser({
+                    accountNo: 'admin123',
+                    email: 'admin@example.com',
+                    role: ['admin'],
+                    exp: Date.now(),
+                  })
+                }
+              >
+                Set Admin
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() =>
+                  setUser({
+                    accountNo: 'user123',
+                    email: 'user@example.com',
+                    role: ['user'],
+                    exp: Date.now(),
+                  })
+                }
+              >
+                Set User
+              </Button>
+            </div>
             <Button>Download</Button>
           </div>
         </div>
@@ -170,17 +192,19 @@ export function Dashboard() {
                   <Overview />
                 </CardContent>
               </Card>
-              <Card className='col-span-1 lg:col-span-3'>
-                <CardHeader>
-                  <CardTitle>Recent Generated Code</CardTitle>
-                  <CardDescription>
-                    You made 265 Generated Code this month.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RecentSales />
-                </CardContent>
-              </Card>
+              {isAdmin && (
+                <Card className='col-span-1 lg:col-span-3'>
+                  <CardHeader>
+                    <CardTitle>Recent Generated Code</CardTitle>
+                    <CardDescription>
+                      You made 265 Generated Code this month.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <RecentSales />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
           <TabsContent value='analytics' className='space-y-4'>
@@ -192,11 +216,4 @@ export function Dashboard() {
   )
 }
 
-const topNav = [
-  {
-    title: 'Overview',
-    href: 'dashboard/overview',
-    isActive: true,
-    disabled: false,
-  }
-]
+
