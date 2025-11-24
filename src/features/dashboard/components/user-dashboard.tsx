@@ -30,10 +30,27 @@ export function UserDashboard() {
                     const userActivity: HistoryEntry[] = []
 
                     packets.forEach((packet: any) => {
+                        // Check if user created the packet
+                        const isCreator = packet.userId === auth.user?.username ||
+                            (packet.userMatricule && packet.userMatricule === auth.user?.matricule);
+
+                        if (isCreator) {
+                            userActivity.push({
+                                action: 'Packet Created',
+                                user: packet.userId || auth.user?.username || 'Unknown',
+                                date: packet.createdAt || packet.date, // Use createdAt if available, else date
+                                details: `Created packet ${packet.id} with ${packet.quantity} items`,
+                                packetId: packet.id
+                            })
+                        }
+
                         if (packet.history && Array.isArray(packet.history)) {
                             packet.history.forEach((h: any) => {
                                 // Filter by username or matricule if available
                                 if (h.user === auth.user?.username || h.user === auth.user?.matricule) {
+                                    // Avoid duplicate if history already has "Creation" and we just added it
+                                    if (isCreator && h.action === 'Packet Created') return;
+
                                     userActivity.push({
                                         ...h,
                                         packetId: packet.id

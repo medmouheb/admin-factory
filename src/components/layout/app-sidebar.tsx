@@ -12,7 +12,6 @@ import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
-import { useAuthStore } from '@/stores/auth-store'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
@@ -33,8 +32,8 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   const navUser = {
-    name: user?.email || 'User',
-    email: user?.email || 'user@example.com',
+    name: user?.username || 'User',
+    email: user?.matricule || user?.email || 'user@example.com',
     avatar: '/avatars/shadcn.jpg',
   }
 
