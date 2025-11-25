@@ -400,69 +400,71 @@ export function TransferPrepComponent() {
   const generateTicketPDF = () => {
     const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
 
-    let y = 0.3;
+    let y = 0.3; // top margin
 
-    // QR Code with all data
-    const qrSizeCm = 1.2;
+    // QR Code (1.0 cm)
+    const qrSizeCm = 1.0;
     const dpi = 96;
     const qrCanvas = document.createElement('canvas');
     qrCanvas.width = qrSizeCm * dpi / 2.54;
     qrCanvas.height = qrCanvas.width;
 
-    ;
-
-
+    // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
 
     // Title
-    doc.setFontSize(12);
+    doc.setFontSize(10); // smaller than before
     doc.setFont('helvetica', 'bold');
     doc.text('tesca', 0.2, y);
-    y += 0.6;
+    y += 0.5;
 
     // Lear PN
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.text(learPN, 0.2, y);
-    y += 0.5;
+    y += 0.4;
 
     // Barcode for ticket code
     const canvas1 = document.createElement('canvas');
     if (ticketCode) {
       JsBarcode(canvas1, ticketCode, {
         format: 'CODE128',
-        width: 1,
-        height: 25,
+        width: 0.8, // narrower to fit
+        height: 20, // slightly shorter
         displayValue: false,
       });
-      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.5, 1);
+      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1); // width adjusted
     }
-    y += 1.2;
+    y += 1.1;
 
     // Ticket code (centered)
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     const textWidth = doc.getTextWidth(ticketCode || '');
-    const xCentered = (textWidth) / 2;
+    const xCentered = (5 - textWidth) / 2; // center in 5cm page
     doc.text(ticketCode || '', xCentered, y);
-    y += 0.8;
+    y += 0.6;
 
-    // Operator (bold and larger)
-    doc.setFontSize(9);
+    // Operator
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y);
-    y += 0.5;
+    y += 0.4;
 
     // Quantity
-    doc.text(`Qty: ${qty}`, 0.2, y);
-    y += 0.5;
-
-    // Date & Time
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    const now = new Date();
-    doc.text(`Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`, 0.2, y);
+    doc.text(`Qty: ${qty}`, 0.2, y);
+    y += 0.4;
 
-    // Print
+    // Date & Time
+    const now = new Date();
+    doc.setFontSize(6);
+    doc.text(
+      `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
+      0.2,
+      y
+    );
+
     // Print
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
@@ -482,6 +484,7 @@ export function TransferPrepComponent() {
       }, 100);
     };
   };
+
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
