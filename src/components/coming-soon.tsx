@@ -43,7 +43,7 @@ type Ticket = {
   createdAt: string
 }
 
-export  function ComingSoon() {
+export function ComingSoon() {
   const [data, setData] = useState<TicketCode[]>([])
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
@@ -101,7 +101,10 @@ export  function ComingSoon() {
       if (endDate) params.append("endDate", endDate)
 
       const res = await fetch(
-        `http://localhost:8080/api/ticketscode/ticket-code?${params.toString()}`
+        `http://localhost:8080/api/ticketscode/ticket-code?${params.toString()}`, {
+        credentials: 'include',   // ⬅️ VERY IMPORTANT
+
+      }
       )
       const json = await res.json()
 
@@ -127,7 +130,7 @@ export  function ComingSoon() {
       const res = await fetch(
         `http://localhost:8080/api/tickets/search?page=1&limit=100&search=${encodeURIComponent(code)}`
       )
-      
+
       if (!res.ok) {
         let errorMessage = `Server error: ${res.status}`
         try {
@@ -145,12 +148,12 @@ export  function ComingSoon() {
 
       const json = await res.json()
       const ticketsData = json.data || []
-      
+
       // If we got tickets and there might be more pages, fetch them
       if (ticketsData.length > 0 && json.totalPages > 1) {
         const totalPages = json.totalPages
         let allTickets = [...ticketsData]
-        
+
         // Fetch remaining pages (limit to avoid too many requests)
         for (let page = 2; page <= Math.min(totalPages, 10); page++) {
           try {
@@ -166,7 +169,7 @@ export  function ComingSoon() {
             break
           }
         }
-        
+
         setTickets(allTickets)
         if (allTickets.length > 0) {
           toast.success(`Loaded ${allTickets.length} ticket(s)`)
@@ -491,9 +494,9 @@ export  function ComingSoon() {
                 {activeFiltersCount} active
               </Badge>
               {activeFiltersCount > 0 && (
-                <Button 
-                  variant="link" 
-                  className="px-0 text-xs transition-all duration-200 hover:scale-105" 
+                <Button
+                  variant="link"
+                  className="px-0 text-xs transition-all duration-200 hover:scale-105"
                   onClick={resetFilters}
                 >
                   Reset
@@ -502,9 +505,9 @@ export  function ComingSoon() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => fetchTicketCodes()}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"
             >
@@ -579,59 +582,59 @@ export  function ComingSoon() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
-    <Label htmlFor="minTickets">Min tickets</Label>
-    <Input
-      id="minTickets"
-      type="number"
-      min={0}
-      value={minTickets}
-      onChange={(e) => {
-        setMinTickets(e.target.value)
-        setPage(1)
-      }}
-      placeholder="e.g. 10"
-    />
-  </div>
+            <Label htmlFor="minTickets">Min tickets</Label>
+            <Input
+              id="minTickets"
+              type="number"
+              min={0}
+              value={minTickets}
+              onChange={(e) => {
+                setMinTickets(e.target.value)
+                setPage(1)
+              }}
+              placeholder="e.g. 10"
+            />
+          </div>
 
-  <div className="space-y-2">
-    <Label htmlFor="maxTickets">Max tickets</Label>
-    <Input
-      id="maxTickets"
-      type="number"
-      min={0}
-      value={maxTickets}
-      onChange={(e) => {
-        setMaxTickets(e.target.value)
-        setPage(1)
-      }}
-      placeholder="e.g. 80"
-    />
-  </div>
+          <div className="space-y-2">
+            <Label htmlFor="maxTickets">Max tickets</Label>
+            <Input
+              id="maxTickets"
+              type="number"
+              min={0}
+              value={maxTickets}
+              onChange={(e) => {
+                setMaxTickets(e.target.value)
+                setPage(1)
+              }}
+              placeholder="e.g. 80"
+            />
+          </div>
 
-  <div className="space-y-2">
-    <Label>Quick range</Label>
-    <Select
-      value={timePreset}
-      onValueChange={(value: "all" | "24h" | "7d" | "30d") => handlePresetChange(value)}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder="Pick range" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All time</SelectItem>
-        <SelectItem value="24h">Last 24h</SelectItem>
-        <SelectItem value="7d">Last 7 days</SelectItem>
-        <SelectItem value="30d">Last 30 days</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
+          <div className="space-y-2">
+            <Label>Quick range</Label>
+            <Select
+              value={timePreset}
+              onValueChange={(value: "all" | "24h" | "7d" | "30d") => handlePresetChange(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pick range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All time</SelectItem>
+                <SelectItem value="24h">Last 24h</SelectItem>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-  <div className="space-y-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-3 text-sm">
-    <p className="font-medium text-muted-foreground">Active filters</p>
-    <p className="text-xs text-muted-foreground/70">
-      Combine ranges and ticket counts to pinpoint the exact batches to audit.
-    </p>
-  </div>
+          <div className="space-y-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-medium text-muted-foreground">Active filters</p>
+            <p className="text-xs text-muted-foreground/70">
+              Combine ranges and ticket counts to pinpoint the exact batches to audit.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -726,9 +729,9 @@ export  function ComingSoon() {
 
       {/* Pagination */}
       <div className="flex justify-between items-center pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button 
-          variant="outline" 
-          onClick={prevPage} 
+        <Button
+          variant="outline"
+          onClick={prevPage}
           disabled={page === 1}
           className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -745,9 +748,9 @@ export  function ComingSoon() {
           </p>
         </div>
 
-        <Button 
-          variant="outline" 
-          onClick={nextPage} 
+        <Button
+          variant="outline"
+          onClick={nextPage}
           disabled={page === totalPages}
           className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -815,7 +818,7 @@ export  function ComingSoon() {
                   )}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="ticket-search" className="text-xs text-muted-foreground">Search</Label>
@@ -827,7 +830,7 @@ export  function ComingSoon() {
                     className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label htmlFor="ticket-start" className="text-xs text-muted-foreground">From Date</Label>
                   <Input
@@ -838,7 +841,7 @@ export  function ComingSoon() {
                     className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label htmlFor="ticket-end" className="text-xs text-muted-foreground">To Date</Label>
                   <Input
@@ -849,7 +852,7 @@ export  function ComingSoon() {
                     className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label htmlFor="ticket-sort" className="text-xs text-muted-foreground">Sort Order</Label>
                   <Select
@@ -904,103 +907,103 @@ export  function ComingSoon() {
                           className={`group transition-all duration-300 hover:bg-primary/10 hover:shadow-md hover:-translate-y-[1px] ${index % 2 === 0 ? "bg-background/50" : "bg-muted/10"} animate-in fade-in slide-in-from-left-4`}
                           style={{ animationDelay: `${index * 30}ms` }}
                         >
-                        <TableCell className="py-3">
-                          <div className="space-y-1">
-                            <p className="font-mono text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
-                              {t.barcode}
-                            </p>
-                            <p className="text-xs text-muted-foreground/70">
-                              ID: {String(t.id).substring(0, 8)}...
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3">
-                          <Badge 
-                            variant="outline" 
-                            className="font-mono text-xs transition-all duration-200 group-hover:scale-105 group-hover:border-primary/50"
-                          >
-                            {t.learPN}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="py-3">
-                          <div className="space-y-1">
-                            <div className="text-sm font-medium text-foreground">
-                              {formatDate(t.createdAt)}
+                          <TableCell className="py-3">
+                            <div className="space-y-1">
+                              <p className="font-mono text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
+                                {t.barcode}
+                              </p>
+                              <p className="text-xs text-muted-foreground/70">
+                                ID: {String(t.id).substring(0, 8)}...
+                              </p>
                             </div>
-                            <div className="text-xs text-muted-foreground/70">
-                              {new Date(t.createdAt).toLocaleDateString(undefined, { weekday: "short" })}
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <Badge
+                              variant="outline"
+                              className="font-mono text-xs transition-all duration-200 group-hover:scale-105 group-hover:border-primary/50"
+                            >
+                              {t.learPN}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <div className="space-y-1">
+                              <div className="text-sm font-medium text-foreground">
+                                {formatDate(t.createdAt)}
+                              </div>
+                              <div className="text-xs text-muted-foreground/70">
+                                {new Date(t.createdAt).toLocaleDateString(undefined, { weekday: "short" })}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                              >
-                                <span className="sr-only">Open menu</span>
-                                <svg
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                                  />
-                                </svg>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => openEditDialogForTicket(t)}
-                                className="cursor-pointer"
-                              >
-                                <svg
-                                  className="mr-2 h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                                  <span className="sr-only">Open menu</span>
+                                  <svg
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                    />
+                                  </svg>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => openEditDialogForTicket(t)}
+                                  className="cursor-pointer"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => openDeleteDialogForTicket(t)}
-                                className="cursor-pointer text-destructive focus:text-destructive"
-                              >
-                                <svg
-                                  className="mr-2 h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                                  <svg
+                                    className="mr-2 h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                  </svg>
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openDeleteDialogForTicket(t)}
+                                  className="cursor-pointer text-destructive focus:text-destructive"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
-                                </svg>
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                                  <svg
+                                    className="mr-2 h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
                       ))
                     ) : (
                       <TableRow className="animate-in fade-in duration-300">
@@ -1072,7 +1075,7 @@ export  function ComingSoon() {
           </div>
 
           <DialogFooter className="pt-4 border-t border-border/50 animate-in fade-in duration-500 delay-400 flex-shrink-0">
-            <Button 
+            <Button
               onClick={() => setOpenDialog(false)}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"
             >

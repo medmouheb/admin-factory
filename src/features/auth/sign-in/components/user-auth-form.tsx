@@ -19,13 +19,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 
-const usernameRegex = /^[a-zA-Z0-9]+$/
+const matriculeRegex = /^[a-zA-Z0-9]+$/
 
 const formSchema = z.object({
-  username: z
+  matricule: z
     .string()
-    .min(5, 'Username must be at least 5 characters long')
-    .regex(usernameRegex, 'Username cannot contain special characters'),
+    .min(5, 'Matricule must be at least 5 characters long')
+    .regex(matriculeRegex, 'Matricule cannot contain special characters'),
   password: z
     .string()
     .min(1, 'Please enter your password')
@@ -48,7 +48,7 @@ export function UserAuthForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
+      matricule: '',
       password: '',
     },
   })
@@ -91,7 +91,7 @@ export function UserAuthForm({
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // 🔥 crucial for HttpOnly cookies
         body: JSON.stringify({
-          username: data.username,
+          matricule: data.matricule,
           password: data.password,
         }),
       })
@@ -105,12 +105,11 @@ export function UserAuthForm({
 
       // ✅ Successful login
       const userData = await res.json() // optional, backend can return user info
-      toast.success(`Welcome back, ${data.username}!`)
+      toast.success(`Welcome back, ${data.matricule}!`)
       // Mock successful authentication with expiry computed at success time
 
       // Set user in auth store if you want client-side access
       auth.setUser(userData)
-      console.log(auth);
       
 
       // Redirect
@@ -133,12 +132,12 @@ export function UserAuthForm({
       >
         <FormField
           control={form.control}
-          name='username'
+          name='matricule'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Matricule</FormLabel>
               <FormControl>
-                <Input placeholder='username' {...field} />
+                <Input placeholder='matricule' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

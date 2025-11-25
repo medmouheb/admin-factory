@@ -10,12 +10,12 @@ import { DataTableRowActions } from './data-table-row-actions'
 export const usersColumns: ColumnDef<User>[] = [
 
   {
-    accessorKey: 'username',
+    accessorKey: 'matricule',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Username' />
+      <DataTableColumnHeader column={column} title='Matricule' />
     ),
     cell: ({ row }) => (
-      <LongText className='max-w-36 ps-3'>{row.getValue('username')}</LongText>
+      <LongText className='max-w-36 ps-3'>{row.getValue('matricule')}</LongText>
     ),
     meta: {
       className: cn(

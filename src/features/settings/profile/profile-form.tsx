@@ -25,10 +25,10 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 
 const profileFormSchema = z.object({
-  username: z
-    .string('Please enter your username.')
-    .min(2, 'Username must be at least 2 characters.')
-    .max(30, 'Username must not be longer than 30 characters.'),
+    matricule: z
+    .string('Please enter your matricule.')
+    .min(2, 'Matricule must be at least 2 characters.')
+    .max(30, 'Matricule must not be longer than 30 characters.'),
   email: z.email({
     error: (iss) =>
       iss.input === undefined
@@ -76,10 +76,10 @@ export function ProfileForm() {
       >
         <FormField
           control={form.control}
-          name='username'
+          name='matricule'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Matricule</FormLabel>
               <FormControl>
                 <Input placeholder='shadcn' {...field} />
               </FormControl>

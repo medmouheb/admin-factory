@@ -35,7 +35,7 @@ export function ProfileDropdown() {
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col gap-1.5'>
               <p className='text-sm leading-none font-medium'>
-                {user?.email || 'User'}
+                {user?.matricule || 'User'}
               </p>
               <p className='text-muted-foreground text-xs leading-none'>
                 {user?.email || 'user@example.com'}

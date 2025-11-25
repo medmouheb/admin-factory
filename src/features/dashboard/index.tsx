@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/auth-store'
 
 export function Dashboard() {
   const { user, setUser } = useAuthStore((state) => state.auth)
-  const isAdmin = user?.roles.includes('admin')
+  const isAdmin = user?.role=='admin'
 
   return (
     <>
@@ -29,35 +29,9 @@ export function Dashboard() {
           <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
           <div className='flex items-center space-x-2'>
             <div className='mr-4 flex items-center gap-2 text-sm text-muted-foreground'>
-              <span>Role: {user?.role?.join(', ') || 'Guest'}</span>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() =>
-                  setUser({
-                    accountNo: 'admin123',
-                    email: 'admin@example.com',
-                    role: ['admin'],
-                    exp: Date.now(),
-                  })
-                }
-              >
-                Set Admin
-              </Button>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() =>
-                  setUser({
-                    accountNo: 'user123',
-                    email: 'user@example.com',
-                    role: ['user'],
-                    exp: Date.now(),
-                  })
-                }
-              >
-                Set User
-              </Button>
+              <span>Role: {user?.role}</span>
+             
+            
             </div>
             <Button>Download</Button>
           </div>

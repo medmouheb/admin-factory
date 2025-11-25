@@ -20,8 +20,7 @@ export function TransferPrepComponent() {
   const { auth } = useAuthStore()
 
 
-  const qty =
-    Number(String(currentData.part.qtyPerBox ?? '0').replace(/\D/g, '')) || 0
+  const qty = Number(String(currentData.part.qtyPerBox ?? '0').replace(/\D/g, '')) || 0
   const learPNFull = String(currentData.part.learPN || '')
   const learPN = learPNFull.substring(1, 16) || ''
   const prefix6 = learPN.slice(4, 10)
@@ -34,21 +33,18 @@ export function TransferPrepComponent() {
   const [ticketCode, setTicketCode] = useState(currentData.ticketCode || null)
   const [processing, setProcessing] = useState(false)
   const [showPdfButton, setShowPdfButton] = useState(false)
-  const [operatorNumber, setOperatorNumber] = useState(
-    currentData.operatorNumber || '332110'
-  )
+
   const [showPreview, setShowPreview] = useState(false)
 
   const qrData = useMemo(
     () => ({
       ticketCode: ticketCode || '',
       learPN: learPN || '',
-      operatorNumber: operatorNumber || '',
       date: new Date().toISOString(),
       barcodes: barcodesLocal,
       qty: qty || 0,
     }),
-    [ticketCode, learPN, operatorNumber, barcodesLocal, qty]
+    [ticketCode, learPN, barcodesLocal, qty]
   )
   const shouldShowQrSnapshot = useMemo(
     () => Boolean(ticketCode || barcodesLocal.length > 0 || barcode2.length > 0),
@@ -93,10 +89,9 @@ export function TransferPrepComponent() {
     setCurrentData((prev) => ({
       ...prev,
       materile: { ...prev.materile, barcodes: barcodesLocal },
-      ticketCode,
-      operatorNumber,
+      ticketCode
     }))
-  }, [barcodesLocal, ticketCode, operatorNumber])
+  }, [barcodesLocal, ticketCode])
 
   // Validation
   const isBarcode2Unique = (b2: string) => !barcodesLocal.some((b) => b.barcode2 === b2)
@@ -155,6 +150,7 @@ export function TransferPrepComponent() {
       const res = await fetch('http://localhost:8080/api/ticketscode/creat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',   // ⬅️ VERY IMPORTANT
         body: JSON.stringify({ suffix: learPN.slice(-5) }),
       })
       const data = await res.json()
@@ -262,7 +258,7 @@ export function TransferPrepComponent() {
 
       ^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
 
-      ^FO20,290^A0N,20,20^FDOper: ${operatorNumber}^FS
+      ^FO20,290^A0N,20,20^FDOper: ${auth.user?.matricule}^FS
 
       ^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
 
@@ -313,7 +309,7 @@ export function TransferPrepComponent() {
   const PreviewTicket = () => {
     if (!showPreview || !ticketCode) return null
 
-    const combinedBarcode = `${learPN}${ticketCode}`
+    const combinedBarcode = `${ticketCode}`
 
     const now = new Date()
     const dateStr = now.toLocaleDateString('en-US', {
@@ -329,69 +325,75 @@ export function TransferPrepComponent() {
     })
 
     return (
-      <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
-        <div className='relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-white p-6'>
-          <button
-            onClick={() => setShowPreview(false)}
-            className='absolute right-4 top-4 text-2xl font-bold text-gray-600 hover:text-gray-800'
-          >
-            ×
-          </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        {/* Smaller background around popup */}
+        <div className="bg-black/40 backdrop-blur-sm p-4 rounded-2xl">
 
-          <h2 className='mb-4 text-center text-xl font-bold'>
-            Prévisualisation du Ticket Galia
-          </h2>
-
-          <div className='mx-auto w-[400px] border-2 border-gray-800 bg-white p-4'>
-            <div className='space-y-2'>
-              <div className='text-3xl font-bold'>tesca</div>
-
-              <div className='mt-3 text-sm font-semibold'>
-                {learPN}
-              </div>
-
-              <div className='my-3 flex flex-col items-center gap-2'>
-                <svg className='w-full' height='80' viewBox='0 0 400 80'>
-                  {combinedBarcode.split('').map((char, idx) => {
-                    const barWidth = char.charCodeAt(0) % 3 + 2;
-                    const xPos = idx * 12;
-                    return (
-                      <rect
-                        key={idx}
-                        x={xPos}
-                        y='0'
-                        width={barWidth}
-                        height='60'
-                        fill='black'
-                      />
-                    );
-                  })}
-                </svg>
-                <div className='text-xs font-mono tracking-wider'>{combinedBarcode}</div>
-              </div>
-
-              <div className='text-center text-lg font-bold'>
-                {learPN} {ticketCode}
-              </div>
-
-              <div className='mt-4 space-y-1 text-sm'>
-                <div className='font-semibold'>Oper: {operatorNumber}</div>
-                <div className='font-semibold'>Date: {dateStr} Time: {timeStr}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className='mt-6 text-center'>
+          <div className="relative max-w-lg max-h-[50vh] overflow-auto rounded-xl bg-white p-6 shadow-xl">
             <button
               onClick={() => setShowPreview(false)}
-              className='rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700'
+              className="absolute right-4 top-4 text-2xl font-bold text-gray-600 hover:text-gray-800"
             >
-              Fermer
+              ×
             </button>
-           
+
+            <h2 className="mb-4 text-center text-xl font-bold">
+              Prévisualisation du Ticket Galia
+            </h2>
+
+            <div className="mx-auto w-[400px] border-2 border-gray-800 bg-white p-4">
+              <div className="space-y-2">
+                <div className="text-3xl font-bold">tesca</div>
+
+                <div className="mt-3 text-sm font-semibold">
+                  {learPN}
+                </div>
+
+                <div className="my-3 flex flex-col items-center gap-2">
+                  <svg className="w-full" height="80" viewBox="0 0 400 80">
+                    {combinedBarcode.split('').map((char, idx) => {
+                      const barWidth = char.charCodeAt(0) % 3 + 2;
+                      const xPos = idx * 12;
+                      return (
+                        <rect
+                          key={idx}
+                          x={xPos}
+                          y="0"
+                          width={barWidth}
+                          height="60"
+                          fill="black"
+                        />
+                      );
+                    })}
+                  </svg>
+                  <div className="text-xs font-mono tracking-wider">{ticketCode}</div>
+                </div>
+
+                <div className="text-center text-lg font-bold">
+                  {auth.user?.matricule}
+                </div>
+
+                <div className="mt-4 space-y-1 text-sm">
+                  <div className="font-semibold">
+                    Date: {dateStr} Time: {timeStr}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setShowPreview(false)}
+                className="rounded bg-gray-600 px-6 py-2 text-white hover:bg-gray-700"
+              >
+                Fermer
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
+
     )
   }
 
@@ -447,7 +449,7 @@ export function TransferPrepComponent() {
     // Operator (bold and larger)
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Oper: ${operatorNumber}`, 0.2, y);
+    doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y);
     y += 0.5;
 
     // Quantity
@@ -493,49 +495,45 @@ export function TransferPrepComponent() {
           <CardTitle>Barcode Collector</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-            <div className='space-y-2'>
-              <Label>Réf Lear</Label>
-              <Input
-                ref={barcode1Ref}
-                value={barcode1}
-                readOnly
-                className='bg-gray-100'
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && barcode2Ref.current?.focus()
-                }
-              />
+          {itemsLeft > 0 ?
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <div className='space-y-2'>
+                <Label>Réf Lear</Label>
+                <Input
+                  ref={barcode1Ref}
+                  value={barcode1}
+                  readOnly
+                  className='bg-gray-100'
+                  onKeyDown={(e) =>
+                    e.key === 'Enter' && barcode2Ref.current?.focus()
+                  }
+                />
+              </div>
+              <div className='space-y-2'>
+                <Label>Traceability Code</Label>
+                <Input
+                  ref={barcode2Ref}
+                  value={barcode2}
+                  onChange={(e) => setBarcode2(e.target.value)}
+                  className={cn(
+                    'transition-all duration-200',
+                    shakingField === 'barcode2' &&
+                    'animate-shake border-destructive ring-2 ring-destructive/20'
+                  )}
+                  placeholder={
+                    prefix6
+                      ? `Must start with ${prefix6} (13 chars)`
+                      : 'LearPN missing'
+                  }
+                  autoComplete='off'
+                />
+              </div>
             </div>
-            <div className='space-y-2'>
-              <Label>Traceability Code</Label>
-              <Input
-                ref={barcode2Ref}
-                value={barcode2}
-                onChange={(e) => setBarcode2(e.target.value)}
-                className={cn(
-                  'transition-all duration-200',
-                  shakingField === 'barcode2' &&
-                  'animate-shake border-destructive ring-2 ring-destructive/20'
-                )}
-                placeholder={
-                  prefix6
-                    ? `Must start with ${prefix6} (13 chars)`
-                    : 'LearPN missing'
-                }
-                autoComplete='off'
-              />
-            </div>
-          </div>
+            :
+            ''}
 
-          <div className='space-y-2'>
-            <Label>Numéro Opérateur</Label>
-            <Input
-              value={operatorNumber}
-              onChange={(e) => setOperatorNumber(e.target.value)}
-              placeholder="Ex: 332110"
-              autoComplete='off'
-            />
-          </div>
+
+
 
           <Card className='mt-6 w-full animate-in zoom-in-95 duration-500 hover:scale-[1.02] transition-transform'>
             <CardHeader>
@@ -578,10 +576,7 @@ export function TransferPrepComponent() {
                       {qrData.learPN || '—'}
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell className='font-medium'>Operator</TableCell>
-                    <TableCell>{qrData.operatorNumber || '—'}</TableCell>
-                  </TableRow>
+
                   <TableRow>
                     <TableCell className='font-medium'>Date</TableCell>
                     <TableCell>
@@ -635,20 +630,20 @@ export function TransferPrepComponent() {
       )}
 
       {progress === 100 && (
-      <div className='mt-4 flex flex-wrap justify-center gap-3'>
-        <button
-          onClick={() => setShowPreview(true)}
-          className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
-        >
-          👁️ Show Ticket and Download
-        </button>
-        <button
-          onClick={handleGenerateAndPrint}
-          className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700'
-        >
-          🖨️ Generate & Print
-        </button>
-      </div>
+        <div className='mt-4 flex flex-wrap justify-center gap-3'>
+          <button
+            onClick={() => setShowPreview(true)}
+            className='rounded bg-orange-600 px-6 py-2 text-white hover:bg-orange-700'
+          >
+            👁️ Show Ticket and Download
+          </button>
+          <button
+            onClick={handleGenerateAndPrint}
+            className='rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700'
+          >
+            🖨️ Generate & Print
+          </button>
+        </div>
       )}
       <ErrorPopup
         open={errorOpen}

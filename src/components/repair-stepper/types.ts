@@ -12,7 +12,6 @@ export interface CurrentData {
     repair?: { codePiece: string; checklist: any[] };
     ticketCode: string | null;
     hasCompletedStep1: boolean;
-    operatorNumber?: string;
 }
 
 export interface CurrentDataContextType {

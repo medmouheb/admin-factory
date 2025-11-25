@@ -10,9 +10,7 @@ export const users = Array.from({ length: 500 }, () => {
     id: faker.string.uuid(),
     firstName,
     lastName,
-    username: faker.internet
-      .username({ firstName, lastName })
-      .toLocaleLowerCase(),
+    matricule: faker.string.alphanumeric(6).toUpperCase(),
     email: faker.internet.email({ firstName }).toLocaleLowerCase(),
     phoneNumber: faker.phone.number({ style: 'international' }),
     status: faker.helpers.arrayElement([

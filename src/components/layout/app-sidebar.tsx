@@ -17,11 +17,10 @@ import { useAuthStore } from '@/stores/auth-store'
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useAuthStore((state) => state.auth)
-    const { auth } = useAuthStore()
 
 
   const checkAccess = (itemRoles: string[] | undefined) => {
-    console.log("auth in sidebar:", auth);
+    
     
     if (!itemRoles || itemRoles.length === 0) return true
     if (!user || !user.role) return false

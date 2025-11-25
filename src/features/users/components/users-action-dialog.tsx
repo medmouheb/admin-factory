@@ -22,30 +22,30 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { type User } from '../data/schema'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 const roleOptions = [
-  { label: 'operateur', value: 'operateur' },
-  { label: 'superviseur', value: 'superviseur' },
-  { label: 'admin', value: 'admin' },
+  { label: 'Super Admin', value: 'superadmin' },
+  { label: 'Admin', value: 'admin' },
+  { label: 'Operateur', value: 'opperateur' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Superviseur', value: 'superviseur' },
 ] as const
 
 const formSchema = z
   .object({
     firstName: z.string().min(1, 'First Name is required.'),
     lastName: z.string().min(1, 'Last Name is required.'),
-    username: z.string().min(1, 'Username is required.'),
+    matricule: z.string().min(1, 'Matricule is required.'),
     phoneNumber: z.string().min(1, 'Phone number is required.'),
     email: z.email({
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
     password: z.string().transform((pwd) => pwd.trim()),
-    roles: z
-      .array(z.enum(['operateur', 'superviseur', 'admin']))
-      .min(1, 'At least one role is required.'),
+    role: z.enum(['superadmin', 'admin', 'opperateur', 'manager', 'superviseur']),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
     isEdit: z.boolean(),
   })
@@ -118,7 +118,7 @@ export function UsersActionDialog({
     defaultValues: isEdit
       ? {
           ...currentRow,
-          roles: currentRow?.role ? [currentRow.role] : [],
+          role: currentRow.role,
           password: '',
           confirmPassword: '',
           isEdit,
@@ -126,9 +126,9 @@ export function UsersActionDialog({
       : {
           firstName: '',
           lastName: '',
-          username: '',
+          matricule: '',
           email: '',
-          roles: [],
+          role: 'opperateur',
           phoneNumber: '',
           password: '',
           confirmPassword: '',
@@ -144,10 +144,10 @@ export function UsersActionDialog({
       const payload: Record<string, any> = {
         firstName: values.firstName,
         lastName: values.lastName,
-        username: values.username,
+        matricule: values.matricule,
         email: values.email,
         phoneNumber: values.phoneNumber,
-        roles: values.roles,
+        role: values.role,
       }
       if (values.password) payload.password = values.password
 
@@ -255,15 +255,15 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='username'
+                name='matricule'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Username
+                      Matricule
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='dai'
+                        placeholder='matricule'
                         className='col-span-4'
                         {...field}
                       />
@@ -310,33 +310,22 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='roles'
-                render={() => (
-                  <FormItem className='grid grid-cols-6 items-start space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Roles</FormLabel>
-                    <div className='col-span-4 space-y-2'>
-                      {roleOptions.map((opt) => (
-                        <FormField
-                          key={opt.value}
-                          control={form.control}
-                          name='roles'
-                          render={({ field }) => (
-                            <FormItem className='flex flex-row items-center gap-2'>
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(opt.value)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...(field.value || []), opt.value])
-                                      : field.onChange((field.value || []).filter((v) => v !== opt.value))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className='font-normal'>{opt.label}</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
+                name='role'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-end'>Role</FormLabel>
+                    <div className='col-span-4'>
+                      <select
+                        className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        {roleOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
                       <FormMessage />
                     </div>
                   </FormItem>

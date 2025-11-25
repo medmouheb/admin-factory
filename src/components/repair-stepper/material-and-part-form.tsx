@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useStepper } from './stepper-config'
 import { useCurrentData } from './context'
 import { toast } from 'sonner'
@@ -14,163 +14,132 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
   const [learPN, setLearPN] = useState('')
   const [storageUnit, setStorageUnit] = useState('')
-  const [availStock, setAvailStock] = useState('')
   const [part, setPart] = useState({ tescaPN: '', desc: '', qtyPerBox: '' })
   const [loading, setLoading] = useState(false)
 
   const learPNRef = useRef<HTMLInputElement>(null)
   const storageRef = useRef<HTMLInputElement>(null)
-  const availRef = useRef<HTMLInputElement>(null)
+  const qtyRef = useRef<HTMLInputElement>(null)
 
-  const [errorOpen, setErrorOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [shakingField, setShakingField] = useState<string | null>(null)
+  const [error, setError] = useState({ open: false, msg: '', field: '' })
 
-  const showError = (msg: string, fieldId: string | null = null) => {
-    setErrorMessage(msg)
-    setErrorOpen(true)
-    if (fieldId) {
-      setShakingField(fieldId)
-      setTimeout(() => setShakingField(null), 500)
-    }
+  const showError = (msg: string, field: string) => {
+    setError({ open: true, msg, field })
+    setTimeout(() => setError((e) => ({ ...e, field: '' })), 500)
   }
 
-  // restore values on mount
+  /** Restore on mount */
   useEffect(() => {
     setLearPN(currentData.part.learPN || '')
+    setStorageUnit(currentData.materile.storageUn || '')
     setPart({
       tescaPN: currentData.part.tescaPN || '',
       desc: currentData.part.desc || '',
       qtyPerBox: currentData.part.qtyPerBox || '',
     })
-    setStorageUnit(currentData.materile.storageUn || '')
-    setAvailStock(currentData.materile.availStock || '')
   }, [])
 
-  // focus step
+  /** Autofocus if step active */
   useEffect(() => {
-    if (stepper.current.id === 'ContainerManagement')
-      setTimeout(() => learPNRef.current?.focus(), 60)
+    if (stepper.current.id === 'ContainerManagement') {
+      setTimeout(() => learPNRef.current?.focus(), 80)
+    }
   }, [stepper.current.id])
 
-  // sync local → global
+  /** Sync each local → global (optimized) */
   useEffect(() => {
-    setCurrentData((prev) => ({ ...prev, part: { ...prev.part, learPN } }))
+    setCurrentData((p) => ({ ...p, part: { ...p.part, learPN } }))
   }, [learPN])
+
   useEffect(() => {
-    setCurrentData((prev) => ({
-      ...prev,
-      materile: { ...prev.materile, storageUn: storageUnit },
+    setCurrentData((p) => ({
+      ...p,
+      materile: { ...p.materile, storageUn: storageUnit },
     }))
   }, [storageUnit])
-  useEffect(() => {
-    setCurrentData((prev) => ({
-      ...prev,
-      materile: { ...prev.materile, availStock },
-    }))
-  }, [availStock])
 
-  // fetch part
+  useEffect(() => {
+    setCurrentData((p) => ({
+      ...p,
+      part: { ...p.part, qtyPerBox: part.qtyPerBox },
+    }))
+  }, [part.qtyPerBox])
+
+  /** Validators (shorter) */
+  const isLearPNValid = () => /^p.{15}$/i.test(learPN.trim())
+  const isStorageValid = () => /^s.{9}$/i.test(storageUnit.trim())
+  const isPartLoaded = () => part.tescaPN.trim() && part.desc.trim()
+  const isQtyValid = () => /^Q\d+$/.test(part.qtyPerBox.trim())
+
+  /** Fetch part by Lear PN */
   const handleFetchPart = async () => {
-    const pn = learPN.trim()
-    if (!pn.toLowerCase().startsWith('p'))
-      return showError('Lear PN must start with P', 'learPN')
-    if (pn.length !== 16) return showError('Lear PN must be 16 characters', 'learPN')
+    if (!isLearPNValid()) {
+      return showError('Lear PN must start with P and be 16 characters', 'learPN')
+    }
 
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8080/api/parts/lear?learPN=${pn.substring(1)}`
+        `http://localhost:8080/api/parts/lear?learPN=${learPN.substring(1)}`
       )
       if (!res.ok) throw new Error('Not found')
+
       const data = await res.json()
-      // const qtyStr = data.qtyPerBox != null ? String(data.qtyPerBox) : ''
-      setPart(prev => ({
+      setPart((prev) => ({
         ...prev,
         tescaPN: data.tescaPN || '',
         desc: data.desc || '',
-        // qtyPerBox: qtyStr, // Do not overwrite quantity
       }))
+
       setCurrentData((prev) => ({
         ...prev,
         part: {
-          learPN: pn,
+          ...prev.part,
           tescaPN: data.tescaPN || '',
           desc: data.desc || '',
-          qtyPerBox: prev.part.qtyPerBox, // Keep existing quantity
         },
       }))
+
       toast.success('Part loaded')
-      setTimeout(() => storageRef.current?.focus(), 250)
+      setTimeout(() => storageRef.current?.focus(), 200)
     } catch {
       showError('Part not found', 'learPN')
-      setPart(prev => ({ ...prev, tescaPN: '', desc: '' }))
+      setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
     } finally {
       setLoading(false)
     }
   }
 
-  // validate storage
+  /** Validate HU */
   const handleStorageDone = () => {
-    const su = storageUnit.trim()
-    if (!su.toLowerCase().startsWith('s'))
-      return showError('HU Galia must start with s', 'storage')
-    if (su.length !== 10) return showError('HU Galia must be 10 characters', 'storage')
-    setCurrentData((prev) => ({
-      ...prev,
-      materile: { ...prev.materile, storageUn: su.substring(1) },
-    }))
+    if (!isStorageValid()) return showError('HU must start with S and be 10 chars', 'storage')
     toast.success('HU accepted')
-    setTimeout(() => availRef.current?.focus(), 250)
+    setTimeout(() => qtyRef.current?.focus(), 200)
   }
 
-  // validation functions
-  const isLearPNValid = () =>
-    learPN.trim().length === 16 && learPN.trim().toLowerCase().startsWith('p')
-  const isPartFetched = () =>
-    part.tescaPN.trim() && part.desc.trim()
-  const isStorageValid = () =>
-    storageUnit.trim().length === 10 &&
-    storageUnit.trim().toLowerCase().startsWith('s')
-  const isAvailValid = () => /^Q\d+$/.test(part.qtyPerBox)
+  /** Final step: ENTER on quantity */
+  const handleQuantityNext = () => {
+    if (!isLearPNValid()) return showError('Lear PN invalid', 'learPN')
+    if (!isPartLoaded()) return showError('Part not loaded', 'learPN')
+    if (!isStorageValid()) return showError('HU invalid', 'storage')
+    if (!isQtyValid()) return showError('Quantity must be Q<number>', 'quantity')
 
-  // auto-next only first time
-  useEffect(() => {
-    if (
-      isLearPNValid() &&
-      isPartFetched() &&
-      isStorageValid() &&
-      isAvailValid() &&
-      !currentData.hasCompletedStep1
-    ) {
-      // We don't auto-next on quantity anymore, user must hit enter
-      // But if they come back and everything is valid, maybe?
-      // For now, let's respect the "hit enter" request for the last field.
-    }
-  }, [learPN, part, storageUnit])
+    setCurrentData((p) => ({ ...p, hasCompletedStep1: true }))
+    nextFunction()
+  }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: string) => {
-    if (e.key !== 'Enter' || loading) return
-    if (type === 'part') handleFetchPart()
-    if (type === 'storage') handleStorageDone()
-    if (type === 'quantity') {
-      if (isAvailValid()) {
-        setCurrentData((prev) => ({ ...prev, hasCompletedStep1: true }))
-        nextFunction()
-      } else {
-        showError('Quantity must be in format Q<number> (e.g. Q10)', 'quantity')
-      }
-    }
+  /** Shared ENTER handler */
+  const enter = (e: any, callback: Function) => {
+    if (e.key === 'Enter' && !loading) callback()
   }
 
   return (
     <div className='w-full p-6'>
       <Card className='w-full rounded-2xl p-6 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-xl transition-all border-t-4 border-t-primary'>
         <CardHeader>
-          <CardTitle className='text-2xl'>
-            Part & Material Information
-          </CardTitle>
+          <CardTitle className='text-2xl'>Part & Material Information</CardTitle>
         </CardHeader>
+
 
         <CardContent>
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -183,13 +152,12 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <Input
                   className={cn(
                     'h-12 px-4 text-lg transition-all duration-200',
-                    shakingField === 'learPN' &&
-                    'animate-shake border-destructive ring-2 ring-destructive/20'
+                    error.field === 'learPN' && 'animate-shake border-destructive ring-2 ring-destructive/20'
                   )}
                   ref={learPNRef}
                   value={learPN}
                   onChange={(e) => setLearPN(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, 'part')}
+                  onKeyDown={(e) => enter(e, handleFetchPart)}
                   maxLength={16}
                   placeholder='Enter Lear PN (starts with P, 16 chars)'
                   autoComplete='off'
@@ -198,22 +166,12 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
               <div className='space-y-2'>
                 <Label className='text-lg font-medium'>Tesca PN</Label>
-                <Input
-                  className='h-12 px-4 text-lg'
-                  readOnly
-                  value={part.tescaPN}
-                  placeholder='Auto-filled'
-                />
+                <Input className='h-12 px-4 text-lg' readOnly value={part.tescaPN} placeholder='Auto-filled' />
               </div>
 
               <div className='space-y-2'>
                 <Label className='text-lg font-medium'>Description</Label>
-                <Input
-                  className='h-12 px-4 text-lg'
-                  readOnly
-                  value={part.desc}
-                  placeholder='Auto-filled'
-                />
+                <Input className='h-12 px-4 text-lg' readOnly value={part.desc} placeholder='Auto-filled' />
               </div>
             </div>
 
@@ -226,13 +184,12 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <Input
                   className={cn(
                     'h-12 px-4 text-lg transition-all duration-200',
-                    shakingField === 'storage' &&
-                    'animate-shake border-destructive ring-2 ring-destructive/20'
+                    error.field === 'storage' && 'animate-shake border-destructive ring-2 ring-destructive/20'
                   )}
                   ref={storageRef}
                   value={storageUnit}
                   onChange={(e) => setStorageUnit(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, 'storage')}
+                  onKeyDown={(e) => enter(e, handleStorageDone)}
                   maxLength={10}
                   placeholder='Enter HU Galia (starts with s, 10 chars)'
                   autoComplete='off'
@@ -242,11 +199,14 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
               <div className='space-y-2'>
                 <Label className='text-lg font-medium'>Quantity</Label>
                 <Input
-                  className='h-12 px-4 text-lg'
-                  ref={availRef}
+                  className={cn(
+                    'h-12 px-4 text-lg',
+                    error.field === 'quantity' && 'animate-shake border-destructive ring-2 ring-destructive/20'
+                  )}
+                  ref={qtyRef}
                   value={part.qtyPerBox}
-                  onChange={(e) => setPart(prev => ({ ...prev, qtyPerBox: e.target.value }))}
-                  onKeyDown={(e) => handleKeyDown(e, 'quantity')}
+                  onChange={(e) => setPart((prev) => ({ ...prev, qtyPerBox: e.target.value }))}
+                  onKeyDown={(e) => enter(e, handleQuantityNext)}
                   placeholder='Enter Quantity (e.g. Q10)'
                   autoComplete='off'
                 />
@@ -255,10 +215,11 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
           </div>
         </CardContent>
       </Card>
+
       <ErrorPopup
-        open={errorOpen}
-        onOpenChange={setErrorOpen}
-        message={errorMessage}
+        open={error.open}
+        onOpenChange={(o) => setError((e) => ({ ...e, open: o }))}
+        message={error.msg}
       />
     </div>
   )
