@@ -33,9 +33,10 @@ type DataTableProps = {
   data: User[]
   search: Record<string, unknown>
   navigate: NavigateFn
+  roleFilter?: string
 }
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
+export function UsersTable({ data, search, navigate, roleFilter }: DataTableProps) {
   // Local UI-only states
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -50,8 +51,11 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       setIsFetching(true)
       const params = new URLSearchParams()
       if (search.username) params.set('username', search.username as string)
-      const roleParam = Array.isArray(search.role) && search.role.length ? (search.role as string[])[0] : ''
+
+      // Use roleFilter if provided (for superviseur), otherwise use search.role
+      const roleParam = roleFilter || (Array.isArray(search.role) && search.role.length ? (search.role as string[])[0] : '')
       if (roleParam) params.set('role', roleParam)
+
       params.set('page', String((search.page ?? 1)))
       params.set('size', String((search.pageSize ?? 10)))
       const res = await fetch(`http://localhost:8080/api/users/search?${params.toString()}`, {
@@ -87,7 +91,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
 
   useEffect(() => {
     fetchUsers()
-  }, [search.username, search.role, search.page, search.pageSize])
+  }, [search.username, search.role, search.page, search.pageSize, roleFilter])
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])

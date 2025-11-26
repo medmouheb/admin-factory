@@ -28,10 +28,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import jsPDF from 'jspdf'
+import JsBarcode from 'jsbarcode'
+import { useAuthStore } from "@/stores/auth-store"
 
 type TicketCode = {
   id: string
   code: string
+  matricule: string
   createdAt: string
   totalTickets?: number
 }
@@ -40,6 +44,7 @@ type Ticket = {
   id: string
   barcode: string
   learPN: string
+  matricule?: string
   createdAt: string
 }
 
@@ -305,6 +310,81 @@ export function ComingSoon() {
       setIsSubmitting(false)
     }
   }
+  const { auth } = useAuthStore()
+
+  const generateTicketPDF = (ticketCode: string) => {
+    const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+
+    let y = 0.3; // top margin
+
+    // Title
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('tesca', 0.2, y);
+    y += 0.5;
+
+    // Ticket Code text
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text(paginatedTickets[0].learPN || "", 0.2, y);
+    y += 0.4;
+
+
+    // Ticket Code text
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Oper : ${auth.user?.matricule}` || "", 0.2, y);
+    y += 0.4;
+
+    // Barcode for ticket code
+    const canvas1 = document.createElement('canvas');
+    if (ticketCode) {
+      JsBarcode(canvas1, ticketCode, {
+        format: 'CODE128',
+        width: 0.8,
+        height: 20,
+        displayValue: false,
+      });
+      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1);
+    }
+    y += 1.1;
+
+    // Ticket code (centered)
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    const textWidth = doc.getTextWidth(ticketCode || '');
+    const xCentered = (5 - textWidth) / 2;
+    doc.text(ticketCode || '', xCentered, y);
+    y += 0.6;
+
+    // Date & Time
+    const now = new Date();
+    doc.setFontSize(6);
+    doc.text(
+      `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
+      0.2,
+      y
+    );
+
+    // Print
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      }, 100);
+    };
+  };
 
   const openEditDialogForTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket)
@@ -646,6 +726,9 @@ export function ComingSoon() {
               <TableHead className="w-40 text-xs uppercase tracking-wide">
                 Ticket Code
               </TableHead>
+              <TableHead className="w-40 text-xs uppercase tracking-wide">
+                Operateur
+              </TableHead>
               <TableHead className="text-xs uppercase tracking-wide">
                 Created At
               </TableHead>
@@ -671,6 +754,13 @@ export function ComingSoon() {
                     <p className="text-xs text-muted-foreground">
                       ID: {item.id}
                     </p>
+                  </div>
+                </TableCell>
+
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex flex-col">
+                    <span> {item.matricule}</span>
+
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
@@ -785,27 +875,7 @@ export function ComingSoon() {
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-semibold text-muted-foreground">Filter Tickets</Label>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="text-xs h-7 transition-all duration-200 hover:scale-105"
-                    onClick={openCreateDialogForCode}
-                  >
-                    <svg
-                      className="mr-1.5 h-3.5 w-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    Create Ticket
-                  </Button>
+
                   {ticketFiltersCount > 0 && (
                     <Button
                       variant="ghost"
@@ -879,7 +949,7 @@ export function ComingSoon() {
                 <Table>
                   <TableHeader className="bg-gradient-to-r from-muted/60 to-muted/40">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-1/3 font-semibold text-xs uppercase tracking-wider">Ticket Barcode</TableHead>
+                      <TableHead className="w-1/4 font-semibold text-xs uppercase tracking-wider">Ticket Barcode</TableHead>
                       <TableHead className="font-semibold text-xs uppercase tracking-wider">Lear PN</TableHead>
                       <TableHead className="font-semibold text-xs uppercase tracking-wider">Created Date</TableHead>
                       <TableHead className="font-semibold text-xs uppercase tracking-wider text-right w-24">Actions</TableHead>
@@ -889,7 +959,7 @@ export function ComingSoon() {
                   <TableBody>
                     {ticketLoading ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="p-10 text-center">
+                        <TableCell colSpan={5} className="p-10 text-center">
                           <div className="flex flex-col items-center gap-3">
                             <div className="relative">
                               <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
@@ -925,6 +995,7 @@ export function ComingSoon() {
                               {t.learPN}
                             </Badge>
                           </TableCell>
+
                           <TableCell className="py-3">
                             <div className="space-y-1">
                               <div className="text-sm font-medium text-foreground">
@@ -1008,7 +1079,7 @@ export function ComingSoon() {
                     ) : (
                       <TableRow className="animate-in fade-in duration-300">
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="p-10 text-center text-muted-foreground"
                         >
                           <div className="flex flex-col items-center gap-2">
@@ -1075,6 +1146,13 @@ export function ComingSoon() {
           </div>
 
           <DialogFooter className="pt-4 border-t border-border/50 animate-in fade-in duration-500 delay-400 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => generateTicketPDF(selectedCode)}
+              className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+            >
+              🖨️ Print Ticket
+            </Button>
             <Button
               onClick={() => setOpenDialog(false)}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"

@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
-import { sleep, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -110,10 +110,16 @@ export function UserAuthForm({
 
       // Set user in auth store if you want client-side access
       auth.setUser(userData)
-      
 
-      // Redirect
-      const targetPath = redirectTo || '/'
+
+      // Redirect based on role
+      let targetPath = redirectTo || '/'
+
+      // If user is operateur, redirect to help-center (Tickets Done)
+      if (userData.role === 'operateur') {
+        targetPath = '/help-center'
+      }
+
       navigate({ to: targetPath, replace: true })
     } catch (error) {
       console.error(error)

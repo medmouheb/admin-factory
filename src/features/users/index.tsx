@@ -9,12 +9,18 @@ import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
 import { UsersTable } from './components/users-table'
+import { useAuthStore } from '@/stores/auth-store'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function Users() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+  const { user } = useAuthStore((state) => state.auth)
+
+  // Role-based filtering
+  // Admin sees all users, superviseur sees only operateurs
+  const roleFilter = user?.role === 'superviseur' ? 'operateur' : undefined
 
   return (
     <UsersProvider>
@@ -37,7 +43,7 @@ export function Users() {
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={[]} search={search} navigate={navigate} />
+        <UsersTable data={[]} search={search} navigate={navigate} roleFilter={roleFilter} />
       </Main>
 
       <UsersDialogs />
