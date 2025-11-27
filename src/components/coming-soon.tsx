@@ -38,6 +38,9 @@ type TicketCode = {
   matricule: string
   createdAt: string
   totalTickets?: number
+  learPN?: string
+  quantity?: number
+  hu?: string
 }
 
 type Ticket = {
@@ -46,6 +49,7 @@ type Ticket = {
   learPN: string
   matricule?: string
   createdAt: string
+  hu?: string
 }
 
 export function ComingSoon() {
@@ -435,7 +439,7 @@ export function ComingSoon() {
       const searchMatch =
         ticketSearch.trim().length === 0 ||
         ticket.barcode.toLowerCase().includes(ticketSearch.toLowerCase()) ||
-        ticket.learPN.toLowerCase().includes(ticketSearch.toLowerCase())
+        (ticket.hu && ticket.hu.toLowerCase().includes(ticketSearch.toLowerCase()))
 
       if (!searchMatch) return false
 
@@ -730,6 +734,15 @@ export function ComingSoon() {
                 Operateur
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wide">
+                Lear PN
+              </TableHead>
+              <TableHead className="text-xs uppercase tracking-wide">
+                Quantity
+              </TableHead>
+              <TableHead className="text-xs uppercase tracking-wide">
+                HU
+              </TableHead>
+              <TableHead className="text-xs uppercase tracking-wide">
                 Created At
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wide text-right">
@@ -760,7 +773,21 @@ export function ComingSoon() {
                 <TableCell className="text-sm text-muted-foreground">
                   <div className="flex flex-col">
                     <span> {item.matricule}</span>
-
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex flex-col">
+                    <span className="font-mono">{item.learPN || '—'}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex flex-col">
+                    <span>{item.quantity || '—'}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex flex-col">
+                    <span className="font-mono text-xs">{item.hu || '—'}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
@@ -894,7 +921,7 @@ export function ComingSoon() {
                   <Label htmlFor="ticket-search" className="text-xs text-muted-foreground">Search</Label>
                   <Input
                     id="ticket-search"
-                    placeholder="Barcode or Lear PN…"
+                    placeholder="Barcode or HU…"
                     value={ticketSearch}
                     onChange={(e) => setTicketSearch(e.target.value)}
                     className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
@@ -950,7 +977,6 @@ export function ComingSoon() {
                   <TableHeader className="bg-gradient-to-r from-muted/60 to-muted/40">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="w-1/4 font-semibold text-xs uppercase tracking-wider">Ticket Barcode</TableHead>
-                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Lear PN</TableHead>
                       <TableHead className="font-semibold text-xs uppercase tracking-wider">Created Date</TableHead>
                       <TableHead className="font-semibold text-xs uppercase tracking-wider text-right w-24">Actions</TableHead>
                     </TableRow>
@@ -986,14 +1012,6 @@ export function ComingSoon() {
                                 ID: {String(t.id).substring(0, 8)}...
                               </p>
                             </div>
-                          </TableCell>
-                          <TableCell className="py-3">
-                            <Badge
-                              variant="outline"
-                              className="font-mono text-xs transition-all duration-200 group-hover:scale-105 group-hover:border-primary/50"
-                            >
-                              {t.learPN}
-                            </Badge>
                           </TableCell>
 
                           <TableCell className="py-3">

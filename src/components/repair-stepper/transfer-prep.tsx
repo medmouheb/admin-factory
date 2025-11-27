@@ -76,7 +76,7 @@ export function TransferPrepComponent() {
 
   useEffect(() => {
     if (stepper.current.id === 'TransferPrep') {
-      setTimeout(() => barcode1Ref.current?.focus(), 60)
+      setTimeout(() => barcode2Ref.current?.focus(), 60)
     }
   }, [stepper.current.id])
 
@@ -96,7 +96,7 @@ export function TransferPrepComponent() {
   // Validation
   const isBarcode2Unique = (b2: string) => !barcodesLocal.some((b) => b.barcode2 === b2)
 
-  const validateBarcode2 = (value: string) => {
+  const validateBarcode2 = async (value: string) => {
     if (!prefix6) {
       showError('Lear PN is missing.', 'barcode2')
       return false
@@ -117,15 +117,31 @@ export function TransferPrepComponent() {
       showError('Reached required quantity', 'barcode2')
       return false
     }
+
+    // Check if barcode already exists in database
+    try {
+      const res = await fetch(`http://localhost:8080/api/tickets/check/${value}`)
+      const data = await res.json()
+
+      if (data.exists) {
+        showError('Barcode already exists in database', 'barcode2')
+        setBarcode2('')
+        return false
+      }
+    } catch (err) {
+      console.error('Error checking barcode:', err)
+      // Continue with validation even if check fails
+    }
+
     return true
   }
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (barcode1 !== learPN) {
       showError('Réf Lear must match', 'barcode1')
       return
     }
-    if (!validateBarcode2(barcode2)) return
+    if (!(await validateBarcode2(barcode2))) return
 
     const newList = [...barcodesLocal, { barcode1, barcode2, errorCode: 'N/A' }]
     setBarcodesLocal(newList)
@@ -135,7 +151,12 @@ export function TransferPrepComponent() {
 
   // Auto-add
   useEffect(() => {
-    if (barcode2.length === 13 && validateBarcode2(barcode2)) handleAdd()
+    const checkAndAdd = async () => {
+      if (barcode2.length === 13 && (await validateBarcode2(barcode2))) {
+        await handleAdd()
+      }
+    }
+    checkAndAdd()
   }, [barcode2])
 
   // Auto-generate ticket
@@ -151,12 +172,18 @@ export function TransferPrepComponent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',   // ⬅️ VERY IMPORTANT
-        body: JSON.stringify({ suffix: learPN.slice(-5) }),
+        body: JSON.stringify({
+          suffix: learPN.slice(-5),
+          learPN: learPN,
+          quantity: qty,
+          hu: currentData.materile.storageUn
+        }),
       })
       const data = await res.json()
       setTicketCode(data.code)
       toast.success('Ticket generated.')
       await bulkValidate(data.code)
+      await handleGenerateAndPrint()
     } catch (err: any) {
       toast.error(err.message || 'Ticket generation failed')
     } finally {
@@ -172,7 +199,6 @@ export function TransferPrepComponent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
           barcodesLocal.map((b) => ({
-            learPN: b.barcode1,
             barcode: b.barcode2,
             ticketCode: code,
           }))

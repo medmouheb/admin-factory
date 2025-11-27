@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStepper } from './stepper-config'
 import { useCurrentData } from './context'
 import { toast } from 'sonner'
@@ -74,6 +74,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   /** Fetch part by Lear PN */
   const handleFetchPart = async () => {
     if (!isLearPNValid()) {
+      setLearPN('')
       return showError('Lear PN must start with P and be 16 characters', 'learPN')
     }
 
@@ -105,6 +106,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
     } catch {
       showError('Part not found', 'learPN')
       setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
+      setLearPN('')
     } finally {
       setLoading(false)
     }
@@ -112,7 +114,10 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
   /** Validate HU */
   const handleStorageDone = () => {
-    if (!isStorageValid()) return showError('HU must start with S and be 10 chars', 'storage')
+    if (!isStorageValid()) {
+      setStorageUnit('')
+      return showError('HU must start with S and be 10 chars', 'storage')
+    }
     toast.success('HU accepted')
     setTimeout(() => qtyRef.current?.focus(), 200)
   }
