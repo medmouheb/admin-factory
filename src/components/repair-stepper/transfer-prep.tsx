@@ -75,7 +75,9 @@ export function TransferPrepComponent() {
   }, [])
 
   useEffect(() => {
-    if (stepper.current.id === 'TransferPrep') {
+    console.log('Transfer Prep Step   ', stepper.current.id)
+
+    if (stepper.current.id === 'ContainerManagement') {
       setTimeout(() => barcode2Ref.current?.focus(), 60)
     }
   }, [stepper.current.id])
@@ -146,7 +148,7 @@ export function TransferPrepComponent() {
     const newList = [...barcodesLocal, { barcode1, barcode2, errorCode: 'N/A' }]
     setBarcodesLocal(newList)
     setBarcode2('')
-    setTimeout(() => barcode1Ref.current?.focus(), 80)
+    setTimeout(() => barcode2Ref.current?.focus(), 80)
   }
 
   // Auto-add
@@ -183,7 +185,88 @@ export function TransferPrepComponent() {
       setTicketCode(data.code)
       toast.success('Ticket generated.')
       await bulkValidate(data.code)
-      await handleGenerateAndPrint()
+
+
+      const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+
+      let y = 0.3; // top margin
+
+
+      // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
+
+      // Title
+      doc.setFontSize(10); // smaller than before
+      doc.setFont('helvetica', 'bold');
+      doc.text('tesca', 0.2, y);
+      y += 0.5;
+
+      // Lear PN
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(learPN, 0.2, y);
+      y += 0.4;
+
+      // Barcode for ticket code
+      const canvas1 = document.createElement('canvas');
+      if (data.code) {
+        JsBarcode(canvas1, data.code, {
+          format: 'CODE128',
+          width: 0.8, // narrower to fit
+          height: 20, // slightly shorter
+          displayValue: false,
+        });
+        doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1); // width adjusted
+      }
+      y += 1.1;
+
+      // Ticket code (centered)
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      const textWidth = doc.getTextWidth(data.code || '');
+      const xCentered = (5 - textWidth) / 2; // center in 5cm page
+      doc.text(data.code || '', xCentered, y);
+      y += 0.6;
+
+      // Operator
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y);
+      y += 0.4;
+
+      // Quantity
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Qty: ${qty}`, 0.2, y);
+      y += 0.4;
+
+      // Date & Time
+      const now = new Date();
+      doc.setFontSize(6);
+      doc.text(
+        `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
+        0.2,
+        y
+      );
+
+      // Print
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          iframe.contentWindow?.print();
+          // Cleanup
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
+        }, 100);
+      };
+
     } catch (err: any) {
       toast.error(err.message || 'Ticket generation failed')
     } finally {
@@ -428,12 +511,6 @@ export function TransferPrepComponent() {
 
     let y = 0.3; // top margin
 
-    // QR Code (1.0 cm)
-    const qrSizeCm = 1.0;
-    const dpi = 96;
-    const qrCanvas = document.createElement('canvas');
-    qrCanvas.width = qrSizeCm * dpi / 2.54;
-    qrCanvas.height = qrCanvas.width;
 
     // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
 

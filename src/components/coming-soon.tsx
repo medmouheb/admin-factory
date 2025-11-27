@@ -57,11 +57,11 @@ export function ComingSoon() {
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
-  const [limit] = useState(5)
+  const [limit] = useState(10)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
+  const [date, setDate] = useState("") // single date param for backend
+  const [hu, setHu] = useState("")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [minTickets, setMinTickets] = useState("")
   const [maxTickets, setMaxTickets] = useState("")
@@ -106,8 +106,10 @@ export function ComingSoon() {
         sort: sortOrder,
       })
 
-      if (startDate) params.append("startDate", startDate)
-      if (endDate) params.append("endDate", endDate)
+      if (hu) params.append("hu", hu)
+      if (date) params.append("date", date)
+      if (timePreset && timePreset !== "all") params.append("time", timePreset)
+
 
       const res = await fetch(
         `http://localhost:8080/api/ticketscode/ticket-code?${params.toString()}`, {
@@ -123,7 +125,7 @@ export function ComingSoon() {
       console.error("Error fetching ticket codes:", err)
     }
     setLoading(false)
-  }, [page, limit, searchQuery, sortOrder, startDate, endDate])
+  }, [page, limit, searchQuery, sortOrder, hu, date, timePreset])
 
   useEffect(() => {
     fetchTicketCodes()
@@ -500,8 +502,8 @@ export function ComingSoon() {
   }
 
   const resetFilters = () => {
-    setStartDate("")
-    setEndDate("")
+    setDate("")
+    setHu("")
     setSortOrder("desc")
     setSearchInput("")
     setSearchQuery("")
@@ -514,14 +516,14 @@ export function ComingSoon() {
   const activeFiltersCount = useMemo(() => {
     let count = 0
     if (searchQuery) count += 1
-    if (startDate) count += 1
-    if (endDate) count += 1
+    if (date) count += 1
     if (sortOrder === "asc") count += 1
     if (minTickets) count += 1
     if (maxTickets) count += 1
     if (timePreset !== "all") count += 1
+    if (hu) count += 1
     return count
-  }, [searchQuery, startDate, endDate, sortOrder, minTickets, maxTickets, timePreset])
+  }, [searchQuery, date, sortOrder, minTickets, maxTickets, timePreset, hu])
 
   const filteredData = useMemo(() => {
     const min = Number(minTickets)
@@ -538,21 +540,11 @@ export function ComingSoon() {
   const handlePresetChange = (value: "all" | "24h" | "7d" | "30d") => {
     setTimePreset(value)
     if (value === "all") {
-      setStartDate("")
-      setEndDate("")
+      setDate("")
       return
     }
 
-    const end = new Date()
-    const start = new Date()
-
-    if (value === "24h") start.setDate(end.getDate() - 1)
-    if (value === "7d") start.setDate(end.getDate() - 7)
-    if (value === "30d") start.setDate(end.getDate() - 30)
-
-    const format = (date: Date) => date.toISOString().substring(0, 10)
-    setEndDate(format(end))
-    setStartDate(format(start))
+    // We only set the timePreset for backend; leave `date` for explicit date filtering
     setPage(1)
   }
 
@@ -618,28 +610,27 @@ export function ComingSoon() {
               </Button>
             </div>
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="startDate">From</Label>
+            <Label htmlFor="hu">HU</Label>
             <Input
-              id="startDate"
-              type="date"
-              value={startDate}
+              id="hu"
+              placeholder="e.g. HU-12345"
+              value={hu}
               onChange={(e) => {
-                setStartDate(e.target.value)
+                setHu(e.target.value)
                 setPage(1)
               }}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="endDate">To</Label>
+            <Label htmlFor="date">Date</Label>
             <Input
-              id="endDate"
+              id="date"
               type="date"
-              value={endDate}
+              value={date}
               onChange={(e) => {
-                setEndDate(e.target.value)
+                setDate(e.target.value)
                 setPage(1)
               }}
             />
@@ -662,64 +653,6 @@ export function ComingSoon() {
           </div>
         </div>
 
-        <Separator className="my-4" />
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="minTickets">Min tickets</Label>
-            <Input
-              id="minTickets"
-              type="number"
-              min={0}
-              value={minTickets}
-              onChange={(e) => {
-                setMinTickets(e.target.value)
-                setPage(1)
-              }}
-              placeholder="e.g. 10"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="maxTickets">Max tickets</Label>
-            <Input
-              id="maxTickets"
-              type="number"
-              min={0}
-              value={maxTickets}
-              onChange={(e) => {
-                setMaxTickets(e.target.value)
-                setPage(1)
-              }}
-              placeholder="e.g. 80"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Quick range</Label>
-            <Select
-              value={timePreset}
-              onValueChange={(value: "all" | "24h" | "7d" | "30d") => handlePresetChange(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Pick range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All time</SelectItem>
-                <SelectItem value="24h">Last 24h</SelectItem>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 rounded-xl border border-dashed border-border/60 bg-muted/30 p-3 text-sm">
-            <p className="font-medium text-muted-foreground">Active filters</p>
-            <p className="text-xs text-muted-foreground/70">
-              Combine ranges and ticket counts to pinpoint the exact batches to audit.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Table */}
