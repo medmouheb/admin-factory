@@ -30,7 +30,7 @@ import { toast } from 'sonner'
 const roleOptions = [
   { label: 'Super Admin', value: 'superadmin' },
   { label: 'Admin', value: 'admin' },
-  { label: 'Operateur', value: 'opperateur' },
+  { label: 'Operateur', value: 'operateur' },
   { label: 'Manager', value: 'manager' },
   { label: 'Superviseur', value: 'superviseur' },
 ] as const
@@ -40,12 +40,12 @@ const formSchema = z
     firstName: z.string().min(1, 'First Name is required.'),
     lastName: z.string().min(1, 'Last Name is required.'),
     matricule: z.string().min(1, 'Matricule is required.'),
-    phoneNumber: z.string().min(1, 'Phone number is required.'),
+    phone: z.string().min(1, 'Phone number is required.'),
     email: z.email({
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
     password: z.string().transform((pwd) => pwd.trim()),
-    role: z.enum(['superadmin', 'admin', 'opperateur', 'manager', 'superviseur']),
+    role: z.enum(['superadmin', 'admin', 'operateur', 'manager', 'superviseur']),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
     isEdit: z.boolean(),
   })
@@ -117,23 +117,23 @@ export function UsersActionDialog({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-          ...currentRow,
-          role: currentRow.role,
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        }
+        ...currentRow,
+        role: currentRow.role,
+        password: '',
+        confirmPassword: '',
+        isEdit,
+      }
       : {
-          firstName: '',
-          lastName: '',
-          matricule: '',
-          email: '',
-          role: 'opperateur',
-          phoneNumber: '',
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        },
+        firstName: '',
+        lastName: '',
+        matricule: '',
+        email: '',
+        role: 'operateur',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        isEdit,
+      },
   })
 
   const [isLoading, setIsLoading] = useState(false)
@@ -146,7 +146,7 @@ export function UsersActionDialog({
         lastName: values.lastName,
         matricule: values.matricule,
         email: values.email,
-        phoneNumber: values.phoneNumber,
+        phone: values.phone,
         role: values.role,
       }
       if (values.password) payload.password = values.password
@@ -291,7 +291,7 @@ export function UsersActionDialog({
               />
               <FormField
                 control={form.control}
-                name='phoneNumber'
+                name='phone'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>

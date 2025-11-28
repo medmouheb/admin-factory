@@ -113,13 +113,35 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   }
 
   /** Validate HU */
-  const handleStorageDone = () => {
+  const handleStorageDone = async () => {
     if (!isStorageValid()) {
       setStorageUnit('')
       return showError('HU must start with S and be 10 chars', 'storage')
     }
-    toast.success('HU accepted')
-    setTimeout(() => qtyRef.current?.focus(), 200)
+
+    // Check if HU is unique
+    setLoading(true)
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${storageUnit}`
+      )
+      if (!res.ok) throw new Error('Failed to check HU uniqueness')
+
+      const data = await res.json()
+
+      if (!data.isUnique) {
+        setStorageUnit('')
+        return showError('HU already exists. Please use a unique HU.', 'storage')
+      }
+
+      toast.success('HU accepted')
+      setTimeout(() => qtyRef.current?.focus(), 200)
+    } catch (error) {
+      showError('Failed to validate HU uniqueness', 'storage')
+      setStorageUnit('')
+    } finally {
+      setLoading(false)
+    }
   }
 
   /** Final step: ENTER on quantity */

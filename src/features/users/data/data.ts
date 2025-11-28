@@ -23,13 +23,13 @@ export const roles = [
     icon: UserCheck,
   },
   {
-    label: 'Manager',
-    value: 'manager',
+    label: 'Superviseur',
+    value: 'superviseur',
     icon: Users,
   },
   {
-    label: 'opperateur',
-    value: 'opperateur',
+    label: 'operateur',
+    value: 'operateur',
     icon: CreditCard,
   },
 ] as const

@@ -12,7 +12,7 @@ export const users = Array.from({ length: 500 }, () => {
     lastName,
     matricule: faker.string.alphanumeric(6).toUpperCase(),
     email: faker.internet.email({ firstName }).toLocaleLowerCase(),
-    phoneNumber: faker.phone.number({ style: 'international' }),
+    phone: faker.phone.number({ style: 'international' }),
     status: faker.helpers.arrayElement([
       'active',
       'inactive',
@@ -22,7 +22,7 @@ export const users = Array.from({ length: 500 }, () => {
     role: faker.helpers.arrayElement([
       'superadmin',
       'admin',
-      'opperateur',
+      'operateur',
       'manager',
     ]),
     createdAt: faker.date.past(),

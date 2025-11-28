@@ -71,11 +71,10 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
       setRows(
         list.map((u: any) => ({
           id: String(u.id),
-          username: u.username ?? '',
+          matricule: u.matricule ?? '',
           email: u.email ?? '',
-          phoneNumber: u.phoneNumber ?? '',
-          status: 'active',
-          role: ((u.roles?.[0]?.name === 'operateur' ? 'opperateur' : u.roles?.[0]?.name) ?? 'opperateur'),
+          phone: u.phone ?? '',
+          role: u.role,
           firstName: u.firstName ?? '',
           lastName: u.lastName ?? '',
           createdAt: new Date(u.createdAt),
@@ -112,7 +111,6 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
     columnFilters: [
       // username per-column text filter
       { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
       { columnId: 'role', searchKey: 'role', type: 'array' },
     ],
   })
@@ -157,16 +155,6 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
         searchPlaceholder='Filter users...'
         searchKey='username'
         filters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
-            ],
-          },
           {
             columnId: 'role',
             title: 'Role',
