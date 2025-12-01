@@ -25,7 +25,7 @@ export function TransferPrepComponent() {
   const learPN = learPNFull.substring(1, 16) || ''
   const prefix6 = learPN.slice(4, 10)
 
-  const [barcode1, setBarcode1] = useState(learPN)
+  const [barcode1, setBarcode1] = useState('')
   const [barcode2, setBarcode2] = useState('')
   const [barcodesLocal, setBarcodesLocal] = useState<BarcodeEntry[]>(
     currentData.materile.barcodes || []
@@ -69,22 +69,22 @@ export function TransferPrepComponent() {
 
   // Restore state
   useEffect(() => {
-    setBarcode1(learPN)
     setBarcodesLocal(currentData.materile.barcodes || [])
     setTicketCode(currentData.ticketCode || null)
+  }, [])
+
+  // Auto-focus barcode1 on mount
+  useEffect(() => {
+    setTimeout(() => barcode1Ref.current?.focus(), 60)
   }, [])
 
   useEffect(() => {
     console.log('Transfer Prep Step   ', stepper.current.id)
 
     if (stepper.current.id === 'ContainerManagement') {
-      setTimeout(() => barcode2Ref.current?.focus(), 60)
+      setTimeout(() => barcode1Ref.current?.focus(), 60)
     }
   }, [stepper.current.id])
-
-  useEffect(() => {
-    setBarcode1(learPN)
-  }, [learPN])
 
   // Keep global state in sync
   useEffect(() => {
@@ -148,7 +148,8 @@ export function TransferPrepComponent() {
     const newList = [...barcodesLocal, { barcode1, barcode2, errorCode: 'N/A' }]
     setBarcodesLocal(newList)
     setBarcode2('')
-    setTimeout(() => barcode2Ref.current?.focus(), 80)
+    setBarcode1('')
+    setTimeout(() => barcode1Ref.current?.focus(), 80)
   }
 
   // Auto-add
@@ -608,11 +609,17 @@ export function TransferPrepComponent() {
                 <Input
                   ref={barcode1Ref}
                   value={barcode1}
-                  readOnly
-                  className='bg-gray-100'
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && barcode2Ref.current?.focus()
-                  }
+                  onChange={(e) => setBarcode1(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (barcode1.toLowerCase() === learPN.toLowerCase()) {
+                        barcode2Ref.current?.focus()
+                      } else {
+                        showError('Barcode1 must be "learn"', 'barcode1')
+                      }
+                    }
+                  }}
+                  placeholder='Enter "learn"'
                 />
               </div>
               <div className='space-y-2'>

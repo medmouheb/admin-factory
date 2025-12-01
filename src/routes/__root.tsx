@@ -22,7 +22,7 @@ export const Route = createRootRouteWithContext<{
               description: 'text-base',
             },
           }}
-          duration={5000}
+          duration={10000}
         />
         {import.meta.env.MODE === 'development' && (
           <>

@@ -123,7 +123,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${storageUnit}`
+        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${storageUnit}`, {
+        credentials: 'include',   // ⬅️ VERY IMPORTANT
+      }
       )
       if (!res.ok) throw new Error('Failed to check HU uniqueness')
 

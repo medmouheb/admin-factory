@@ -28,7 +28,6 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 const roleOptions = [
-  { label: 'Super Admin', value: 'superadmin' },
   { label: 'Admin', value: 'admin' },
   { label: 'Operateur', value: 'operateur' },
   { label: 'Manager', value: 'manager' },

@@ -31,6 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import jsPDF from 'jspdf'
 import JsBarcode from 'jsbarcode'
 import { useAuthStore } from "@/stores/auth-store"
+import { useNavigate } from '@tanstack/react-router'
 
 type TicketCode = {
   id: string
@@ -88,10 +89,27 @@ export function ComingSoon() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [ticketForm, setTicketForm] = useState({
     barcode: "",
-    learPN: "",
     ticketCode: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Ticket Code CRUD states
+  const [openEditTicketCodeDialog, setOpenEditTicketCodeDialog] = useState(false)
+  const [openDeleteTicketCodeDialog, setOpenDeleteTicketCodeDialog] = useState(false)
+  const [selectedTicketCode, setSelectedTicketCode] = useState<TicketCode | null>(null)
+  const [ticketCodeForm, setTicketCodeForm] = useState({
+    learPN: "",
+    quantity: "",
+    hu: "",
+  })
+
+  // Get Ticket by Barcode states
+  const [openBarcodeSearchDialog, setOpenBarcodeSearchDialog] = useState(false)
+  const [barcodeSearchInput, setBarcodeSearchInput] = useState("")
+  const [barcodeSearchResult, setBarcodeSearchResult] = useState<Ticket | null>(null)
+  const [barcodeSearchLoading, setBarcodeSearchLoading] = useState(false)
+
+  const navigate = useNavigate()
 
   // ---------------------
   // Fetch Ticket Codes
@@ -213,7 +231,7 @@ export function ComingSoon() {
   // CRUD Operations
   // ---------------------
   const handleCreateTicket = async () => {
-    if (!ticketForm.barcode || !ticketForm.learPN || !ticketForm.ticketCode) {
+    if (!ticketForm.barcode || !ticketForm.ticketCode) {
       toast.error("Please fill in all fields")
       return
     }
@@ -225,7 +243,6 @@ export function ComingSoon() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           barcode: ticketForm.barcode,
-          learPN: ticketForm.learPN,
           ticketCode: ticketForm.ticketCode,
         }),
       })
@@ -237,7 +254,7 @@ export function ComingSoon() {
 
       toast.success("Ticket created successfully")
       setOpenCreateDialog(false)
-      setTicketForm({ barcode: "", learPN: "", ticketCode: "" })
+      setTicketForm({ barcode: "", ticketCode: "" })
       // Refresh tickets
       if (selectedCode) {
         await fetchTicketsByCode(selectedCode)
@@ -251,7 +268,7 @@ export function ComingSoon() {
   }
 
   const handleUpdateTicket = async () => {
-    if (!selectedTicket || !ticketForm.barcode || !ticketForm.learPN) {
+    if (!selectedTicket || !ticketForm.barcode) {
       toast.error("Please fill in all fields")
       return
     }
@@ -263,7 +280,6 @@ export function ComingSoon() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           barcode: ticketForm.barcode,
-          learPN: ticketForm.learPN,
         }),
       })
 
@@ -275,7 +291,7 @@ export function ComingSoon() {
       toast.success("Ticket updated successfully")
       setOpenEditDialog(false)
       setSelectedTicket(null)
-      setTicketForm({ barcode: "", learPN: "", ticketCode: "" })
+      setTicketForm({ barcode: "", ticketCode: "" })
       // Refresh tickets
       if (selectedCode) {
         await fetchTicketsByCode(selectedCode)
@@ -314,6 +330,100 @@ export function ComingSoon() {
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // ---------------------
+  // Ticket Code CRUD Operations
+  // ---------------------
+  const handleUpdateTicketCode = async () => {
+    if (!selectedTicketCode) return
+
+    setIsSubmitting(true)
+    try {
+      const res = await fetch(`http://localhost:8080/api/ticketscode/${selectedTicketCode.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify({
+          learPN: ticketCodeForm.learPN,
+          quantity: Number(ticketCodeForm.quantity),
+          hu: ticketCodeForm.hu,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || "Failed to update ticket code")
+      }
+
+      toast.success("Ticket code updated successfully")
+      setOpenEditTicketCodeDialog(false)
+      setSelectedTicketCode(null)
+      setTicketCodeForm({ learPN: "", quantity: "", hu: "" })
+      await fetchTicketCodes()
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update ticket code"
+      toast.error(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteTicketCode = async () => {
+    if (!selectedTicketCode) return
+
+    setIsSubmitting(true)
+    try {
+      const res = await fetch(`http://localhost:8080/api/ticketscode/${selectedTicketCode.id}`, {
+        method: "DELETE",
+        credentials: 'include'
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || "Failed to delete ticket code")
+      }
+
+      toast.success("Ticket code deleted successfully")
+      setOpenDeleteTicketCodeDialog(false)
+      setSelectedTicketCode(null)
+      await fetchTicketCodes()
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete ticket code"
+      toast.error(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // ---------------------
+  // Get Ticket by Barcode
+  // ---------------------
+  const handleSearchByBarcode = async () => {
+    if (!barcodeSearchInput.trim()) {
+      toast.error("Please enter a barcode")
+      return
+    }
+
+    setBarcodeSearchLoading(true)
+    try {
+      const res = await fetch(`http://localhost:8080/api/tickets/barcode/${encodeURIComponent(barcodeSearchInput)}`)
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || "Ticket not found")
+      }
+
+      const data = await res.json()
+      setBarcodeSearchResult(data)
+      toast.success("Ticket found")
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to find ticket"
+      toast.error(errorMessage)
+      setBarcodeSearchResult(null)
+    } finally {
+      setBarcodeSearchLoading(false)
     }
   }
   const { auth } = useAuthStore()
@@ -396,7 +506,6 @@ export function ComingSoon() {
     setSelectedTicket(ticket)
     setTicketForm({
       barcode: ticket.barcode,
-      learPN: ticket.learPN,
       ticketCode: selectedCode,
     })
     setOpenEditDialog(true)
@@ -410,10 +519,24 @@ export function ComingSoon() {
   const openCreateDialogForCode = () => {
     setTicketForm({
       barcode: "",
-      learPN: "",
       ticketCode: selectedCode,
     })
     setOpenCreateDialog(true)
+  }
+
+  const openEditDialogForTicketCode = (ticketCode: TicketCode) => {
+    setSelectedTicketCode(ticketCode)
+    setTicketCodeForm({
+      learPN: ticketCode.learPN || "",
+      quantity: String(ticketCode.quantity || ""),
+      hu: ticketCode.hu || "",
+    })
+    setOpenEditTicketCodeDialog(true)
+  }
+
+  const openDeleteDialogForTicketCode = (ticketCode: TicketCode) => {
+    setSelectedTicketCode(ticketCode)
+    setOpenDeleteTicketCodeDialog(true)
   }
 
   // Open popup
@@ -561,6 +684,22 @@ export function ComingSoon() {
         Ticket Codes
       </h1>
 
+      <div className="flex gap-3 mb-4">
+        <Button
+          onClick={() => navigate({ to: '/reapirage' })}
+          className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+        >
+          ➕ New Ticket
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setOpenBarcodeSearchDialog(true)}
+          className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+        >
+          🔍 Get Ticket by Barcode
+        </Button>
+      </div>
+
       <div className="rounded-2xl border border-border/60 bg-card/50 p-4 shadow-lg backdrop-blur animate-in slide-in-from-bottom-4 duration-700 delay-100">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
@@ -681,6 +820,9 @@ export function ComingSoon() {
               <TableHead className="text-xs uppercase tracking-wide text-right">
                 Tickets
               </TableHead>
+              <TableHead className="text-xs uppercase tracking-wide text-right w-24">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -735,6 +877,81 @@ export function ComingSoon() {
                   <Badge variant={ticketBadgeVariant(item.totalTickets)}>
                     {item.totalTickets ?? "—"}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="sr-only">Open menu</span>
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
+                        </svg>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openEditDialogForTicketCode(item)
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openDeleteDialogForTicketCode(item)
+                        }}
+                        className="cursor-pointer text-destructive focus:text-destructive"
+                      >
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -1132,17 +1349,7 @@ export function ComingSoon() {
                 placeholder="Enter barcode"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-learPN">Lear PN *</Label>
-              <Input
-                id="create-learPN"
-                value={ticketForm.learPN}
-                onChange={(e) =>
-                  setTicketForm({ ...ticketForm, learPN: e.target.value })
-                }
-                placeholder="Enter Lear PN"
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="create-ticketCode">Ticket Code *</Label>
               <Input
@@ -1160,7 +1367,7 @@ export function ComingSoon() {
               variant="outline"
               onClick={() => {
                 setOpenCreateDialog(false)
-                setTicketForm({ barcode: "", learPN: "", ticketCode: "" })
+                setTicketForm({ barcode: "", ticketCode: "" })
               }}
               disabled={isSubmitting}
             >
@@ -1191,17 +1398,7 @@ export function ComingSoon() {
                 placeholder="Enter barcode"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-learPN">Lear PN *</Label>
-              <Input
-                id="edit-learPN"
-                value={ticketForm.learPN}
-                onChange={(e) =>
-                  setTicketForm({ ...ticketForm, learPN: e.target.value })
-                }
-                placeholder="Enter Lear PN"
-              />
-            </div>
+
           </div>
           <DialogFooter>
             <Button
@@ -1209,7 +1406,7 @@ export function ComingSoon() {
               onClick={() => {
                 setOpenEditDialog(false)
                 setSelectedTicket(null)
-                setTicketForm({ barcode: "", learPN: "", ticketCode: "" })
+                setTicketForm({ barcode: "", ticketCode: "" })
               }}
               disabled={isSubmitting}
             >
@@ -1256,6 +1453,166 @@ export function ComingSoon() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Ticket Code Dialog */}
+      <Dialog open={openEditTicketCodeDialog} onOpenChange={setOpenEditTicketCodeDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Ticket Code</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-tc-learPN">Lear PN</Label>
+              <Input
+                id="edit-tc-learPN"
+                value={ticketCodeForm.learPN}
+                onChange={(e) =>
+                  setTicketCodeForm({ ...ticketCodeForm, learPN: e.target.value })
+                }
+                placeholder="Enter Lear PN"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-tc-quantity">Quantity</Label>
+              <Input
+                id="edit-tc-quantity"
+                type="number"
+                value={ticketCodeForm.quantity}
+                onChange={(e) =>
+                  setTicketCodeForm({ ...ticketCodeForm, quantity: e.target.value })
+                }
+                placeholder="Enter quantity"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-tc-hu">HU</Label>
+              <Input
+                id="edit-tc-hu"
+                value={ticketCodeForm.hu}
+                onChange={(e) =>
+                  setTicketCodeForm({ ...ticketCodeForm, hu: e.target.value })
+                }
+                placeholder="Enter HU"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpenEditTicketCodeDialog(false)
+                setSelectedTicketCode(null)
+                setTicketCodeForm({ learPN: "", quantity: "", hu: "" })
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateTicketCode} disabled={isSubmitting}>
+              {isSubmitting ? "Updating..." : "Update"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Ticket Code Dialog */}
+      <AlertDialog open={openDeleteTicketCodeDialog} onOpenChange={setOpenDeleteTicketCodeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              ticket code{" "}
+              <span className="font-mono font-semibold">
+                {selectedTicketCode?.code}
+              </span>
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setOpenDeleteTicketCodeDialog(false)
+                setSelectedTicketCode(null)
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTicketCode}
+              disabled={isSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSubmitting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Get Ticket by Barcode Dialog */}
+      <Dialog open={openBarcodeSearchDialog} onOpenChange={setOpenBarcodeSearchDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Get Ticket by Barcode</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="barcode-search">Barcode</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="barcode-search"
+                  value={barcodeSearchInput}
+                  onChange={(e) => setBarcodeSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearchByBarcode()}
+                  placeholder="Enter barcode"
+                />
+                <Button onClick={handleSearchByBarcode} disabled={barcodeSearchLoading}>
+                  {barcodeSearchLoading ? "Searching..." : "Search"}
+                </Button>
+              </div>
+            </div>
+            {barcodeSearchResult && (
+              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+                <h3 className="font-semibold">Ticket Found:</h3>
+                <Table>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Barcode</TableCell>
+                      <TableCell className="font-mono">{barcodeSearchResult.barcode}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">ticket Code</TableCell>
+                      <TableCell className="font-mono">{barcodeSearchResult.ticketCode}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Created At</TableCell>
+                      <TableCell>{formatDate(barcodeSearchResult.createdAt)}</TableCell>
+                    </TableRow>
+                    {barcodeSearchResult.hu && (
+                      <TableRow>
+                        <TableCell className="font-medium">HU</TableCell>
+                        <TableCell className="font-mono">{barcodeSearchResult.hu}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setOpenBarcodeSearchDialog(false)
+                setBarcodeSearchInput("")
+                setBarcodeSearchResult(null)
+              }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

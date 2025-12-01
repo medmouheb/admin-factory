@@ -47,7 +47,7 @@ export function StepperInner() {
         <div className='mb-10 flex items-center justify-between border-b border-slate-200/60 pb-6 dark:border-slate-800'>
           <div>
             <h2 className='bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold tracking-tight text-transparent'>
-              Reapirage Process
+              Check Export
             </h2>
             <p className='text-muted-foreground mt-2 text-lg'>
               Follow the steps to complete the check.
@@ -145,7 +145,7 @@ export function StepperInner() {
                   onClick={handleFullReset}
                   className='w-40 rounded-full bg-gradient-to-r from-red-500 to-pink-600 shadow-md transition-all hover:scale-105 hover:shadow-lg hover:from-red-600 hover:to-pink-700'
                 >
-                  Reset
+                  New Packet
                 </Button>
               </div>
             )}
