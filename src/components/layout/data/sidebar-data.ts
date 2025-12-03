@@ -8,6 +8,7 @@ import {
   Command,
   ClipboardCheck,
   Truck,
+  ArrowRightLeft,
 } from 'lucide-react'
 
 import { type SidebarData } from '../types'
@@ -80,6 +81,12 @@ export const sidebarData: SidebarData = {
           url: '/users',
           icon: Users,
           roles: ['superviseur', 'admin', 'manager'],
+        },
+        {
+          title: 'Export Import',
+          url: '/export-import',
+          icon: ArrowRightLeft,
+          roles: ['admin', 'manager'],
         },
       ],
     },

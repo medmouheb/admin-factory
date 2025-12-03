@@ -18,6 +18,7 @@ import { Route as AuthenticatedRetouchPacketsRouteImport } from './routes/_authe
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
 import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedExportImportRouteImport } from './routes/_authenticated/export-import'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -93,6 +94,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedExportImportRoute =
+  AuthenticatedExportImportRouteImport.update({
+    id: '/export-import',
+    path: '/export-import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
   path: '/503',
@@ -250,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/export-import': typeof AuthenticatedExportImportRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/export-import': typeof AuthenticatedExportImportRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -323,6 +332,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/export-import': typeof AuthenticatedExportImportRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/export-import'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/export-import'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -432,6 +444,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/export-import'
     | '/_authenticated/profile'
     | '/_authenticated/quality-check'
     | '/_authenticated/reapirage'
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/export-import': {
+      id: '/_authenticated/export-import'
+      path: '/export-import'
+      fullPath: '/export-import'
+      preLoaderRoute: typeof AuthenticatedExportImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
@@ -752,6 +772,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedExportImportRoute: typeof AuthenticatedExportImportRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
@@ -769,6 +790,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedExportImportRoute: AuthenticatedExportImportRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,
