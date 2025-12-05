@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedTransferManagementRouteImport } from './routes/_authenticated/transfer-management'
 import { Route as AuthenticatedRetouchPacketsRouteImport } from './routes/_authenticated/retouch-packets'
+import { Route as AuthenticatedReferencesRouteImport } from './routes/_authenticated/references'
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
 import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -78,6 +79,11 @@ const AuthenticatedRetouchPacketsRoute =
     path: '/retouch-packets',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReferencesRoute = AuthenticatedReferencesRouteImport.update({
+  id: '/references',
+  path: '/references',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReapirageRoute = AuthenticatedReapirageRouteImport.update({
   id: '/reapirage',
   path: '/reapirage',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
+  '/references': typeof AuthenticatedReferencesRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
+  '/references': typeof AuthenticatedReferencesRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
+  '/_authenticated/references': typeof AuthenticatedReferencesRoute
   '/_authenticated/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
   '/_authenticated/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quality-check'
     | '/reapirage'
+    | '/references'
     | '/retouch-packets'
     | '/transfer-management'
     | '/workspace'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quality-check'
     | '/reapirage'
+    | '/references'
     | '/retouch-packets'
     | '/transfer-management'
     | '/workspace'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/quality-check'
     | '/_authenticated/reapirage'
+    | '/_authenticated/references'
     | '/_authenticated/retouch-packets'
     | '/_authenticated/transfer-management'
     | '/_authenticated/workspace'
@@ -525,6 +537,13 @@ declare module '@tanstack/react-router' {
       path: '/retouch-packets'
       fullPath: '/retouch-packets'
       preLoaderRoute: typeof AuthenticatedRetouchPacketsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/references': {
+      id: '/_authenticated/references'
+      path: '/references'
+      fullPath: '/references'
+      preLoaderRoute: typeof AuthenticatedReferencesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reapirage': {
@@ -776,6 +795,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
+  AuthenticatedReferencesRoute: typeof AuthenticatedReferencesRoute
   AuthenticatedRetouchPacketsRoute: typeof AuthenticatedRetouchPacketsRoute
   AuthenticatedTransferManagementRoute: typeof AuthenticatedTransferManagementRoute
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
@@ -794,6 +814,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,
+  AuthenticatedReferencesRoute: AuthenticatedReferencesRoute,
   AuthenticatedRetouchPacketsRoute: AuthenticatedRetouchPacketsRoute,
   AuthenticatedTransferManagementRoute: AuthenticatedTransferManagementRoute,
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,

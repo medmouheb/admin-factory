@@ -26,6 +26,8 @@ import { PasswordInput } from '@/components/password-input'
 import { type User } from '../data/schema'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { jsPDF } from 'jspdf'
+import JsBarcode from 'jsbarcode'
 
 const roleOptions = [
   { label: 'Admin', value: 'admin' },
@@ -137,6 +139,80 @@ export function UsersActionDialog({
 
   const [isLoading, setIsLoading] = useState(false)
 
+  const generatePDF = (userData: any, password?: string) => {
+    // If no password provided in this context (e.g. edit without password change), 
+    // we might still want to print the ticket if the user requested it? 
+    // But the logic in onSubmit only calls this if password is provided.
+    // However, to be consistent with the other dialog, let's allow printing even if just for matricule?
+    // The current logic calls this only if `values.password` is truthy.
+    // So we can assume password exists or we just print what we have.
+    
+    try {
+      // 50mm x 50mm format
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [50, 50],
+      })
+
+      // Helper to generate barcode image
+      const getBarcodeImage = (text: string, showText: boolean) => {
+        const canvas = document.createElement('canvas')
+        JsBarcode(canvas, text, {
+          format: 'CODE128',
+          displayValue: showText,
+          fontSize: 40,
+          margin: 0,
+        })
+        return canvas.toDataURL('image/png')
+      }
+
+      // Layout matching the image
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      const fullName = `User: ${userData.firstName} ${userData.lastName}`
+      doc.text(fullName, 5, 8) // Top left
+
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Matricule:', 5, 14)
+
+      // Matricule Barcode (With text below)
+      const matriculeImg = getBarcodeImage(userData.matricule, true)
+      doc.addImage(matriculeImg, 'PNG', 5, 16, 40, 12)
+
+      // Password Label
+      doc.text('Password:', 5, 34)
+
+      // Password Barcode (Without text below)
+      if (password) {
+        const passwordImg = getBarcodeImage(password, false)
+        doc.addImage(passwordImg, 'PNG', 5, 36, 40, 10)
+      } else {
+        doc.setFontSize(8)
+        doc.text('(No password)', 5, 40)
+      }
+
+      // Print
+      doc.autoPrint()
+      const blob = doc.output('blob')
+      const url = URL.createObjectURL(blob)
+      
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = url
+      document.body.appendChild(iframe)
+      iframe.onload = () => {
+        iframe.contentWindow?.print()
+      }
+      
+      toast.success('Printing ticket...')
+    } catch (e) {
+      console.error('PDF generation error', e)
+      toast.error('Failed to generate ticket')
+    }
+  }
+
   const onSubmit = async (values: UserForm) => {
     try {
       setIsLoading(true)
@@ -163,6 +239,10 @@ export function UsersActionDialog({
           return
         }
         toast.success('User updated')
+        
+        if (values.password) {
+          generatePDF(values, values.password)
+        }
       } else {
         const res = await fetch('http://localhost:8080/api/auth/signup', {
           method: 'POST',
@@ -176,6 +256,10 @@ export function UsersActionDialog({
           return
         }
         toast.success('User created')
+        
+        if (values.password) {
+          generatePDF(values, values.password)
+        }
       }
 
       form.reset()

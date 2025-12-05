@@ -497,7 +497,7 @@ export function ComingSoon() {
         setTimeout(() => {
           document.body.removeChild(iframe);
           URL.revokeObjectURL(url);
-        }, 1000);
+        }, 10000);
       }, 100);
     };
   };

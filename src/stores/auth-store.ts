@@ -9,6 +9,8 @@ export interface AuthUser {
   matricule: string
   role: string
   exp: number
+  firstName?: string
+  lastName?: string
 }
 
 export interface AuthState {

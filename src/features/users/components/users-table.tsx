@@ -79,6 +79,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
           lastName: u.lastName ?? '',
           createdAt: new Date(u.createdAt),
           updatedAt: new Date(u.updatedAt),
+          password: u.password,
         })) as User[]
       )
     } catch (e) {

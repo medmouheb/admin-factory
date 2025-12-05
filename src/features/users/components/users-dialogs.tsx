@@ -1,4 +1,5 @@
 import { UsersActionDialog } from './users-action-dialog'
+import { UsersBarcodeDialog } from './users-barcode-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
 import { useUsers } from './users-provider'
@@ -44,6 +45,8 @@ export function UsersDialogs() {
             }}
             currentRow={currentRow}
           />
+          
+          <UsersBarcodeDialog />
         </>
       )}
     </>

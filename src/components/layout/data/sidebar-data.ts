@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   Truck,
   ArrowRightLeft,
+  FileText,
 } from 'lucide-react'
 
 import { type SidebarData } from '../types'
@@ -30,11 +31,7 @@ export const sidebarData: SidebarData = {
          logo: GalleryVerticalEnd,
          plan: 'Enterprise',
        },*/
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
+  
   ],
   navGroups: [
     {
@@ -87,6 +84,12 @@ export const sidebarData: SidebarData = {
           url: '/export-import',
           icon: ArrowRightLeft,
           roles: ['admin', 'manager'],
+        },
+        {
+          title: 'References',
+          url: '/references',
+          icon: FileText,
+          roles: ['admin', 'manager', 'superviseur',],
         },
       ],
     },

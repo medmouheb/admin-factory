@@ -264,7 +264,7 @@ export function TransferPrepComponent() {
           setTimeout(() => {
             document.body.removeChild(iframe);
             URL.revokeObjectURL(url);
-          }, 1000);
+          }, 10000);
         }, 100);
       };
 
@@ -584,7 +584,7 @@ export function TransferPrepComponent() {
         setTimeout(() => {
           document.body.removeChild(iframe);
           URL.revokeObjectURL(url);
-        }, 1000);
+        }, 100000);
       }, 100);
     };
   };
