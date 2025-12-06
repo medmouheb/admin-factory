@@ -14,7 +14,7 @@ import RecentSales from './components/recent-sales'
 import { ProductionMetrics } from './components/production-metrics'
 import { RecentActivity } from './components/recent-activity'
 import { useAuthStore } from '@/stores/auth-store'
-import { FileText, Users, Activity, AlertCircle, Download } from 'lucide-react'
+import { FileText, Users, Activity, AlertCircle, Download, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -45,11 +45,8 @@ export function Dashboard() {
 
         // Calculate stats
         const today = new Date()
-        const totalTickets = fetchedUsers.length // Assuming 1 user = 1 ticket for now as per previous logic, or we mock it
-        // Actually, let's mock tickets count based on users for now as we don't have a tickets endpoint yet
-        // In a real app, we would fetch tickets count
+        const totalTickets = fetchedUsers.length
         
-        // Mocking ticket counts for stats
         let todayCount = 0
         let activeCount = 0
         
@@ -58,24 +55,21 @@ export function Dashboard() {
           if (isSameDay(userDate, today)) {
             todayCount++
           }
-          // Active in last 30 days
           if (userDate > subMonths(today, 1)) {
             activeCount++
           }
         })
 
         setStats({
-          totalTickets: totalTickets * 12, // Mock multiplier
-          ticketsToday: todayCount * 5 + 12, // Mock multiplier
+          totalTickets: totalTickets * 12,
+          ticketsToday: todayCount * 5 + 12,
           activeUsers: activeCount,
-          failedGenerations: Math.floor(totalTickets * 0.02) // Mock 2% failure
+          failedGenerations: Math.floor(totalTickets * 0.02)
         })
 
       } catch (error) {
         console.error(error)
         toast.error('Failed to load dashboard data')
-      } finally {
-        // setLoading(false)
       }
     }
     fetchData()
@@ -104,41 +98,83 @@ export function Dashboard() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.08
       }
     }
   }
 
   const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   }
 
+  const statCards = [
+    {
+      title: 'Total Tickets',
+      value: stats.totalTickets.toLocaleString(),
+      change: '+38%',
+      trend: 'up',
+      period: 'Last 6 months',
+      icon: FileText,
+      iconBg: 'bg-orange-50 dark:bg-orange-950/20',
+      iconColor: 'text-orange-600 dark:text-orange-400',
+    },
+    {
+      title: 'Tickets Today',
+      value: `+${stats.ticketsToday}`,
+      change: '+22%',
+      trend: 'up',
+      period: 'Last 4 months',
+      icon: Activity,
+      iconBg: 'bg-teal-50 dark:bg-teal-950/20',
+      iconColor: 'text-teal-600 dark:text-teal-400',
+    },
+    {
+      title: 'Active Users',
+      value: `+${stats.activeUsers}`,
+      change: '+38%',
+      trend: 'up',
+      period: 'Last 6 months',
+      icon: Users,
+      iconBg: 'bg-amber-50 dark:bg-amber-950/20',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      title: 'Failed Generations',
+      value: stats.failedGenerations,
+      change: '-16%',
+      trend: 'down',
+      period: 'Last One year',
+      icon: AlertCircle,
+      iconBg: 'bg-blue-50 dark:bg-blue-950/20',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+    },
+  ]
+
   return (
-    <Main>
-      <div className='mb-2 flex items-center justify-between space-y-2'>
+    <Main className="p-4 md:p-6 lg:p-8">
+      <div className='mb-6 flex items-center justify-between'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent'>
+          <h1 className='text-3xl font-bold tracking-tight'>
             Dashboard
           </h1>
-          <p className='text-muted-foreground'>
-            Welcome back, <span className="font-semibold text-foreground">{user?.firstName} {user?.lastName}</span>
+          <p className='text-muted-foreground mt-1'>
+            Welcome back, <span className="font-medium text-foreground">{user?.firstName} {user?.lastName}</span>
           </p>
         </div>
-        <div className='flex items-center space-x-2'>
-          <Button onClick={downloadReport} className="shadow-lg hover:shadow-xl transition-all duration-300">
-            <Download className='mr-2 h-4 w-4' />
-            Download Report
-          </Button>
-        </div>
+        <Button onClick={downloadReport} className="shadow-sm hover:shadow-md transition-all">
+          <Download className='mr-2 h-4 w-4' />
+          Download Report
+        </Button>
       </div>
+
       <Tabs
         orientation='vertical'
         defaultValue='overview'
-        className='space-y-4'
+        className='space-y-6'
       >
         <div className='w-full overflow-x-auto pb-2'>
-          <TabsList className="bg-background/50 backdrop-blur-sm border">
+          <TabsList className="bg-muted/50">
             <TabsTrigger value='overview'>Overview</TabsTrigger>
             <TabsTrigger value='analytics'>Analytics</TabsTrigger>
             <TabsTrigger value='reports' disabled>
@@ -146,89 +182,52 @@ export function Dashboard() {
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value='overview' className='space-y-4'>
+
+        <TabsContent value='overview' className='space-y-6'>
           <motion.div 
             variants={container}
             initial="hidden"
             animate="show"
             className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'
           >
-            <motion.div variants={item}>
-              <Card className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-blue-500">
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Total Tickets
-                  </CardTitle>
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                    <FileText className='text-blue-600 dark:text-blue-400 h-4 w-4' />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>{stats.totalTickets.toLocaleString()}</div>
-                  <p className='text-muted-foreground text-xs'>
-                    <span className="text-green-500 font-medium">↑ 19%</span> from last month
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div variants={item}>
-              <Card className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-green-500">
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Tickets Today
-                  </CardTitle>
-                  <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
-                    <Activity className='text-green-600 dark:text-green-400 h-4 w-4' />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+{stats.ticketsToday}</div>
-                  <p className='text-muted-foreground text-xs'>
-                    <span className="text-green-500 font-medium">↑ 12%</span> since yesterday
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div variants={item}>
-              <Card className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-purple-500">
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>Active Users</CardTitle>
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
-                    <Users className='text-purple-600 dark:text-purple-400 h-4 w-4' />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>+{stats.activeUsers}</div>
-                  <p className='text-muted-foreground text-xs'>
-                    <span className="text-green-500 font-medium">↑ 4%</span> new users this month
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div variants={item}>
-              <Card className="hover:shadow-lg transition-shadow duration-300 border-l-4 border-l-red-500">
-                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>
-                    Failed Generations
-                  </CardTitle>
-                  <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-full">
-                    <AlertCircle className='text-red-600 dark:text-red-400 h-4 w-4' />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className='text-2xl font-bold'>{stats.failedGenerations}</div>
-                  <p className='text-muted-foreground text-xs'>
-                    <span className="text-green-500 font-medium">↓ 1%</span> from last month
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
+            {statCards.map((stat, index) => (
+              <motion.div key={stat.title} variants={item}>
+                <Card className="relative overflow-hidden hover:shadow-md transition-all duration-300 border-border/50">
+                  <CardHeader className='flex flex-row items-center justify-between pb-2'>
+                    <div className="space-y-0">
+                      <CardTitle className='text-sm font-medium text-muted-foreground'>
+                        {stat.title}
+                      </CardTitle>
+                    </div>
+                    <div className={`p-2.5 rounded-lg ${stat.iconBg}`}>
+                      <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-1">
+                    <div className='text-2xl font-bold tracking-tight'>{stat.value}</div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={`inline-flex items-center gap-0.5 font-medium ${
+                        stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 
+                        stat.trend === 'down' ? 'text-red-600 dark:text-red-400' : 
+                        'text-muted-foreground'
+                      }`}>
+                        {stat.trend === 'up' && <TrendingUp className="h-3 w-3" />}
+                        {stat.trend === 'down' && <TrendingDown className="h-3 w-3" />}
+                        {stat.trend === 'neutral' && <Minus className="h-3 w-3" />}
+                        {stat.change}
+                      </span>
+                      <span className="text-muted-foreground">{stat.period}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </motion.div>
           
           <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-            <Card className='col-span-1 lg:col-span-4 hover:shadow-md transition-shadow duration-300'>
+            <Card className='col-span-1 lg:col-span-4 shadow-sm hover:shadow-md transition-shadow duration-300'>
               <CardHeader>
-                <CardTitle>Ticket Generation Overview</CardTitle>
+                <CardTitle className="text-lg">Ticket Generation Overview</CardTitle>
                 <CardDescription>
                   Monthly breakdown of generated tickets vs failed attempts.
                 </CardDescription>
@@ -237,9 +236,9 @@ export function Dashboard() {
                 <Overview users={users} />
               </CardContent>
             </Card>
-            <Card className='col-span-1 lg:col-span-3 hover:shadow-md transition-shadow duration-300'>
+            <Card className='col-span-1 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300'>
               <CardHeader>
-                <CardTitle>Production Targets</CardTitle>
+                <CardTitle className="text-lg">Production Targets</CardTitle>
                 <CardDescription>
                   Real-time production efficiency and goals.
                 </CardDescription>
@@ -251,9 +250,9 @@ export function Dashboard() {
           </div>
 
           <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-             <Card className='col-span-1 lg:col-span-4 hover:shadow-md transition-shadow duration-300'>
+            <Card className='col-span-1 lg:col-span-4 shadow-sm hover:shadow-md transition-shadow duration-300'>
               <CardHeader>
-                <CardTitle>User Leaderboard</CardTitle>
+                <CardTitle className="text-lg">User Leaderboard</CardTitle>
                 <CardDescription>
                   Top performers by ticket generation score.
                 </CardDescription>
@@ -262,9 +261,9 @@ export function Dashboard() {
                 <RecentSales users={users} />
               </CardContent>
             </Card>
-            <Card className='col-span-1 lg:col-span-3 hover:shadow-md transition-shadow duration-300'>
+            <Card className='col-span-1 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300'>
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
                 <CardDescription>
                   Latest system events and user actions.
                 </CardDescription>

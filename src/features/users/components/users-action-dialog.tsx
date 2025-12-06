@@ -140,13 +140,6 @@ export function UsersActionDialog({
   const [isLoading, setIsLoading] = useState(false)
 
   const generatePDF = (userData: any, password?: string) => {
-    // If no password provided in this context (e.g. edit without password change), 
-    // we might still want to print the ticket if the user requested it? 
-    // But the logic in onSubmit only calls this if password is provided.
-    // However, to be consistent with the other dialog, let's allow printing even if just for matricule?
-    // The current logic calls this only if `values.password` is truthy.
-    // So we can assume password exists or we just print what we have.
-    
     try {
       // 50mm x 50mm format
       const doc = new jsPDF({
@@ -167,31 +160,55 @@ export function UsersActionDialog({
         return canvas.toDataURL('image/png')
       }
 
-      // Layout matching the image
-      doc.setFontSize(10)
+      // 1. Header: Tesca Tunisia
+      doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      const fullName = `User: ${userData.firstName} ${userData.lastName}`
-      doc.text(fullName, 5, 8) // Top left
+      // Center text horizontally: (PageWidth - TextWidth) / 2
+      // const pageWidth = 50;
+      doc.text('Tesca Tunisia', 25, 6, { align: 'center' })
 
+      // 2. Sub-header: Access Login
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
-      doc.text('Matricule:', 5, 14)
+      doc.text('Access Login', 25, 10, { align: 'center' })
 
-      // Matricule Barcode (With text below)
-      const matriculeImg = getBarcodeImage(userData.matricule, true)
-      doc.addImage(matriculeImg, 'PNG', 5, 16, 40, 12)
+      // Divider line
+      doc.setLineWidth(0.3)
+      doc.line(5, 12, 45, 12)
 
-      // Password Label
-      doc.text('Password:', 5, 34)
+      // 3. User Name
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      const fullName = `${userData.firstName} ${userData.lastName}`
+      doc.text(fullName, 25, 17, { align: 'center' })
 
-      // Password Barcode (Without text below)
+      // 4. Matricule Section
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Matricule:', 5, 22)
+      
+      const matriculeImg = getBarcodeImage(userData.matricule, true) // show text below
+      // Adjust image placement
+      doc.addImage(matriculeImg, 'PNG', 5, 23, 40, 10)
+
+      // 5. Password Section
+      // Moved down a bit more to avoid overlap
+      doc.text('Password:', 5, 36)
+
       if (password) {
-        const passwordImg = getBarcodeImage(password, false)
-        doc.addImage(passwordImg, 'PNG', 5, 36, 40, 10)
+        const passwordImg = getBarcodeImage(password, false) // hide text below for security/cleanliness look? 
+        // Or if user wants to scan it, text might be helpful if scan fails? 
+        // User asked to make it beautiful. Standard practice for login cards usually hides cleartext password if it's strictly a barcode login, 
+        // but often printed slips show it. The previous code hid it. I'll keep it hidden in barcode but barcode itself encodes it.
+        doc.addImage(passwordImg, 'PNG', 5, 37, 40, 8)
       } else {
         doc.setFontSize(8)
-        doc.text('(No password)', 5, 40)
+        doc.text('(No password)', 5, 39)
       }
+
+      // Add a border around the whole ticket maybe?
+      doc.setLineWidth(0.5)
+      doc.rect(1, 1, 48, 48) // Border just inside the 50x50 edge
 
       // Print
       doc.autoPrint()
@@ -281,33 +298,34 @@ export function UsersActionDialog({
         onOpenChange(state)
       }}
     >
-      <DialogContent className='sm:max-w-lg'>
-        <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? 'Update the user here. ' : 'Create new user here. '}
-            Click save when you&apos;re done.
+      <DialogContent className='sm:max-w-xl'>
+        <DialogHeader className='text-start border-b pb-4'>
+          <DialogTitle className="text-2xl font-semibold">
+            {isEdit ? '✏️ Edit User' : '➕ Add New User'}
+          </DialogTitle>
+          <DialogDescription className="text-base mt-1">
+            {isEdit ? 'Update user information and credentials.' : 'Create a new user account with role and permissions.'}
           </DialogDescription>
         </DialogHeader>
-        <div className='h-[26.25rem] w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
+        <div className='max-h-[28rem] overflow-y-auto py-2 px-1'>
           <Form {...form}>
             <form
               id='user-form'
               onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 px-0.5'
+              className='space-y-4'
             >
               <FormField
                 control={form.control}
                 name='firstName'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    <FormLabel className='col-span-2 text-end font-medium'>
                       First Name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='abderrahmen'
-                        className='col-span-4'
+                        placeholder='John'
+                        className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                         autoComplete='off'
                         {...field}
                       />
@@ -321,13 +339,13 @@ export function UsersActionDialog({
                 name='lastName'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    <FormLabel className='col-span-2 text-end font-medium'>
                       Last Name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Daai'
-                        className='col-span-4'
+                        placeholder='Doe'
+                        className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                         autoComplete='off'
                         {...field}
                       />
@@ -341,13 +359,13 @@ export function UsersActionDialog({
                 name='matricule'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    <FormLabel className='col-span-2 text-end font-medium'>
                       Matricule
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='matricule'
-                        className='col-span-4'
+                        placeholder='EMP001'
+                        className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                         {...field}
                       />
                     </FormControl>
@@ -360,11 +378,11 @@ export function UsersActionDialog({
                 name='email'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Email</FormLabel>
+                    <FormLabel className='col-span-2 text-end font-medium'>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='abderrahmen.dai.11@gmail.com'
-                        className='col-span-4'
+                        placeholder='john.doe@example.com'
+                        className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                         {...field}
                       />
                     </FormControl>
@@ -377,13 +395,13 @@ export function UsersActionDialog({
                 name='phone'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
+                    <FormLabel className='col-span-2 text-end font-medium'>
                       Phone Number
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='+123456789'
-                        className='col-span-4'
+                        placeholder='+1 234 567 890'
+                        className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                         {...field}
                       />
                     </FormControl>
@@ -396,10 +414,10 @@ export function UsersActionDialog({
                 name='role'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Role</FormLabel>
+                    <FormLabel className='col-span-2 text-end font-medium'>Role</FormLabel>
                     <div className='col-span-4'>
                       <select
-                        className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                        className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         value={field.value}
                         onChange={field.onChange}
                       >
@@ -414,51 +432,74 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Password
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Confirm Password
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        disabled={!isPasswordTouched}
-                        placeholder='e.g., S3cur3P@ssw0rd'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
+              
+              <div className="border-t pt-4 mt-2">
+                <p className="text-sm font-medium text-muted-foreground mb-3">
+                  🔐 Security Credentials
+                </p>
+                
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end font-medium'>
+                          Password
+                        </FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='e.g., S3cur3P@ssw0rd'
+                            className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end font-medium'>
+                          Confirm Password
+                        </FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            disabled={!isPasswordTouched}
+                            placeholder='Re-enter password'
+                            className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </form>
           </Form>
         </div>
-        <DialogFooter>
-          <Button type='submit' form='user-form' disabled={isLoading}>
-            Save changes
+        <DialogFooter className="border-t pt-4">
+          <Button 
+            type='submit' 
+            form='user-form' 
+            disabled={isLoading}
+            className="min-w-[120px] transition-all hover:shadow-md"
+          >
+            {isLoading ? (
+              <>
+                <span className="mr-2 inline-block animate-spin">⏳</span>
+                Saving...
+              </>
+            ) : (
+              <>
+                💾 Save Changes
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

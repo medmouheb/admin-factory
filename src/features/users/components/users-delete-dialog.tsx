@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,12 +21,31 @@ export function UsersDeleteDialog({
   currentRow,
 }: UserDeleteDialogProps) {
   const [value, setValue] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleDelete = () => {
-    if (value.trim() !== currentRow.username) return
+  const handleDelete = async () => {
+    if (value.trim() !== currentRow.matricule) return
 
-    onOpenChange(false)
-    showSubmittedData(currentRow, 'The following user has been deleted:')
+    try {
+      setIsLoading(true)
+      const res = await fetch(`http://localhost:8080/api/users/${currentRow.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null)
+        toast.error(err?.message || 'Delete failed')
+        return
+      }
+
+      toast.success('User deleted successfully')
+      onOpenChange(false)
+    } catch (error) {
+      toast.error('Something went wrong')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -34,7 +53,8 @@ export function UsersDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.username}
+      disabled={value.trim() !== currentRow.matricule}
+      isLoading={isLoading}
       title={
         <span className='text-destructive'>
           <AlertTriangle
@@ -48,8 +68,10 @@ export function UsersDeleteDialog({
         <div className='space-y-4'>
           <p className='mb-2'>
             Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
-            <br />
+            <span className='font-bold'>
+              {currentRow.firstName} {currentRow.lastName}
+            </span>
+            ? <br />
             This action will permanently remove the user with the role of{' '}
             <span className='font-bold'>
               {currentRow.role.toUpperCase()}
@@ -58,11 +80,11 @@ export function UsersDeleteDialog({
           </p>
 
           <Label className='my-2'>
-            Username:
+            Matricule:
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder='Enter matricule to confirm deletion.'
             />
           </Label>
 

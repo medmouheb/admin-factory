@@ -337,70 +337,227 @@ function LogsPage() {
         </div>
 
         <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-          <DialogContent className="max-w-3xl max-h-screen overflow-y-auto flex flex-col">
-            <DialogHeader>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto flex flex-col gap-0 p-0">
+            <DialogHeader className="p-6 pb-4 border-b">
               <DialogTitle className="flex items-center gap-2 text-xl">
-                <ScrollArea className="h-5 w-5" />
+                <ScrollArea className="h-5 w-5 text-primary" />
                 Log Details
               </DialogTitle>
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-base mt-2">
                 {selectedLog && (
-                  <div className="flex flex-col gap-1 mt-2">
+                  <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{selectedLog.action}</span>
-                      <span className="text-muted-foreground">on</span>
-                      <span className="font-semibold">{selectedLog.model}</span>
+                      <span className={cn(
+                        "inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold",
+                        selectedLog.action === 'CREATE' && "bg-green-100 text-green-700",
+                        selectedLog.action === 'UPDATE' && "bg-blue-100 text-blue-700",
+                        selectedLog.action === 'DELETE' && "bg-red-100 text-red-700",
+                      )}>
+                        {selectedLog.action}
+                      </span>
+                      <span className="text-muted-foreground text-sm">on</span>
+                      <span className="font-semibold text-sm">{selectedLog.model}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      By <span className="font-medium text-foreground">{selectedLog.username}</span> at {new Date(selectedLog.timestamp).toLocaleString()}
+                      Performed by <span className="font-medium text-foreground">{selectedLog.matricule}</span> at {new Date(selectedLog.timestamp).toLocaleString()}
                     </div>
                   </div>
                 )}
               </DialogDescription>
             </DialogHeader>
-            {selectedLog && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedLog.previousData && (
-                    <div className="flex flex-col gap-2">
-                      <h4 className="font-semibold text-sm text-red-600 flex items-center gap-2">
-                        Previous Data
-                      </h4>
-                      <div className="bg-muted/50 rounded-md border p-4">
-                        <pre className="text-xs font-mono whitespace-pre-wrap break-all">
-                          {JSON.stringify(selectedLog.previousData, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  {selectedLog.currentData && (
-                    <div className="flex flex-col gap-2">
-                      <h4 className="font-semibold text-sm text-green-600 flex items-center gap-2">
-                        Current Data
-                      </h4>
-                      <div className="bg-muted/50 rounded-md border p-4">
-                        <pre className="text-xs font-mono whitespace-pre-wrap break-all">
-                          {JSON.stringify(selectedLog.currentData, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                  {!selectedLog.previousData && (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground italic text-sm border rounded-md bg-muted/10">
-                      No Previous Data
-                    </div>
-                  )}
-                  {!selectedLog.currentData && (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground italic text-sm border rounded-md bg-muted/10">
-                      No Current Data
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            
+            <div className="p-6">
+              {selectedLog && <LogDetailsViewer log={selectedLog} />}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
     </Main>
+  )
+}
+
+function LogDetailsViewer({ log }: { log: Log }) {
+  const parseData = (data: any) => {
+    if (!data) return {}
+    try {
+      if (typeof data === 'string') {
+        const parsed = JSON.parse(data)
+        // Handle double encoded json if necessary, but usually once is enough
+        return typeof parsed === 'string' ? JSON.parse(parsed) : parsed
+      }
+      return data
+    } catch (e) {
+      console.error("Failed to parse log data", e)
+      return data // Return as is if parse fails
+    }
+  }
+
+  const oldData = parseData(log.previousData)
+  const newData = parseData(log.currentData)
+
+  // Include password in keys but handle it specially
+  const allKeys = Array.from(new Set([
+    ...Object.keys(oldData || {}), 
+    ...Object.keys(newData || {})
+  ])).filter(key => key !== '__v') // exclude only internal keys
+
+  // Field icon mapping
+  const getFieldIcon = (fieldName: string) => {
+    const iconMap: Record<string, string> = {
+      id: '🔑',
+      firstName: '👤',
+      lastName: '👤',
+      matricule: '🎫',
+      email: '📧',
+      phone: '📱',
+      role: '👔',
+      status: '📊',
+      createdAt: '📅',
+      updatedAt: '🔄',
+      password: '🔐',
+      learPN: '🔢',
+      tescaPN: '🔢',
+      desc: '📝',
+      description: '📝',
+      qtyPerBox: '📦',
+      quantity: '📦',
+      location: '📍',
+      target: '🎯',
+      barcode: '📊',
+      barcode1: '📊',
+      barcode2: '📊',
+    }
+    return iconMap[fieldName] || '📌'
+  }
+
+  if (log.action === 'UPDATE') {
+    // Check if password was changed
+    const passwordChanged = oldData?.password !== newData?.password && (oldData?.password || newData?.password)
+    
+    return (
+      <div className="space-y-4">
+        {passwordChanged && (
+          <div className="rounded-lg border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/20 p-4 flex items-center gap-3 animate-pulse">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center">
+              <span className="text-2xl">🔐</span>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-2">
+                Password Changed
+              </h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                User security credentials have been updated
+              </p>
+            </div>
+          </div>
+        )}
+        
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead className="w-[200px]">Field</TableHead>
+                <TableHead className="text-red-600 w-[40%]">Previous Value</TableHead>
+                <TableHead className="text-green-600 w-[40%]">New Value</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allKeys.map(key => {
+                const oldVal = oldData?.[key]
+                const newVal = newData?.[key]
+                const isChanged = JSON.stringify(oldVal) !== JSON.stringify(newVal)
+                
+                if (!isChanged && (key === 'updatedAt' || key === 'createdAt')) return null
+                
+                // Special handling for password
+                if (key === 'password') {
+                  if (!isChanged) return null
+                  return (
+                    <TableRow key={key} className="bg-amber-50 dark:bg-amber-950/10 border-l-4 border-l-amber-500">
+                      <TableCell className="font-semibold text-amber-900 dark:text-amber-100">
+                        <span className="mr-2">{getFieldIcon(key)}</span>
+                        Password
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {oldVal ? '••••••••' : '-'}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm font-semibold text-amber-700 dark:text-amber-300">
+                        {newVal ? '••••••••' : '-'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+
+                return (
+                  <TableRow key={key} className={isChanged ? 'bg-muted/30' : ''}>
+                    <TableCell className="font-medium text-muted-foreground">
+                      <span className="mr-2">{getFieldIcon(key)}</span>
+                      <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    </TableCell>
+                    <TableCell className="break-all font-mono text-sm text-muted-foreground">
+                      {oldVal !== undefined ? (typeof oldVal === 'object' ? JSON.stringify(oldVal) : String(oldVal)) : '-'}
+                    </TableCell>
+                    <TableCell className={cn("break-all font-mono text-sm", isChanged ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                      {newVal !== undefined ? (typeof newVal === 'object' ? JSON.stringify(newVal) : String(newVal)) : '-'}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+              {allKeys.length === 0 && <TableRow><TableCell colSpan={3} className="text-center h-24 text-muted-foreground">No details available</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    )
+  }
+
+  // CREATE or DELETE -> Single view
+  const targetData = log.action === 'CREATE' ? newData : oldData
+  const colorClass = log.action === 'CREATE' ? "text-green-600" : "text-red-600"
+
+  return (
+    <div className="rounded-md border overflow-hidden">
+      <Table>
+        <TableHeader className="bg-muted/50">
+          <TableRow>
+            <TableHead className="w-[200px]">Field</TableHead>
+            <TableHead className={colorClass + " w-full"}>Value</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {allKeys.map(key => {
+            const val = targetData?.[key]
+            
+            // Special handling for password display
+            if (key === 'password') {
+              return (
+                <TableRow key={key} className="bg-muted/20">
+                  <TableCell className="font-medium text-muted-foreground">
+                    <span className="mr-2">{getFieldIcon(key)}</span>
+                    <span className="capitalize">Password</span>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {val ? '••••••••' : '-'}
+                  </TableCell>
+                </TableRow>
+              )
+            }
+            
+            return (
+              <TableRow key={key}>
+                <TableCell className="font-medium text-muted-foreground">
+                  <span className="mr-2">{getFieldIcon(key)}</span>
+                  <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                </TableCell>
+                <TableCell className="break-all font-mono text-sm">
+                  {val !== undefined ? (typeof val === 'object' ? JSON.stringify(val) : String(val)) : '-'}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+          {allKeys.length === 0 && <TableRow><TableCell colSpan={2} className="text-center h-24 text-muted-foreground">No details available</TableCell></TableRow>}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

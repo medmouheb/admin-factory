@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SkipToMain } from '@/components/skip-to-main'
 import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 
@@ -33,7 +34,10 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
               // If layout is fixed and sidebar is inset,
               // set the height to 100svh - spacing (total margins) to prevent overflow
-              'peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]'
+              'peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]',
+              
+              // Flex layout for footer
+              'flex flex-col'
             )}
           >
             <Header>
@@ -42,9 +46,10 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
                 <ProfileDropdown />
               </div>
             </Header>
-            <div className="animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex-1 animate-in fade-in zoom-in-95 duration-500">
               {children ?? <Outlet />}
             </div>
+            <Footer />
           </SidebarInset>
         </SidebarProvider>
       </LayoutProvider>

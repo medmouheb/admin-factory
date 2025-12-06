@@ -153,8 +153,8 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter users...'
-        searchKey='username'
+        searchPlaceholder='Search by username, matricule, or name...'
+        searchKey='matricule'
         filters={[
           {
             columnId: 'role',

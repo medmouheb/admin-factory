@@ -50,31 +50,48 @@ export function UsersBarcodeDialog() {
         return canvas.toDataURL('image/png')
       }
 
-      // Layout matching the image
-      doc.setFontSize(10)
+      // 1. Header: Tesca Tunisia
+      doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      const fullName = `User: ${currentRow.firstName} ${currentRow.lastName}`
-      doc.text(fullName, 5, 8) // Top left
+      doc.text('Tesca Tunisia', 25, 6, { align: 'center' })
 
+      // 2. Sub-header: Access Login
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
-      doc.text('Matricule:', 5, 14)
+      doc.text('Access Login', 25, 10, { align: 'center' })
 
-      // Matricule Barcode (With text below)
-      const matriculeImg = getBarcodeImage(currentRow.matricule, true)
-      doc.addImage(matriculeImg, 'PNG', 5, 16, 40, 12)
+      // Divider line
+      doc.setLineWidth(0.3)
+      doc.line(5, 12, 45, 12)
 
-      // Password Label
-      doc.text('Password:', 5, 34)
+      // 3. User Name
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      const fullName = `${currentRow.firstName} ${currentRow.lastName}`
+      doc.text(fullName, 25, 17, { align: 'center' })
 
-      // Password Barcode (Without text below)
+      // 4. Matricule Section
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Matricule:', 5, 22)
+      
+      const matriculeImg = getBarcodeImage(currentRow.matricule, true) // show text below
+      doc.addImage(matriculeImg, 'PNG', 5, 23, 40, 10)
+
+      // 5. Password Section
+      doc.text('Password:', 5, 36)
+
       if (currentRow.password) {
         const passwordImg = getBarcodeImage(currentRow.password, false)
-        doc.addImage(passwordImg, 'PNG', 5, 36, 40, 10)
+        doc.addImage(passwordImg, 'PNG', 5, 37, 40, 8)
       } else {
         doc.setFontSize(8)
-        doc.text('(No password)', 5, 40)
+        doc.text('(No password)', 5, 39)
       }
+
+      // Add a border around the whole ticket
+      doc.setLineWidth(0.5)
+      doc.rect(1, 1, 48, 48) // Border just inside the 50x50 edge
 
       // Print
       doc.autoPrint()
