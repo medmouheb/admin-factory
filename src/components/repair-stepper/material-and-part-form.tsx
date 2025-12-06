@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { ErrorPopup } from './error-popup'
 
 export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void }) {
   const stepper = useStepper()
@@ -24,7 +23,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const [error, setError] = useState({ open: false, msg: '', field: '' })
 
   const showError = (msg: string, field: string) => {
-    setError({ open: true, msg, field })
+    toast.error(msg, { duration: 3000 })
+    setError({ open: false, msg, field })
     setTimeout(() => setError((e) => ({ ...e, field: '' })), 500)
   }
 
@@ -81,7 +81,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8080/api/parts/lear?learPN=${learPN.substring(1)}`
+        `http://localhost:8080/api/parts/lear?learPN=${learPN.substring(1)}`,
+        { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Not found')
 
@@ -245,11 +246,6 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
         </CardContent>
       </Card>
 
-      <ErrorPopup
-        open={error.open}
-        onOpenChange={(o) => setError((e) => ({ ...e, open: o }))}
-        message={error.msg}
-      />
     </div>
   )
 }

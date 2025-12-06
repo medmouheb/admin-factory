@@ -48,7 +48,7 @@ export default function RetouchPacketsList() {
     useEffect(() => {
         const fetchPackets = async () => {
             try {
-                const res = await fetch('http://localhost:8080/api/packets')
+                const res = await fetch('http://localhost:8080/api/packets', { credentials: 'include' })
                 if (!res.ok) throw new Error('Failed to fetch packets')
                 const data = await res.json()
                 setPackets(data)

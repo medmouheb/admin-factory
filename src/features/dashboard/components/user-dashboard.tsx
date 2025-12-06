@@ -24,20 +24,20 @@ export function UserDashboard() {
         const fetchActivity = async () => {
             if (!auth.user) return
             try {
-                const res = await fetch('http://localhost:8080/api/packets')
+                const res = await fetch('http://localhost:8080/api/packets', { credentials: 'include' })
                 if (res.ok) {
                     const packets = await res.json()
                     const userActivity: HistoryEntry[] = []
 
                     packets.forEach((packet: any) => {
                         // Check if user created the packet
-                        const isCreator = packet.userId === auth.user?.username ||
+                        const isCreator = packet.userId === auth.user?.matricule ||
                             (packet.userMatricule && packet.userMatricule === auth.user?.matricule);
 
                         if (isCreator) {
                             userActivity.push({
                                 action: 'Packet Created',
-                                user: packet.userId || auth.user?.username || 'Unknown',
+                                user: packet.userId || auth.user?.matricule || 'Unknown',
                                 date: packet.createdAt || packet.date, // Use createdAt if available, else date
                                 details: `Created packet ${packet.id} with ${packet.quantity} items`,
                                 packetId: packet.id
@@ -47,7 +47,7 @@ export function UserDashboard() {
                         if (packet.history && Array.isArray(packet.history)) {
                             packet.history.forEach((h: any) => {
                                 // Filter by username or matricule if available
-                                if (h.user === auth.user?.username || h.user === auth.user?.matricule) {
+                                if (h.user === auth.user?.matricule || h.user === auth.user?.matricule) {
                                     // Avoid duplicate if history already has "Creation" and we just added it
                                     if (isCreator && h.action === 'Packet Created') return;
 
@@ -86,11 +86,11 @@ export function UserDashboard() {
             <div className="flex items-center justify-between space-y-2">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
-                        <AvatarImage src="/avatars/shadcn.jpg" alt={auth.user?.username} />
-                        <AvatarFallback>{auth.user?.username?.substring(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                        <AvatarImage src="/avatars/shadcn.jpg" alt={auth.user?.firstName} />
+                        <AvatarFallback>{auth.user?.firstName?.substring(0, 2).toUpperCase() || 'US'}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Welcome back, {auth.user?.username || 'User'}!</h2>
+                        <h2 className="text-3xl font-bold tracking-tight">Welcome back, {auth.user?.firstName || 'User'}!</h2>
                         <p className="text-muted-foreground">Here's what's happening with your tasks today.</p>
                     </div>
                 </div>

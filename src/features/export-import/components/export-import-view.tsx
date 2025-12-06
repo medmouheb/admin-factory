@@ -43,7 +43,7 @@ export default function ExportImportView() {
             }
 
             // Trigger download
-            const response = await fetch(url)
+            const response = await fetch(url, { credentials: 'include' })
             if (!response.ok) throw new Error('Export failed')
 
             const blob = await response.blob()
@@ -77,6 +77,7 @@ export default function ExportImportView() {
 
             const response = await fetch(url, {
                 method: 'POST',
+                credentials: 'include',
                 body: formData,
             })
 

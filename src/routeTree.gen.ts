@@ -19,6 +19,8 @@ import { Route as AuthenticatedReferencesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
 import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedMaterialsRouteImport } from './routes/_authenticated/materials'
+import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedExportImportRouteImport } from './routes/_authenticated/export-import'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -98,6 +100,16 @@ const AuthenticatedQualityCheckRoute =
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMaterialsRoute = AuthenticatedMaterialsRouteImport.update({
+  id: '/materials',
+  path: '/materials',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedExportImportRoute =
@@ -264,6 +276,8 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/export-import': typeof AuthenticatedExportImportRoute
+  '/logs': typeof AuthenticatedLogsRoute
+  '/materials': typeof AuthenticatedMaterialsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -300,6 +314,8 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/export-import': typeof AuthenticatedExportImportRoute
+  '/logs': typeof AuthenticatedLogsRoute
+  '/materials': typeof AuthenticatedMaterialsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -341,6 +357,8 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/export-import': typeof AuthenticatedExportImportRoute
+  '/_authenticated/logs': typeof AuthenticatedLogsRoute
+  '/_authenticated/materials': typeof AuthenticatedMaterialsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
@@ -380,6 +398,8 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/export-import'
+    | '/logs'
+    | '/materials'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -416,6 +436,8 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/export-import'
+    | '/logs'
+    | '/materials'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -456,6 +478,8 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/export-import'
+    | '/_authenticated/logs'
+    | '/_authenticated/materials'
     | '/_authenticated/profile'
     | '/_authenticated/quality-check'
     | '/_authenticated/reapirage'
@@ -565,6 +589,20 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/materials': {
+      id: '/_authenticated/materials'
+      path: '/materials'
+      fullPath: '/materials'
+      preLoaderRoute: typeof AuthenticatedMaterialsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/logs': {
+      id: '/_authenticated/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof AuthenticatedLogsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/export-import': {
@@ -792,6 +830,8 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedExportImportRoute: typeof AuthenticatedExportImportRoute
+  AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
+  AuthenticatedMaterialsRoute: typeof AuthenticatedMaterialsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
@@ -811,6 +851,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedExportImportRoute: AuthenticatedExportImportRoute,
+  AuthenticatedLogsRoute: AuthenticatedLogsRoute,
+  AuthenticatedMaterialsRoute: AuthenticatedMaterialsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,

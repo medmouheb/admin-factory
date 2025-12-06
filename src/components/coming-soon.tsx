@@ -51,6 +51,7 @@ type Ticket = {
   matricule?: string
   createdAt: string
   hu?: string
+  ticketCode?: string
 }
 
 export function ComingSoon() {
@@ -157,7 +158,8 @@ export function ComingSoon() {
     try {
       // First, try to fetch with a reasonable limit
       const res = await fetch(
-        `http://localhost:8080/api/tickets/search?page=1&limit=100&search=${encodeURIComponent(code)}`
+        `http://localhost:8080/api/tickets/search?page=1&limit=100&search=${encodeURIComponent(code)}`,
+        { credentials: 'include' }
       )
 
       if (!res.ok) {
@@ -187,7 +189,8 @@ export function ComingSoon() {
         for (let page = 2; page <= Math.min(totalPages, 10); page++) {
           try {
             const nextRes = await fetch(
-              `http://localhost:8080/api/tickets/search?page=${page}&limit=100&search=${encodeURIComponent(code)}`
+              `http://localhost:8080/api/tickets/search?page=${page}&limit=100&search=${encodeURIComponent(code)}`,
+              { credentials: 'include' }
             )
             if (nextRes.ok) {
               const nextJson = await nextRes.json()
@@ -240,6 +243,7 @@ export function ComingSoon() {
     try {
       const res = await fetch("http://localhost:8080/api/tickets", {
         method: "POST",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           barcode: ticketForm.barcode,
@@ -277,6 +281,7 @@ export function ComingSoon() {
     try {
       const res = await fetch(`http://localhost:8080/api/tickets/${selectedTicket.id}`, {
         method: "PUT",
+        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           barcode: ticketForm.barcode,
@@ -311,6 +316,7 @@ export function ComingSoon() {
     try {
       const res = await fetch(`http://localhost:8080/api/tickets/${selectedTicket.id}`, {
         method: "DELETE",
+        credentials: 'include',
       })
 
       if (!res.ok) {
@@ -408,7 +414,7 @@ export function ComingSoon() {
 
     setBarcodeSearchLoading(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/tickets/barcode/${encodeURIComponent(barcodeSearchInput)}`)
+      const res = await fetch(`http://localhost:8080/api/tickets/barcode/${encodeURIComponent(barcodeSearchInput)}`, { credentials: 'include' })
 
       if (!res.ok) {
         const errorText = await res.text()
@@ -820,9 +826,11 @@ export function ComingSoon() {
               <TableHead className="text-xs uppercase tracking-wide text-right">
                 Tickets
               </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide text-right w-24">
-                Actions
-              </TableHead>
+              {auth.user?.role !== 'operateur' && (
+                <TableHead className="text-xs uppercase tracking-wide text-right w-24">
+                  Actions
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -878,81 +886,83 @@ export function ComingSoon() {
                     {item.totalTickets ?? "—"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <span className="sr-only">Open menu</span>
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                {auth.user?.role !== 'operateur' && (
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                          />
-                        </svg>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openEditDialogForTicketCode(item)
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <svg
-                          className="mr-2 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          <span className="sr-only">Open menu</span>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                            />
+                          </svg>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openEditDialogForTicketCode(item)
+                          }}
+                          className="cursor-pointer"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openDeleteDialogForTicketCode(item)
-                        }}
-                        className="cursor-pointer text-destructive focus:text-destructive"
-                      >
-                        <svg
-                          className="mr-2 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openDeleteDialogForTicketCode(item)
+                          }}
+                          className="cursor-pointer text-destructive focus:text-destructive"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+                          <svg
+                            className="mr-2 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
 

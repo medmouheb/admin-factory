@@ -12,7 +12,6 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import JsBarcode from 'jsbarcode'
 import jsPDF from 'jspdf'
-import { ErrorPopup } from './error-popup'
 
 export function TransferPrepComponent() {
   const stepper = useStepper()
@@ -54,13 +53,10 @@ export function TransferPrepComponent() {
   const barcode1Ref = useRef<HTMLInputElement>(null)
   const barcode2Ref = useRef<HTMLInputElement>(null)
 
-  const [errorOpen, setErrorOpen] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
   const [shakingField, setShakingField] = useState<string | null>(null)
 
   const showError = (msg: string, fieldId: string | null = null) => {
-    setErrorMessage(msg)
-    setErrorOpen(true)
+    toast.error(msg, { duration: 3000 })
     if (fieldId) {
       setShakingField(fieldId)
       setTimeout(() => setShakingField(null), 500)
@@ -122,7 +118,7 @@ export function TransferPrepComponent() {
 
     // Check if barcode already exists in database
     try {
-      const res = await fetch(`http://localhost:8080/api/tickets/check/${value}`)
+      const res = await fetch(`http://localhost:8080/api/tickets/check/${value}`, { credentials: 'include' })
       const data = await res.json()
 
       if (data.exists) {
@@ -281,6 +277,7 @@ export function TransferPrepComponent() {
       await fetch('http://localhost:8080/api/tickets/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(
           barcodesLocal.map((b) => ({
             barcode: b.barcode2,
@@ -307,13 +304,14 @@ export function TransferPrepComponent() {
         quantity: qty,
         date: new Date().toISOString().split('T')[0],
         pieces: barcodesLocal.map(b => ({ barcode: b.barcode2, status: 'OK' })),
-        userId: auth.user?.username || 'Unknown',
+        userId: auth.user?.matricule || 'Unknown',
         userMatricule: auth.user?.matricule
       }
 
       const res = await fetch('http://localhost:8080/api/packets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(packetData)
       })
 
@@ -329,6 +327,7 @@ export function TransferPrepComponent() {
   const handleGenerateAndPrint = async () => {
     if (!ticketCode) return
     try {
+      await savePacket()
       generateTicketPDF()
     } catch (e) {
       // Error handled in savePacket
@@ -758,11 +757,6 @@ export function TransferPrepComponent() {
           </button>
         </div>
       )}
-      <ErrorPopup
-        open={errorOpen}
-        onOpenChange={setErrorOpen}
-        message={errorMessage}
-      />
     </div>
   )
 }

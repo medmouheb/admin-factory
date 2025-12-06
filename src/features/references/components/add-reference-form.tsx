@@ -24,33 +24,49 @@ const formSchema = z.object({
   learPN: z.string().min(1, 'Lear PN is required'),
   tescaPN: z.string().min(1, 'Tesca PN is required'),
   desc: z.string().min(1, 'Description is required'),
+  qtyPerBox: z.string().min(1, 'quantity is required'),
+
 })
 
-export function AddReferenceForm() {
+
+interface ReferenceFormProps {
+  initialData?: any
+  onSuccess?: () => void
+}
+
+export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps) {
   const [loading, setLoading] = useState(false)
+  const isEditing = !!initialData
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      learPN: '',
-      tescaPN: '',
-      desc: '',
+      learPN: initialData?.learPN || '',
+      tescaPN: initialData?.tescaPN || '',
+      desc: initialData?.desc || '',
+      qtyPerBox: initialData?.qtyPerBox ? String(initialData.qtyPerBox) : '',
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true)
     try {
-      await axios.post('http://localhost:8080/api/parts', values)
-      toast.success('Reference added successfully', {
-        description: `${values.learPN} - ${values.desc}`,
-        icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-      })
+      if (isEditing) {
+        await axios.put(`http://localhost:8080/api/parts/${initialData.id}`, values, { withCredentials: true })
+        toast.success('Reference updated successfully')
+      } else {
+        await axios.post('http://localhost:8080/api/parts', values, { withCredentials: true })
+        toast.success('Reference added successfully')
+      }
+
       form.reset()
-    } catch (error) {
-      console.error('Error adding reference:', error)
-      toast.error('Failed to add reference', {
-        description: 'Please check your connection and try again.',
+      if (onSuccess) {
+        onSuccess()
+      }
+    } catch (error: any) {
+      console.error('Error saving reference:', error)
+      toast.error(isEditing ? 'Failed to update reference' : 'Failed to add reference', {
+        description: error.response?.data?.message || 'Please check your connection and try again.',
       })
     } finally {
       setLoading(false)
@@ -72,13 +88,15 @@ export function AddReferenceForm() {
         <CardHeader className='space-y-1'>
           <div className='flex items-center justify-between'>
             <div>
-              <CardTitle className='text-2xl font-bold tracking-tight'>New Reference</CardTitle>
+              <CardTitle className='text-2xl font-bold tracking-tight'>
+                {isEditing ? 'Edit Reference' : 'New Reference'}
+              </CardTitle>
               <CardDescription className='text-muted-foreground mt-2'>
-                Add a new part reference to the master database.
+                {isEditing ? 'Update the reference details.' : 'Add a new part reference to the master database.'}
               </CardDescription>
             </div>
             <div className='bg-primary/10 rounded-full p-3 transition-transform duration-500 hover:rotate-180'>
-              <Plus className='text-primary h-6 w-6' />
+              {isEditing ? <FileText className='text-primary h-6 w-6' /> : <Plus className='text-primary h-6 w-6' />}
             </div>
           </div>
         </CardHeader>
@@ -98,10 +116,10 @@ export function AddReferenceForm() {
                       </FormLabel>
                       <FormControl>
                         <div className='relative group'>
-                          <Input 
-                            placeholder='e.g. 350100200' 
-                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 group-hover:border-blue-400' 
-                            {...field} 
+                          <Input
+                            placeholder='exemple L002525407NCPAF'
+                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 group-hover:border-blue-400'
+                            {...field}
                           />
                           <Barcode className='text-muted-foreground absolute left-3 top-2.5 h-4 w-4 transition-colors group-hover:text-blue-500' />
                         </div>
@@ -125,10 +143,10 @@ export function AddReferenceForm() {
                       </FormLabel>
                       <FormControl>
                         <div className='relative group'>
-                          <Input 
-                            placeholder='e.g. 350100200' 
-                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-green-500/20 group-hover:border-green-400' 
-                            {...field} 
+                          <Input
+                            placeholder='exemple 350647309'
+                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-green-500/20 group-hover:border-green-400'
+                            {...field}
                           />
                           <Tag className='text-muted-foreground absolute left-3 top-2.5 h-4 w-4 transition-colors group-hover:text-green-500' />
                         </div>
@@ -141,38 +159,65 @@ export function AddReferenceForm() {
                   )}
                 />
               </div>
+              <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                <FormField
+                  control={form.control}
+                  name='desc'
+                  render={({ field }) => (
+                    <FormItem className='animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards'>
+                      <FormLabel className='flex items-center gap-2'>
+                        <FileText className='h-4 w-4 text-orange-500' />
+                        Description
+                      </FormLabel>
+                      <FormControl>
+                        <div className='relative group'>
+                          <Input
+                            placeholder='exemple CF CC21_L3_RSB60 X3'
+                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-orange-500/20 group-hover:border-orange-400'
+                            {...field}
+                          />
+                          <FileText className='text-muted-foreground absolute left-3 top-2.5 h-4 w-4 transition-colors group-hover:text-orange-500' />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        A brief description of the part.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name='desc'
-                render={({ field }) => (
-                  <FormItem className='animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards'>
-                    <FormLabel className='flex items-center gap-2'>
-                      <FileText className='h-4 w-4 text-orange-500' />
-                      Description
-                    </FormLabel>
-                    <FormControl>
-                      <div className='relative group'>
-                        <Input 
-                          placeholder='e.g. WIRING HARNESS ASSEMBLY' 
-                          className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-orange-500/20 group-hover:border-orange-400' 
-                          {...field} 
-                        />
-                        <FileText className='text-muted-foreground absolute left-3 top-2.5 h-4 w-4 transition-colors group-hover:text-orange-500' />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      A brief description of the part.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+                <FormField
+                  control={form.control}
+                  name='qtyPerBox'
+                  render={({ field }) => (
+                    <FormItem className='animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards'>
+                      <FormLabel className='flex items-center gap-2'>
+                        <FileText className='h-4 w-4 text-orange-500' />
+                        Quantity by box
+                      </FormLabel>
+                      <FormControl>
+                        <div className='relative group'>
+                          <Input
+                            placeholder='exemple 10'
+                            className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-orange-500/20 group-hover:border-orange-400'
+                            {...field}
+                          />
+                          <FileText className='text-muted-foreground absolute left-3 top-2.5 h-4 w-4 transition-colors group-hover:text-orange-500' />
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        the quantity of parts by box
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className='flex items-center justify-end gap-4 pt-4 animate-in fade-in duration-700 delay-500'>
-                <Button 
-                  type='button' 
-                  variant='outline' 
+                <Button
+                  type='button'
+                  variant='outline'
                   onClick={handleReset}
                   disabled={loading}
                   className='transition-transform active:scale-95'
@@ -180,20 +225,20 @@ export function AddReferenceForm() {
                   <Eraser className='mr-2 h-4 w-4' />
                   Reset
                 </Button>
-                <Button 
-                  type='submit' 
+                <Button
+                  type='submit'
                   disabled={loading}
                   className='min-w-[150px] transition-all hover:scale-105 active:scale-95 shadow-md hover:shadow-lg'
                 >
                   {loading ? (
                     <>
                       <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      Adding...
+                      {isEditing ? 'Updating...' : 'Adding...'}
                     </>
                   ) : (
                     <>
-                      <Plus className='mr-2 h-4 w-4' />
-                      Add Reference
+                      {isEditing ? <CheckCircle2 className='mr-2 h-4 w-4' /> : <Plus className='mr-2 h-4 w-4' />}
+                      {isEditing ? 'Update Reference' : 'Add Reference'}
                     </>
                   )}
                 </Button>

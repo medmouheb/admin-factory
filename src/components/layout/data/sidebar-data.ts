@@ -10,6 +10,8 @@ import {
   Truck,
   ArrowRightLeft,
   FileText,
+  Box,
+  ScrollText,
 } from 'lucide-react'
 
 import { type SidebarData } from '../types'
@@ -31,7 +33,7 @@ export const sidebarData: SidebarData = {
          logo: GalleryVerticalEnd,
          plan: 'Enterprise',
        },*/
-  
+
   ],
   navGroups: [
     {
@@ -90,6 +92,18 @@ export const sidebarData: SidebarData = {
           url: '/references',
           icon: FileText,
           roles: ['admin', 'manager', 'superviseur',],
+        },
+        {
+          title: 'Materials',
+          url: '/materials',
+          icon: Box,
+          roles: ['admin', 'manager', 'superviseur'],
+        },
+        {
+          title: 'Logs',
+          url: '/logs',
+          icon: ScrollText,
+          roles: ['admin', 'manager'],
         },
       ],
     },

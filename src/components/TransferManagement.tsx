@@ -74,7 +74,7 @@ export default function TransferManagement() {
     const fetchPackets = async () => {
         try {
             setLoading(true)
-            const res = await fetch('http://localhost:8080/api/packets')
+            const res = await fetch('http://localhost:8080/api/packets', { credentials: 'include' })
             if (!res.ok) throw new Error('Failed to fetch packets')
             const data = await res.json()
             setPackets(data)
@@ -101,6 +101,7 @@ export default function TransferManagement() {
             const res = await fetch(`http://localhost:8080/api/packets/${selectedPacket.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(selectedPacket)
             })
             if (!res.ok) throw new Error('Failed to update packet')
@@ -153,6 +154,7 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/transfer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     packetId: id,
                     target,
@@ -175,6 +177,7 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/receive', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     packetId: id,
                     userId: auth.user?.username || 'Unknown',
@@ -196,6 +199,7 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     packetId: id,
                     userId: auth.user?.username || 'Unknown',
@@ -217,6 +221,7 @@ export default function TransferManagement() {
             const res = await fetch('http://localhost:8080/api/packets/accept-return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     packetId: id,
                     userId: auth.user?.username || 'Unknown',
