@@ -56,7 +56,17 @@ export function TransferPrepComponent() {
   const [shakingField, setShakingField] = useState<string | null>(null)
 
   const showError = (msg: string, fieldId: string | null = null) => {
-    toast.error(msg, { duration: 3000 })
+    toast.error(msg, {
+      duration: 3000,
+      style: {
+        backgroundColor: '#dc2626',
+        color: '#ffffff',
+        fontSize: '18px',
+        padding: '20px',
+        border: 'none',
+      },
+      className: 'font-bold text-lg'
+    })
     if (fieldId) {
       setShakingField(fieldId)
       setTimeout(() => setShakingField(null), 500)
@@ -184,88 +194,10 @@ export function TransferPrepComponent() {
       await bulkValidate(data.code)
 
 
-      const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
-
-      let y = 0.3; // top margin
-
-
-      // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
-
-      // Title
-      doc.setFontSize(10); // smaller than before
-      doc.setFont('helvetica', 'bold');
-      doc.text('tesca', 0.2, y);
-      y += 0.5;
-
-      // Lear PN
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text(learPN, 0.2, y);
-      y += 0.4;
-
-      // Barcode for ticket code
-      const canvas1 = document.createElement('canvas');
-      if (data.code) {
-        JsBarcode(canvas1, data.code, {
-          format: 'CODE128',
-          width: 0.8, // narrower to fit
-          height: 20, // slightly shorter
-          displayValue: false,
-        });
-        doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1); // width adjusted
-      }
-      y += 1.1;
-
-      // Ticket code (centered)
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      const textWidth = doc.getTextWidth(data.code || '');
-      const xCentered = (5 - textWidth) / 2; // center in 5cm page
-      doc.text(data.code || '', xCentered, y);
-      y += 0.6;
-
-      // Operator
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y);
-      y += 0.4;
-
-      // Quantity
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Qty: ${qty}`, 0.2, y);
-      y += 0.4;
-
-      // Date & Time
-      const now = new Date();
-      doc.setFontSize(6);
-      doc.text(
-        `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
-        0.2,
-        y
-      );
-
-      // Print
-      const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = url;
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        setTimeout(() => {
-          iframe.contentWindow?.print();
-          // Cleanup
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(url);
-          }, 10000);
-        }, 100);
-      };
+      generateTicketPDF()
 
     } catch (err: any) {
-      toast.error(err.message || 'Ticket generation failed')
+      showError(err.message || 'Ticket generation failed')
     } finally {
       setProcessing(false)
     }
@@ -288,7 +220,7 @@ export function TransferPrepComponent() {
       toast.success(`Saved ${barcodesLocal.length} codes.`)
       setShowPdfButton(true)
     } catch (err: any) {
-      toast.error(err.message || 'Bulk save failed')
+      showError(err.message || 'Bulk save failed')
     } finally {
       setProcessing(false)
     }
@@ -319,7 +251,7 @@ export function TransferPrepComponent() {
       toast.success('Packet saved to database')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to save packet')
+      showError('Failed to save packet')
       throw error
     }
   }
@@ -327,7 +259,7 @@ export function TransferPrepComponent() {
   const handleGenerateAndPrint = async () => {
     if (!ticketCode) return
     try {
-      await savePacket()
+      // await savePacket()
       generateTicketPDF()
     } catch (e) {
       // Error handled in savePacket
@@ -405,7 +337,7 @@ export function TransferPrepComponent() {
       toast.success('Impression lancée sur l\'imprimante par défaut');
 
     } catch (err: any) {
-      toast.error(err.message || 'Impression échouée');
+      showError(err.message || 'Impression échouée');
       // downloadZPL(); // Function not defined
     } finally {
       setProcessing(false);
@@ -517,7 +449,7 @@ export function TransferPrepComponent() {
     // Title
     doc.setFontSize(10); // smaller than before
     doc.setFont('helvetica', 'bold');
-    doc.text('tesca', 0.2, y);
+    doc.text('tesca                             SK', 0.2, y);
     y += 0.5;
 
     // Lear PN
@@ -531,11 +463,11 @@ export function TransferPrepComponent() {
     if (ticketCode) {
       JsBarcode(canvas1, ticketCode, {
         format: 'CODE128',
-        width: 0.8, // narrower to fit
+        width: 1, // narrower to fit
         height: 20, // slightly shorter
         displayValue: false,
       });
-      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1); // width adjusted
+      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0, y, 4.6, 1); // width adjusted
     }
     y += 1.1;
 

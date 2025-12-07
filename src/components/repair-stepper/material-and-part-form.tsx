@@ -23,7 +23,17 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const [error, setError] = useState({ open: false, msg: '', field: '' })
 
   const showError = (msg: string, field: string) => {
-    toast.error(msg, { duration: 3000 })
+    toast.error(msg, {
+      duration: 3000,
+      style: {
+        backgroundColor: '#dc2626',
+        color: '#ffffff',
+        fontSize: '18px',
+        padding: '20px',
+        border: 'none',
+      },
+      className: 'font-bold text-lg'
+    })
     setError({ open: false, msg, field })
     setTimeout(() => setError((e) => ({ ...e, field: '' })), 500)
   }
