@@ -162,7 +162,11 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
     if (!isLearPNValid()) return showError('Lear PN invalid', 'learPN')
     if (!isPartLoaded()) return showError('Part not loaded', 'learPN')
     if (!isStorageValid()) return showError('HU invalid', 'storage')
-    if (!isQtyValid()) return showError('Quantity must be Q<number>', 'quantity')
+    if (!isQtyValid()) {
+      part.qtyPerBox = ""
+      return showError('Quantity must be Q<number>', 'quantity')
+
+    }
 
     setCurrentData((p) => ({ ...p, hasCompletedStep1: true }))
     nextFunction()

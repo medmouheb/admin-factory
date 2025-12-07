@@ -2,34 +2,34 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } fro
 import { useEffect, useState } from 'react'
 
 interface OverviewProps {
-  users: any[]
+  stats: { date: string; count: number }[]
 }
 
-export default function Overview({ users }: OverviewProps) {
+export default function Overview({ stats = [] }: OverviewProps) {
   const [data, setData] = useState<any[]>([])
 
   useEffect(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const currentYear = new Date().getFullYear()
-    
+
     const monthlyStats = months.map(name => ({
       name,
       tickets: 0,
       errors: 0
     }))
 
-    users.forEach(user => {
-      const date = new Date(user.updatedAt)
+    stats.forEach(item => {
+      const date = new Date(item.date)
       if (date.getFullYear() === currentYear) {
         const monthIndex = date.getMonth()
-        monthlyStats[monthIndex].tickets++
-        // Mock errors roughly 5% of tickets
-        if (Math.random() > 0.95) monthlyStats[monthIndex].errors++
+        monthlyStats[monthIndex].tickets += item.count
+        // Mock errors roughly 2% of tickets (since API doesn't give errors yet)
+        monthlyStats[monthIndex].errors += Math.floor(item.count * 0.02)
       }
     })
 
     setData(monthlyStats)
-  }, [users])
+  }, [stats])
 
   return (
     <ResponsiveContainer width='100%' height={350}>
@@ -48,7 +48,7 @@ export default function Overview({ users }: OverviewProps) {
           axisLine={false}
           tickFormatter={(value) => `${value}`}
         />
-        <Tooltip 
+        <Tooltip
           cursor={{ fill: 'transparent' }}
           contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         />
@@ -60,7 +60,7 @@ export default function Overview({ users }: OverviewProps) {
           radius={[4, 4, 0, 0]}
           className='fill-primary'
         />
-         <Bar
+        <Bar
           dataKey='errors'
           name="Failed Attempts"
           fill='#ef4444'

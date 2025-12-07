@@ -29,43 +29,48 @@ export function Dashboard() {
     totalTickets: 0,
     ticketsToday: 0,
     activeUsers: 0,
-    failedGenerations: 0
+    failedGenerations: 0,
+    parts: 0,
+    materials: 0
   })
+
+  const [ticketsByDate, setTicketsByDate] = useState<{ date: string; count: number }[]>([])
+  const [leaderboardData, setLeaderboardData] = useState<{ matricule: string; count: number }[]>([])
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch('http://localhost:8080/api/users/search?page=1&size=1000', {
-          credentials: 'include',
-        })
-        if (!res.ok) throw new Error('Failed to fetch data')
-        const json = await res.json()
-        const fetchedUsers = json.users || []
-        setUsers(fetchedUsers)
+        // Fetch Dashboard Summary
+        const dashRes = await fetch('http://localhost:8080/api/stats/dashboard', { credentials: 'include' })
+        const dashData = await dashRes.json()
 
-        // Calculate stats
-        const today = new Date()
-        const totalTickets = fetchedUsers.length
-        
-        let todayCount = 0
-        let activeCount = 0
-        
-        fetchedUsers.forEach((u: any) => {
-          const userDate = new Date(u.updatedAt)
-          if (isSameDay(userDate, today)) {
-            todayCount++
-          }
-          if (userDate > subMonths(today, 1)) {
-            activeCount++
-          }
-        })
+        if (dashData) {
+          setStats({
+            totalTickets: dashData.counts.tickets || 0,
+            ticketsToday: 0, // Not provided directly in summary, would need calculation or another endpoint
+            activeUsers: dashData.counts.users || 0,
+            failedGenerations: 0, // Not provided
+            parts: dashData.counts.parts || 0,
+            materials: dashData.counts.materials || 0
+          })
+          setRecentActivity(dashData.recentActivity || [])
+        }
 
-        setStats({
-          totalTickets: totalTickets * 12,
-          ticketsToday: todayCount * 5 + 12,
-          activeUsers: activeCount,
-          failedGenerations: Math.floor(totalTickets * 0.02)
-        })
+        // Fetch Tickets By Date
+        const ticketsRes = await fetch('http://localhost:8080/api/stats/tickets/by-date', { credentials: 'include' })
+        const ticketsData = await ticketsRes.json()
+        setTicketsByDate(ticketsData || [])
+
+        // Fetch Leaderboard
+        const lbRes = await fetch('http://localhost:8080/api/stats/ticket-codes/by-matricule', { credentials: 'include' })
+        const lbData = await lbRes.json()
+        setLeaderboardData(lbData || [])
+
+        // Keep fetching users for names mapping
+        const usersRes = await fetch('http://localhost:8080/api/users/search?page=1&size=1000', { credentials: 'include' })
+        const usersJson = await usersRes.json()
+        setUsers(usersJson.users || [])
 
       } catch (error) {
         console.error(error)
@@ -78,14 +83,14 @@ export function Dashboard() {
   const downloadReport = () => {
     const doc = new jsPDF()
     doc.text('Dashboard Report', 20, 10)
-    
+
     autoTable(doc, {
       head: [['Metric', 'Value']],
       body: [
         ['Total Tickets', stats.totalTickets],
-        ['Tickets Today', stats.ticketsToday],
         ['Active Users', stats.activeUsers],
-        ['Failed Generations', stats.failedGenerations],
+        ['Parts', stats.parts],
+        ['Materials', stats.materials],
       ],
     })
 
@@ -112,39 +117,39 @@ export function Dashboard() {
     {
       title: 'Total Tickets',
       value: stats.totalTickets.toLocaleString(),
-      change: '+38%',
-      trend: 'up',
-      period: 'Last 6 months',
+      change: '',
+      trend: 'neutral',
+      period: 'All time',
       icon: FileText,
       iconBg: 'bg-orange-50 dark:bg-orange-950/20',
       iconColor: 'text-orange-600 dark:text-orange-400',
     },
     {
-      title: 'Tickets Today',
-      value: `+${stats.ticketsToday}`,
-      change: '+22%',
-      trend: 'up',
-      period: 'Last 4 months',
+      title: 'Total Parts',
+      value: stats.parts.toLocaleString(),
+      change: '',
+      trend: 'neutral',
+      period: 'All time',
       icon: Activity,
       iconBg: 'bg-teal-50 dark:bg-teal-950/20',
       iconColor: 'text-teal-600 dark:text-teal-400',
     },
     {
       title: 'Active Users',
-      value: `+${stats.activeUsers}`,
-      change: '+38%',
-      trend: 'up',
-      period: 'Last 6 months',
+      value: stats.activeUsers.toLocaleString(),
+      change: '',
+      trend: 'neutral',
+      period: 'All time',
       icon: Users,
       iconBg: 'bg-amber-50 dark:bg-amber-950/20',
       iconColor: 'text-amber-600 dark:text-amber-400',
     },
     {
-      title: 'Failed Generations',
-      value: stats.failedGenerations,
-      change: '-16%',
-      trend: 'down',
-      period: 'Last One year',
+      title: 'Materials',
+      value: stats.materials.toLocaleString(),
+      change: '',
+      trend: 'neutral',
+      period: 'All time',
       icon: AlertCircle,
       iconBg: 'bg-blue-50 dark:bg-blue-950/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
@@ -184,7 +189,7 @@ export function Dashboard() {
         </div>
 
         <TabsContent value='overview' className='space-y-6'>
-          <motion.div 
+          <motion.div
             variants={container}
             initial="hidden"
             animate="show"
@@ -206,11 +211,10 @@ export function Dashboard() {
                   <CardContent className="space-y-1">
                     <div className='text-2xl font-bold tracking-tight'>{stat.value}</div>
                     <div className="flex items-center gap-2 text-xs">
-                      <span className={`inline-flex items-center gap-0.5 font-medium ${
-                        stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 
-                        stat.trend === 'down' ? 'text-red-600 dark:text-red-400' : 
-                        'text-muted-foreground'
-                      }`}>
+                      <span className={`inline-flex items-center gap-0.5 font-medium ${stat.trend === 'up' ? 'text-green-600 dark:text-green-400' :
+                        stat.trend === 'down' ? 'text-red-600 dark:text-red-400' :
+                          'text-muted-foreground'
+                        }`}>
                         {stat.trend === 'up' && <TrendingUp className="h-3 w-3" />}
                         {stat.trend === 'down' && <TrendingDown className="h-3 w-3" />}
                         {stat.trend === 'neutral' && <Minus className="h-3 w-3" />}
@@ -223,9 +227,9 @@ export function Dashboard() {
               </motion.div>
             ))}
           </motion.div>
-          
+
           <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-            <Card className='col-span-1 lg:col-span-4 shadow-sm hover:shadow-md transition-shadow duration-300'>
+            <Card className='col-span-1 lg:col-span-8 shadow-sm hover:shadow-md transition-shadow duration-300'>
               <CardHeader>
                 <CardTitle className="text-lg">Ticket Generation Overview</CardTitle>
                 <CardDescription>
@@ -233,20 +237,10 @@ export function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className='ps-2'>
-                <Overview users={users} />
+                <Overview stats={ticketsByDate} />
               </CardContent>
             </Card>
-            <Card className='col-span-1 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300'>
-              <CardHeader>
-                <CardTitle className="text-lg">Production Targets</CardTitle>
-                <CardDescription>
-                  Real-time production efficiency and goals.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProductionMetrics />
-              </CardContent>
-            </Card>
+
           </div>
 
           <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
@@ -258,7 +252,7 @@ export function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RecentSales users={users} />
+                <RecentSales users={users} leaderboardData={leaderboardData} />
               </CardContent>
             </Card>
             <Card className='col-span-1 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow duration-300'>
@@ -269,13 +263,13 @@ export function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RecentActivity />
+                <RecentActivity activities={recentActivity} />
               </CardContent>
             </Card>
           </div>
         </TabsContent>
         <TabsContent value='analytics' className='space-y-4'>
-          <Analytics users={users} />
+          <Analytics />
         </TabsContent>
       </Tabs>
     </Main>

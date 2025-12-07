@@ -1,3 +1,38 @@
+/**
+ * API SPECIFICATION FOR BACKEND AI
+ * =========================================================================================
+ * Please generate an API endpoint to support the Analytics dashboard for "Ticket Codes".
+ *
+ * Endpoint: GET /api/stats/ticket-codes/analytics
+ *
+ * Query Parameters:
+ * - startDate: string (ISO 8601 format, e.g., 2023-01-01)
+ * - endDate: string (ISO 8601 format, e.g., 2023-01-31)
+ * - granularity: 'day' | 'week' | 'month' (optional, default 'day')
+ *
+ * Expected Response Design:
+ * {
+ *   "summary": {
+ *     "totalCount": number,          // Total ticket codes generated in the period
+ *     "activeUsers": number,         // Count of distinct users who generated codes
+ *     "averageTimeSeconds": number   // Average time taken to generate a code (optional, or send 0)
+ *   },
+ *   "chartData": [
+ *     {
+ *       "date": string,              // ISO date for the data point (bucket start)
+ *       "count": number,             // Number of ticket codes
+ *       "errors": number             // Number of failed generations (optional)
+ *     }
+ *   ],
+ *   "shifts": {
+ *     "morning": number,             // Count for Morning shift (e.g., 06:00 - 14:00)
+ *     "afternoon": number,           // Count for Afternoon shift (e.g., 14:00 - 22:00)
+ *     "night": number                // Count for Night shift (e.g., 22:00 - 06:00)
+ *   }
+ * }
+ * =========================================================================================
+ */
+
 import {
   Card,
   CardContent,
@@ -7,7 +42,7 @@ import {
 } from '@/components/ui/card'
 import AnalyticsChart from './analytics-chart'
 import { Activity, Users, Calendar as CalendarIcon, Clock } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format, subDays } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -19,19 +54,51 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { DateRange } from 'react-day-picker'
-import ShiftChart from './shift-chart'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts'
 
-interface AnalyticsProps {
-  users: any[]
-}
-
-export function Analytics({ users }: AnalyticsProps) {
+export function Analytics() {
   const [granularity, setGranularity] = useState<'day' | 'week' | 'month'>('day')
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 7),
+    from: subDays(new Date(), 30),
     to: new Date(),
   })
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [data, setData] = useState<{
+    summary: { totalCount: number, activeUsers: number, averageTimeSeconds: number },
+    chartData: { date: string, count: number, errors: number }[],
+    shifts: { morning: number, afternoon: number, night: number }
+  } | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!dateRange?.from) return
+
+      const start = format(dateRange.from, 'yyyy-MM-dd')
+      const end = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : format(dateRange.from, 'yyyy-MM-dd')
+
+      setIsLoading(true)
+      try {
+        const res = await fetch(`http://localhost:8080/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=${granularity}`, {
+          credentials: 'include'
+        })
+
+        if (!res.ok) throw new Error('Failed to fetch analytics')
+
+        const jsonData = await res.json()
+        setData(jsonData)
+      } catch (error) {
+        console.error(error)
+        toast.error('Failed to load analytics data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [dateRange, granularity])
 
   const container = {
     hidden: { opacity: 0 },
@@ -48,8 +115,14 @@ export function Analytics({ users }: AnalyticsProps) {
     show: { opacity: 1, y: 0 }
   }
 
+  const shiftData = data ? [
+    { name: 'Morning', tickets: data.shifts.morning, color: '#0ea5e9' },
+    { name: 'Afternoon', tickets: data.shifts.afternoon, color: '#f59e0b' },
+    { name: 'Night', tickets: data.shifts.night, color: '#8b5cf6' },
+  ] : []
+
   return (
-    <motion.div 
+    <motion.div
       variants={container}
       initial="hidden"
       animate="show"
@@ -113,7 +186,15 @@ export function Analytics({ users }: AnalyticsProps) {
             </div>
           </CardHeader>
           <CardContent className='px-6'>
-            <AnalyticsChart users={users} granularity={granularity} dateRange={dateRange} />
+            {data && (
+              <AnalyticsChart
+                stats={data.chartData}
+                granularity={granularity}
+                dateRange={dateRange}
+              />
+            )}
+            {!data && isLoading && <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">Loading...</div>}
+            {!data && !isLoading && <div className="h-[350px] w-full flex items-center justify-center text-muted-foreground">Select a date range</div>}
           </CardContent>
         </Card>
       </motion.div>
@@ -128,13 +209,42 @@ export function Analytics({ users }: AnalyticsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
-              <ShiftChart users={users} dateRange={dateRange} />
+              {data ? (
+                <ResponsiveContainer width='100%' height={350}>
+                  <BarChart data={shiftData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={100}
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    />
+                    <Bar dataKey="tickets" radius={[0, 4, 4, 0]} barSize={32} animationDuration={1500}>
+                      {shiftData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center p-6 text-muted-foreground">
+                  {isLoading ? 'Loading...' : 'No data available'}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
+
         <motion.div variants={item} className="col-span-3">
           <Card className="h-full hover:shadow-md transition-shadow duration-300">
-             <CardHeader>
+            <CardHeader>
               <CardTitle>Key Metrics</CardTitle>
               <CardDescription>
                 Summary of performance indicators.
@@ -148,14 +258,14 @@ export function Analytics({ users }: AnalyticsProps) {
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none">Total Tickets</p>
                   <p className="text-sm text-muted-foreground">
-                    {users.length} generated in selected period
+                    Generated in selected period
                   </p>
                 </div>
                 <div className="ml-auto font-bold">
-                  +{users.length}
+                  {data?.summary.totalCount || 0}
                 </div>
               </div>
-               <div className="flex items-center">
+              <div className="flex items-center">
                 <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full mr-4">
                   <Users className='text-green-600 dark:text-green-400 h-4 w-4' />
                 </div>
@@ -166,10 +276,10 @@ export function Analytics({ users }: AnalyticsProps) {
                   </p>
                 </div>
                 <div className="ml-auto font-bold">
-                  15
+                  {data?.summary.activeUsers || 0}
                 </div>
               </div>
-               <div className="flex items-center">
+              <div className="flex items-center">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full mr-4">
                   <Clock className='text-purple-600 dark:text-purple-400 h-4 w-4' />
                 </div>
@@ -180,7 +290,7 @@ export function Analytics({ users }: AnalyticsProps) {
                   </p>
                 </div>
                 <div className="ml-auto font-bold">
-                  1.2s
+                  {data?.summary.averageTimeSeconds || 0}s
                 </div>
               </div>
             </CardContent>

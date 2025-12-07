@@ -22,35 +22,45 @@ interface UserStats extends User {
 
 interface RecentSalesProps {
   users: any[]
+  leaderboardData: { matricule: string; count: number }[]
 }
 
-export function RecentSales({ users }: RecentSalesProps) {
+export function RecentSales({ users, leaderboardData }: RecentSalesProps) {
   const [displayUsers, setDisplayUsers] = useState<UserStats[]>([])
   const [maxScore, setMaxScore] = useState(0)
 
   useEffect(() => {
-    if (!users.length) return
+    if (!users.length && !leaderboardData.length) return
 
-    // Mocking stats since they are not in DB yet
-    const usersWithStats = users.map((user: User) => {
-      const tickets = Math.floor(Math.random() * 450) + 50
-      const score = Math.floor(tickets * 1.5 + Math.random() * 100)
-      return {
-        ...user,
-        tickets,
-        score
-      }
-    })
+    // Map leaderboard data to users
+    const usersWithStats = leaderboardData
+      .map((entry) => {
+        const user = users.find((u) => u.matricule === entry.matricule) || {
+          id: entry.matricule,
+          firstName: 'User',
+          lastName: entry.matricule,
+          email: '',
+          updatedAt: new Date().toISOString(),
+          role: 'unknown',
+        }
 
-    // Sort by score desc
-    const sortedUsers = usersWithStats.sort((a: UserStats, b: UserStats) => b.score - a.score)
-    
-    if (sortedUsers.length > 0) {
-      setMaxScore(sortedUsers[0].score)
+        const tickets = entry.count
+        const score = tickets * 10
+
+        return {
+          ...user,
+          tickets,
+          score
+        }
+      })
+      .sort((a, b) => b.score - a.score)
+
+    if (usersWithStats.length > 0) {
+      setMaxScore(usersWithStats[0].score)
     }
 
-    setDisplayUsers(sortedUsers.slice(0, 10))
-  }, [users])
+    setDisplayUsers(usersWithStats.slice(0, 10))
+  }, [users, leaderboardData])
 
   const getRankIcon = (index: number) => {
     switch (index) {
@@ -70,13 +80,13 @@ export function RecentSales({ users }: RecentSalesProps) {
       {displayUsers.map((user, index) => {
         const initials = `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase()
         const scorePercentage = (user.score / maxScore) * 100
-        
+
         return (
           <div key={user.id} className='flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors group'>
             <div className="flex items-center justify-center w-8">
               {getRankIcon(index)}
             </div>
-            
+
             <Avatar className={cn('h-10 w-10 border-2', index === 0 ? 'border-yellow-500' : index === 1 ? 'border-gray-400' : index === 2 ? 'border-amber-600' : 'border-transparent')}>
               <AvatarImage src={`/avatars/${(index % 5) + 1}.png`} alt='Avatar' />
               <AvatarFallback>{initials}</AvatarFallback>
@@ -93,11 +103,11 @@ export function RecentSales({ users }: RecentSalesProps) {
                   )}
                 </div>
                 <div className="text-right">
-                   <span className="font-bold text-sm">{user.score}</span>
-                   <span className="text-xs text-muted-foreground ml-1">pts</span>
+                  <span className="font-bold text-sm">{user.score}</span>
+                  <span className="text-xs text-muted-foreground ml-1">pts</span>
                 </div>
               </div>
-              
+
               <div className="w-full flex items-center gap-3">
                 <Progress value={scorePercentage} className="h-1.5 flex-1" />
                 <p className='text-xs text-muted-foreground w-24 text-right truncate'>
@@ -109,7 +119,7 @@ export function RecentSales({ users }: RecentSalesProps) {
         )
       })}
       {displayUsers.length === 0 && (
-         <div className="text-sm text-muted-foreground text-center py-8">No users found.</div>
+        <div className="text-sm text-muted-foreground text-center py-8">No users found.</div>
       )}
     </div>
   )
