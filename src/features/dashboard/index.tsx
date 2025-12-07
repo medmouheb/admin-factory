@@ -82,20 +82,129 @@ export function Dashboard() {
 
   const downloadReport = () => {
     const doc = new jsPDF()
-    doc.text('Dashboard Report', 20, 10)
+    const pageWidth = doc.internal.pageSize.width
+    const pageHeight = doc.internal.pageSize.height
+    
+    // Helper for Footer
+    const addFooter = (data: any) => {
+        doc.setFontSize(8)
+        doc.setTextColor(128, 128, 128)
+        doc.text('Confidential - Factory Admin System', 14, pageHeight - 10)
+        doc.text(`Page ${data.pageNumber}`, pageWidth - 14, pageHeight - 10, { align: 'right' })
+    }
 
+    // --- Page 1 Header ---
+    doc.setFillColor(67, 56, 202) // Indigo 700
+    doc.rect(0, 0, pageWidth, 40, 'F')
+    
+    doc.setFontSize(22)
+    doc.setTextColor(255, 255, 255)
+    doc.text('Performance Report', 14, 25)
+    
+    doc.setFontSize(10)
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 14, 20, { align: 'right' })
+    doc.text(`By: ${user?.firstName} ${user?.lastName}`, pageWidth - 14, 26, { align: 'right' })
+    doc.text('Status: Official Record', pageWidth - 14, 32, { align: 'right' })
+
+    let finalY = 50
+
+    // 1. Executive Summary
+    doc.setFontSize(14)
+    doc.setTextColor(67, 56, 202)
+    doc.text('1. Executive Overview', 14, finalY)
+    
     autoTable(doc, {
-      head: [['Metric', 'Value']],
+      startY: finalY + 5,
+      head: [['Key Metric', 'Performance', 'Target', 'Status']],
       body: [
-        ['Total Tickets', stats.totalTickets],
-        ['Active Users', stats.activeUsers],
-        ['Parts', stats.parts],
-        ['Materials', stats.materials],
+        ['Total Tickets', stats.totalTickets.toLocaleString(), '-', 'Active'],
+        ['Active Users', stats.activeUsers.toLocaleString(), '> 5', 'Healthy'],
+        ['Parts Indexed', stats.parts.toLocaleString(), '100%', 'Stable'],
+        ['Materials', stats.materials.toLocaleString(), '-', 'Available'],
       ],
+      theme: 'grid',
+      headStyles: { fillColor: [67, 56, 202], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 60 },
+        3: { textColor: [34, 197, 94], fontStyle: 'bold' }
+      },
+      didDrawPage: addFooter
     })
 
-    doc.save('dashboard-report.pdf')
-    toast.success('Report downloaded')
+    finalY = (doc as any).lastAutoTable.finalY + 20
+
+    // 2. Production Trends
+    doc.text('2. Production Trends (Last 7 Days)', 14, finalY)
+    
+    const trendData = ticketsByDate.slice(-7).reverse().map(item => [
+        new Date(item.date).toLocaleDateString(),
+        item.count,
+        item.count > 50 ? 'High Activity' : (item.count > 20 ? 'Moderate' : 'Low')
+    ])
+
+    autoTable(doc, {
+      startY: finalY + 5,
+      head: [['Date', 'Daily Volume', 'Activity Level']],
+      body: trendData.length > 0 ? trendData : [['No recent data', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillColor: [234, 88, 12] }, // Orange 600
+      didDrawPage: addFooter
+    })
+
+    finalY = (doc as any).lastAutoTable.finalY + 20
+
+    // 3. Leaderboard
+    doc.text('3. Operator Efficiency (Top 10)', 14, finalY)
+    
+    const lbRows = leaderboardData.slice(0, 10).map((item, index) => {
+      const u = users.find((u) => u.matricule === item.matricule)
+      return [
+        `#${index + 1}`,
+        u ? `${u.firstName} ${u.lastName}` : item.matricule,
+        item.count.toLocaleString(),
+        'Top Tier'
+      ]
+    })
+
+    autoTable(doc, {
+      startY: finalY + 5,
+      head: [['Rank', 'Operator', 'Tickets Created', 'Classification']],
+      body: lbRows.length > 0 ? lbRows : [['-', '-', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] }, // Emerald 500
+      didDrawPage: addFooter
+    })
+
+    // 4. System Logs (New Page likely)
+    doc.addPage()
+    // Simple Header for Page 2
+    doc.setFontSize(10)
+    doc.setTextColor(150)
+    doc.text('Detailed Logs - Continued', 14, 15)
+
+    doc.setFontSize(14)
+    doc.setTextColor(67, 56, 202)
+    doc.text('4. Recent System Events', 14, 25)
+
+    const activityRows = recentActivity.slice(0, 30).map((act) => [
+      new Date(act.timestamp).toLocaleString(),
+      act.action,
+      act.model,
+      act.matricule
+    ])
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Timestamp', 'Action Type', 'Subject', 'User ID']],
+      body: activityRows.length > 0 ? activityRows : [['-', '-', '-', '-']],
+      theme: 'striped',
+      headStyles: { fillColor: [75, 85, 99] }, // Gray 600
+      styles: { fontSize: 8 },
+      didDrawPage: addFooter
+    })
+
+    doc.save(`Performance_Report_${new Date().toISOString().split('T')[0]}.pdf`)
+    toast.success('Comprehensive report generated successfully')
   }
 
   const container = {

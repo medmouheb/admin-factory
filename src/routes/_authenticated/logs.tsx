@@ -26,7 +26,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { format } from 'date-fns'
-import { Calendar as CalendarIcon, Search, ChevronLeft, ChevronRight, RefreshCw, Loader2, Eye, Filter, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -37,6 +36,9 @@ import {
 import axios from 'axios'
 import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Calendar as CalendarIcon, Search, ChevronLeft, ChevronRight, RefreshCw, Loader2, Eye, Filter, X, FileText, Activity, ShieldAlert, History } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/logs')({
   component: LogsPage,
@@ -122,225 +124,306 @@ function LogsPage() {
 
   return (
     <Main>
-      <div className='flex flex-col space-y-6 p-4 md:p-8 pt-6'>
-        <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-          <div>
-            <h1 className='text-3xl font-bold tracking-tight'>System Logs</h1>
-            <p className='text-muted-foreground mt-2'>
-              Audit trail of system activities and data changes.
-            </p>
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button variant="outline" onClick={fetchLogs} title="Refresh">
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
-        </div>
-
-        <div className='flex flex-col gap-4 bg-background p-4 rounded-lg border shadow-sm lg:flex-row lg:items-end'>
-          <div className="grid gap-4 flex-1 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Username</span>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Filter by user..."
-                  className="pl-9"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
+      <div className="min-h-screen bg-background/30 p-6 space-y-6">
+        {/* Animated Gradient Header */}
+        <motion.div 
+           initial={{ opacity: 0, y: -20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.5 }}
+           className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-8 shadow-xl"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm"
+              >
+                <History className="h-10 w-10 text-white" />
+              </motion.div>
+              <div>
+                <motion.h1 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-4xl font-bold text-white mb-2"
+                >
+                  System Logs
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-white/90 text-lg"
+                >
+                  Audit trail of system activities and data changes
+                </motion.p>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Model</span>
-              <Select value={model} onValueChange={setModel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Models</SelectItem>
-                  <SelectItem value="Ticket">Ticket</SelectItem>
-                  <SelectItem value="TicketCode">TicketCode</SelectItem>
-                  <SelectItem value="Part">Part</SelectItem>
-                  <SelectItem value="Material">Material</SelectItem>
-                  <SelectItem value="User">User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Start Date</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">End Date</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex gap-3">
+               <Button
+                  variant="outline"
+                  onClick={fetchLogs}
+                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-200 hover:scale-105"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+               </Button>
             </div>
           </div>
-          <div className="flex gap-2 min-w-[140px]">
-            <Button onClick={handleSearch} className="flex-1">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="ghost" onClick={clearFilters} size="icon" title="Clear Filters">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        </motion.div>
 
-        <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead className="w-[180px]">Timestamp</TableHead>
-                <TableHead className="w-[150px]">User</TableHead>
-                <TableHead className="w-[120px]">Model</TableHead>
-                <TableHead className="w-[120px]">Action</TableHead>
-                <TableHead>Changes Summary</TableHead>
-                <TableHead className="w-[80px] text-right">Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    <div className="flex justify-center items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading logs...
+        {/* Filters Card */}
+        <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.2 }}
+        >
+          <Card className="shadow-md bg-white/80 backdrop-blur-sm">
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-lg font-bold text-foreground">Filter Logs</CardTitle>
+                </div>
+                <Button variant="ghost" onClick={clearFilters} size="sm" className="h-8 text-muted-foreground hover:text-foreground hover:bg-purple-50">
+                  <X className="mr-2 h-3 w-3" /> Reset Filters
+                </Button>
+             </CardHeader>
+             <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-2">
+                      <span className="text-xs font-semibold uppercase text-muted-foreground">Username</span>
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Filter by user..."
+                          className="pl-9 bg-white"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ) : data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No logs found matching criteria.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.map((log) => (
-                  <TableRow key={log.id} className="hover:bg-muted/50 transition-colors">
-                    <TableCell className="text-sm whitespace-nowrap font-medium text-muted-foreground">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground">{log.matricule}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                        {log.model}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={cn(
-                        "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors",
-                        // Custom styling for actions
-                        log.action === 'CREATE' && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-                        log.action === 'UPDATE' && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-                        log.action === 'DELETE' && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
-                        !['CREATE', 'UPDATE', 'DELETE'].includes(log.action) && "bg-gray-100 text-gray-700"
-                      )}>
-                        {log.action}
-                      </span>
-                    </TableCell>
-                    <TableCell className="max-w-[400px] truncate text-muted-foreground text-sm">
-                      {log.action === 'UPDATE' && (
-                        <span>Modified ID: {log.currentData?.id || log.previousData?.id}</span>
-                      )}
-                      {log.action === 'CREATE' && (
-                        <span>Created ID: {log.currentData?.id}</span>
-                      )}
-                      {log.action === 'DELETE' && (
-                        <span>Deleted ID: {log.previousData?.id}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedLog(log)}>
-                        <Eye className="h-4 w-4 text-primary" />
-                        <span className="sr-only">View Details</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium">{totalItems}</span> entries (Page {page} of {totalPages})
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1 || loading}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages || loading}
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </div>
+                    <div className="space-y-2">
+                      <span className="text-xs font-semibold uppercase text-muted-foreground">Model</span>
+                      <Select value={model} onValueChange={setModel}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Models</SelectItem>
+                          <SelectItem value="Ticket">Ticket</SelectItem>
+                          <SelectItem value="TicketCode">TicketCode</SelectItem>
+                          <SelectItem value="Part">Part</SelectItem>
+                          <SelectItem value="Material">Material</SelectItem>
+                          <SelectItem value="User">User</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-xs font-semibold uppercase text-muted-foreground">Start Date</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-white",
+                              !startDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={setStartDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <span className="text-xs font-semibold uppercase text-muted-foreground">End Date</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-white",
+                              !endDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={endDate}
+                            onSelect={setEndDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                </div>
+                <div className="flex justify-end mt-4 pt-4 border-t">
+                   <Button onClick={handleSearch} className="bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all">
+                     <Filter className="mr-2 h-4 w-4" /> Apply Filters
+                   </Button>
+                </div>
+             </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="shadow-lg border-0 overflow-hidden">
+            <div className="rounded-md border-0 bg-card overflow-hidden">
+              <Table>
+                <TableHeader className="bg-purple-50/50">
+                  <TableRow>
+                    <TableHead className="w-[180px] font-bold text-purple-900">Timestamp</TableHead>
+                    <TableHead className="w-[150px] font-bold text-purple-900">User</TableHead>
+                    <TableHead className="w-[120px] font-bold text-purple-900">Model</TableHead>
+                    <TableHead className="w-[120px] font-bold text-purple-900">Action</TableHead>
+                    <TableHead className="font-bold text-purple-900">Changes Summary</TableHead>
+                    <TableHead className="w-[80px] text-right font-bold text-purple-900">Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-40 text-center">
+                        <div className="flex flex-col justify-center items-center gap-3 text-muted-foreground">
+                          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                          <p>Loading logs...</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : data.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-40 text-center text-muted-foreground">
+                        <div className="flex flex-col items-center gap-2">
+                           <div className="p-3 bg-muted rounded-full">
+                              <Search className="h-6 w-6 text-muted-foreground" />
+                           </div>
+                           <p>No logs found matching criteria.</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.map((log, index) => (
+                      <TableRow 
+                        key={log.id} 
+                        className="hover:bg-purple-50/30 transition-colors cursor-default"
+                      >
+                        <TableCell className="text-sm whitespace-nowrap font-medium text-muted-foreground">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="font-medium text-foreground">
+                            <div className="flex items-center gap-2">
+                               <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700">
+                                   {String(log.matricule).charAt(0)}
+                               </div>
+                               {log.matricule}
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                            {log.model}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn(
+                            "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors shadow-sm",
+                            // Custom styling for actions
+                            log.action === 'CREATE' && "bg-green-100 text-green-700 border border-green-200",
+                            log.action === 'UPDATE' && "bg-blue-100 text-blue-700 border border-blue-200",
+                            log.action === 'DELETE' && "bg-red-100 text-red-700 border border-red-200",
+                            !['CREATE', 'UPDATE', 'DELETE'].includes(log.action) && "bg-gray-100 text-gray-700"
+                          )}>
+                            {log.action}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-[400px] truncate text-muted-foreground text-sm font-mono">
+                          {log.action === 'UPDATE' && (
+                            <span>Modified ID: <span className="text-foreground font-semibold">{log.currentData?.id || log.previousData?.id}</span></span>
+                          )}
+                          {log.action === 'CREATE' && (
+                            <span>Created ID: <span className="text-foreground font-semibold">{log.currentData?.id}</span></span>
+                          )}
+                          {log.action === 'DELETE' && (
+                            <span>Deleted ID: <span className="text-foreground font-semibold">{log.previousData?.id}</span></span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             onClick={() => setSelectedLog(log)}
+                             className="hover:bg-purple-100 hover:text-purple-700 transition-colors"
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View Details</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50/50">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{totalItems > 0 ? ((page - 1) * 20) + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(page * 20, totalItems)}</span> of <span className="font-medium text-foreground">{totalItems}</span> entries
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="bg-white shadow-sm"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1 mx-2">
+                    <span className="text-sm font-medium">Page {page} of {totalPages}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || loading}
+                  className="bg-white shadow-sm"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
 
         <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto flex flex-col gap-0 p-0">
-            <DialogHeader className="p-6 pb-4 border-b">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <ScrollArea className="h-5 w-5 text-primary" />
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto flex flex-col gap-0 p-0 rounded-2xl">
+            <DialogHeader className="p-6 pb-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold text-purple-900">
+                <Activity className="h-5 w-5 text-purple-600" />
                 Log Details
               </DialogTitle>
               <DialogDescription className="text-base mt-2">
@@ -348,25 +431,29 @@ function LogsPage() {
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <span className={cn(
-                        "inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold",
-                        selectedLog.action === 'CREATE' && "bg-green-100 text-green-700",
-                        selectedLog.action === 'UPDATE' && "bg-blue-100 text-blue-700",
-                        selectedLog.action === 'DELETE' && "bg-red-100 text-red-700",
+                        "inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold shadow-sm",
+                        selectedLog.action === 'CREATE' && "bg-green-100 text-green-700 border border-green-200",
+                        selectedLog.action === 'UPDATE' && "bg-blue-100 text-blue-700 border border-blue-200",
+                        selectedLog.action === 'DELETE' && "bg-red-100 text-red-700 border border-red-200",
                       )}>
                         {selectedLog.action}
                       </span>
                       <span className="text-muted-foreground text-sm">on</span>
-                      <span className="font-semibold text-sm">{selectedLog.model}</span>
+                      <span className="font-semibold text-sm bg-secondary px-2 py-0.5 rounded text-secondary-foreground">{selectedLog.model}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Performed by <span className="font-medium text-foreground">{selectedLog.matricule}</span> at {new Date(selectedLog.timestamp).toLocaleString()}
+                    <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                      <span>Performed by</span>
+                      <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded border">
+                         <span className="font-bold text-foreground">{selectedLog.matricule}</span>
+                      </div>
+                      <span>at {new Date(selectedLog.timestamp).toLocaleString()}</span>
                     </div>
                   </div>
                 )}
               </DialogDescription>
             </DialogHeader>
             
-            <div className="p-6">
+            <div className="p-6 bg-white/50 backdrop-blur-sm">
               {selectedLog && <LogDetailsViewer log={selectedLog} />}
             </div>
           </DialogContent>
