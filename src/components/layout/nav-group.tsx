@@ -38,7 +38,11 @@ export function NavGroup({ title, items }: NavGroupProps) {
   const href = useLocation({ select: (location) => location.href })
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider px-3 mb-2">
+      <SidebarGroupLabel className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3 mt-2
+        transition-all duration-300 hover:text-primary hover:tracking-wider hover:translate-x-0.5
+        relative
+        after:absolute after:bottom-0 after:left-3 after:right-3 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent
+        after:opacity-50">
         {title}
       </SidebarGroupLabel>
       <SidebarMenu>
@@ -82,28 +86,33 @@ function SidebarMenuLink({ item, href, index }: { item: NavLink; href: string; i
         isActive={isActive}
         tooltip={item.title}
         className={`
-          group relative overflow-hidden transition-all duration-300
-          hover:bg-primary/5 hover:text-primary hover:shadow-sm
-          ${isActive ? 'bg-primary/10 text-primary font-medium shadow-sm' : ''}
-          before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/10 before:to-transparent
+          group relative overflow-hidden transition-all duration-300 rounded-lg
+          hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent
+          hover:text-primary hover:shadow-sm hover:translate-x-1
+          ${isActive ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary font-semibold shadow-md border-l-4 border-primary' : 'border-l-4 border-transparent'}
+          before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
           before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700
+          after:absolute after:left-0 after:top-0 after:h-full after:w-1 after:bg-gradient-to-b after:from-primary after:to-primary/50
+          after:scale-y-0 hover:after:scale-y-100 after:transition-transform after:duration-300 after:origin-top
         `}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
           {isActive && (
             <>
-              <span className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-primary/60 rounded-r animate-in slide-in-from-left-1 duration-300" />
-              <span className="absolute left-0 top-0 h-full w-1 bg-primary/50 rounded-r animate-pulse" />
+              <span className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/80 to-primary/50 rounded-r animate-in slide-in-from-left-1 duration-300 shadow-lg shadow-primary/50" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent animate-pulse" />
             </>
           )}
           {item.icon && (
             <item.icon className={`
               transition-all duration-300 
-              group-hover:scale-110 group-hover:rotate-3
-              ${isActive ? 'text-primary animate-in zoom-in duration-300' : ''}
+              group-hover:scale-125 group-hover:rotate-6 group-hover:text-primary
+              ${isActive ? 'text-primary scale-110 animate-in zoom-in duration-300 drop-shadow-md' : ''}
             `} />
           )}
-          <span className="transition-all duration-300 group-hover:translate-x-0.5">{item.title}</span>
+          <span className="transition-all duration-300 group-hover:translate-x-1 group-hover:font-medium">
+            {item.title}
+          </span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
       </SidebarMenuButton>
@@ -137,24 +146,28 @@ function SidebarMenuCollapsible({
           <SidebarMenuButton 
             tooltip={item.title}
             className={`
-              group relative overflow-hidden transition-all duration-300
-              hover:bg-primary/5 hover:text-primary
-              ${isActive ? 'bg-primary/10 text-primary font-medium' : ''}
+              group relative overflow-hidden transition-all duration-300 rounded-lg
+              hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent
+              hover:text-primary hover:translate-x-1
+              ${isActive ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary font-semibold border-l-4 border-primary' : 'border-l-4 border-transparent'}
+              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
+              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700
             `}
           >
             {isActive && (
-              <span className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary to-primary/60 rounded-r" />
+              <span className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/80 to-primary/50 rounded-r shadow-lg shadow-primary/50" />
             )}
             {item.icon && (
-              <item.icon className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-primary' : ''}`} />
+              <item.icon className={`transition-all duration-300 group-hover:scale-125 group-hover:rotate-6 ${isActive ? 'text-primary scale-110 drop-shadow-md' : ''}`} />
             )}
-            <span className="transition-all duration-300">{item.title}</span>
+            <span className="transition-all duration-300 group-hover:translate-x-1 group-hover:font-medium">{item.title}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
-            <ChevronRight className='ms-auto transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 group-hover:text-primary' />
+            <ChevronRight className='ms-auto transition-all duration-300 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 group-hover:text-primary group-hover:scale-110' />
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
-          <SidebarMenuSub className="border-l-2 border-border/50 ml-3 pl-2">
+          <SidebarMenuSub className="border-l-2 border-primary/20 ml-3 pl-2 relative
+            before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-gradient-to-b before:from-primary/50 before:via-primary/20 before:to-transparent">
             {item.items.map((subItem, subIndex) => {
               const subIsActive = checkIsActive(href, subItem)
               return (
@@ -167,16 +180,18 @@ function SidebarMenuCollapsible({
                     asChild
                     isActive={subIsActive}
                     className={`
-                      group relative transition-all duration-300
-                      hover:bg-primary/5 hover:text-primary hover:translate-x-1
-                      ${subIsActive ? 'bg-primary/10 text-primary font-medium' : ''}
+                      group relative transition-all duration-300 rounded-md
+                      hover:bg-gradient-to-r hover:from-primary/10 hover:to-transparent hover:text-primary hover:translate-x-2
+                      ${subIsActive ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-medium shadow-sm' : ''}
+                      before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-primary/30
+                      before:scale-0 hover:before:scale-100 before:transition-transform before:duration-300
                     `}
                   >
                     <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
                       {subItem.icon && (
-                        <subItem.icon className={`transition-transform duration-300 group-hover:scale-110 ${subIsActive ? 'text-primary' : ''}`} />
+                        <subItem.icon className={`transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${subIsActive ? 'text-primary scale-105' : ''}`} />
                       )}
-                      <span className="transition-all duration-300">{subItem.title}</span>
+                      <span className="transition-all duration-300 group-hover:font-medium">{subItem.title}</span>
                       {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
                     </Link>
                   </SidebarMenuSubButton>

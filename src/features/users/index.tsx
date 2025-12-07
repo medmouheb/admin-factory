@@ -1,11 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { ConfigDrawer } from '@/components/config-drawer'
-import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Search } from '@/components/search'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { UsersDialogs } from './components/users-dialogs'
 import { UsersPrimaryButtons } from './components/users-primary-buttons'
 import { UsersProvider } from './components/users-provider'
@@ -77,18 +72,47 @@ export function Users() {
 
   return (
     <UsersProvider>
-      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
-        <div className='flex flex-wrap items-end justify-between gap-4'>
-          <div className="flex-1 min-w-[200px] max-w-md">
-            <h2 className='text-2xl font-bold tracking-tight mb-2'>User List</h2>
+      <Main className="flex flex-1 flex-col gap-4 sm:gap-6 p-4 md:p-8 pt-6">
+        {/* Enhanced Header with Gradient */}
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700 p-6 sm:p-8 shadow-2xl">
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+          <div className="relative flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">User Management</h1>
+              </div>
+              <p className="text-purple-100 text-sm sm:text-base ml-0 sm:ml-14">
+                Manage system users and their permissions.
+              </p>
+            </div>
+            <UsersPrimaryButtons />
+          </div>
+        </div>
+
+        {/* Enhanced Search Card */}
+        <div className="rounded-2xl border-2 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 shadow-lg">
+          <div className="space-y-2">
+            <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Quick Search
+            </span>
             <AutocompleteSearch
               users={allUsers}
               onSelect={handleUserSelect}
-              placeholder='Search users by name, matricule, or email...'
+              placeholder="Search users by name, matricule, or email..."
             />
           </div>
-          <UsersPrimaryButtons />
         </div>
+
         <UsersTable data={[]} search={search} navigate={navigate} roleFilter={roleFilter} />
       </Main>
 

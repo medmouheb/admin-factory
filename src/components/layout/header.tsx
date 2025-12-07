@@ -42,14 +42,18 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
   return (
     <header
       className={cn(
-        'z-50 h-16 border-b transition-all duration-500',
-        'bg-gradient-to-r from-background via-background to-background/95',
-        'backdrop-blur-md supports-[backdrop-filter]:bg-background/60',
+        'z-50 h-16 border-b-2 transition-all duration-500',
+        'bg-gradient-to-r from-background via-background/95 to-background',
+        'backdrop-blur-xl supports-[backdrop-filter]:bg-background/80',
         'relative overflow-hidden',
-        'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5',
+        // Animated gradient overlay
+        'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/10 before:via-primary/5 before:to-primary/10',
         'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-700',
+        // Subtle shine effect
+        'after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/5 after:to-transparent',
+        'after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-1000',
         fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
-        offset > 10 && fixed ? 'shadow-lg shadow-primary/5' : 'shadow-none',
+        offset > 10 && fixed ? 'shadow-2xl shadow-primary/10 border-primary/20' : 'shadow-none',
         className
       )}
       {...props}
@@ -61,14 +65,15 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
       >
         <SidebarTrigger 
           variant='ghost' 
-          className='max-md:scale-110 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:rotate-12
-            relative overflow-hidden
-            before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-            before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500' 
+          className='max-md:scale-110 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-125 hover:rotate-12
+            relative overflow-hidden group
+            before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
+            before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
+            shadow-sm hover:shadow-md hover:shadow-primary/20' 
         />
-        <Separator orientation='vertical' className='h-6 transition-all duration-300 hover:h-8 hover:bg-primary/50' />
+        <Separator orientation='vertical' className='h-6 transition-all duration-300 hover:h-8 hover:bg-gradient-to-b hover:from-primary hover:to-primary/50' />
         
-        {/* Breadcrumbs */}
+        {/* Enhanced Breadcrumbs */}
         <div className="hidden md:flex items-center gap-2 text-sm animate-in fade-in slide-in-from-left-2 duration-500">
           {breadcrumbs.length > 0 ? (
             breadcrumbs.map((crumb, index) => (
@@ -78,85 +83,89 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
               >
                 <span className={cn(
-                  "transition-all duration-300 relative group",
+                  "transition-all duration-300 relative group px-2 py-1 rounded-md",
                   crumb.isLast 
-                    ? "font-medium text-foreground" 
-                    : "text-muted-foreground hover:text-primary cursor-pointer hover:translate-x-0.5",
-                  !crumb.isLast && "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
+                    ? "font-semibold text-foreground bg-primary/10" 
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5 cursor-pointer hover:translate-x-0.5",
+                  !crumb.isLast && "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 hover:after:w-full"
                 )}>
                   {crumb.label}
                 </span>
                 {!crumb.isLast && (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-all duration-300 hover:text-primary hover:translate-x-0.5" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-all duration-300 hover:text-primary hover:translate-x-0.5 hover:scale-110" />
                 )}
               </div>
             ))
           ) : (
-            <span className="font-medium text-foreground animate-in fade-in zoom-in duration-500">Dashboard</span>
+            <span className="font-semibold text-foreground animate-in fade-in zoom-in duration-500 bg-gradient-to-r from-primary/10 to-primary/5 px-3 py-1 rounded-lg">Dashboard</span>
           )}
         </div>
 
         {children}
         
         <div className="ml-auto flex items-center gap-2">
-          {/* Search Button */}
+          {/* Enhanced Search Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:rotate-3 relative overflow-hidden
-              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
+            className="h-9 w-9 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-110 hover:rotate-3 relative overflow-hidden group
+              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
+              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
+              shadow-sm hover:shadow-md hover:shadow-primary/20"
             title="Search"
           >
-            <Search className="h-4 w-4 transition-transform duration-300" />
+            <Search className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
           </Button>
 
-          {/* Notifications */}
+          {/* Enhanced Notifications */}
           <div className="relative">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 hover:bg-primary/10 transition-all duration-300 hover:scale-110 relative overflow-hidden
-                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-                before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
+              className="h-9 w-9 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-110 relative overflow-hidden group
+                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
+                before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
+                shadow-sm hover:shadow-md hover:shadow-primary/20"
               title="Notifications"
             >
-              <Bell className="h-4 w-4 transition-transform duration-300 hover:rotate-12" />
+              <Bell className="h-4 w-4 transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
             </Button>
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background animate-pulse" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-gradient-to-br from-red-500 to-red-600 ring-2 ring-background animate-pulse shadow-lg shadow-red-500/50" />
           </div>
 
-          {/* Theme Toggle */}
+          {/* Enhanced Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:rotate-12 relative overflow-hidden
-              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
+            className="h-9 w-9 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-110 hover:rotate-12 relative overflow-hidden group
+              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
+              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
+              shadow-sm hover:shadow-md hover:shadow-primary/20"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             title="Toggle theme"
           >
             {theme === 'dark' ? (
-              <Sun className="h-4 w-4 transition-all duration-500 rotate-0 scale-100 animate-in spin-in-180" />
+              <Sun className="h-4 w-4 transition-all duration-500 rotate-0 scale-100 animate-in spin-in-180 group-hover:rotate-90 group-hover:scale-110" />
             ) : (
-              <Moon className="h-4 w-4 transition-all duration-500 rotate-0 scale-100 animate-in spin-in-180" />
+              <Moon className="h-4 w-4 transition-all duration-500 rotate-0 scale-100 animate-in spin-in-180 group-hover:-rotate-12 group-hover:scale-110" />
             )}
           </Button>
 
-          <Separator orientation='vertical' className='h-6 mx-1' />
+          <Separator orientation='vertical' className='h-6 mx-1 transition-all duration-300 hover:h-8 hover:bg-gradient-to-b hover:from-primary hover:to-primary/50' />
 
-          {/* User Info */}
+          {/* Enhanced User Info */}
           {auth.user && (
-            <div className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 transition-all duration-300 hover:bg-muted hover:shadow-md cursor-pointer group
+            <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-muted/80 to-muted/50 px-3 py-2 transition-all duration-300 hover:from-muted hover:to-muted/80 hover:shadow-lg hover:shadow-primary/10 cursor-pointer group
               relative overflow-hidden
-              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/5 before:to-transparent
-              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700">
+              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/10 before:to-transparent
+              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700
+              border border-border/50 hover:border-primary/30">
               <div className="hidden sm:flex flex-col items-end">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground text-sm transition-all duration-300 group-hover:text-primary">
+                  <span className="font-semibold text-foreground text-sm transition-all duration-300 group-hover:text-primary group-hover:translate-x-[-2px]">
                     {auth.user.username}
                   </span>
-                  <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md">
+                  <span className="rounded-full bg-gradient-to-br from-primary to-primary/70 px-2.5 py-0.5 text-xs font-medium text-primary-foreground shadow-md transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/30">
                     {auth.user.role?.[0] || 'User'}
                   </span>
                 </div>
@@ -166,8 +175,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
                   </span>
                 )}
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-md">
-                <User className="h-4 w-4 transition-transform duration-300" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary via-primary/80 to-primary/60 text-primary-foreground shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-lg group-hover:shadow-primary/30">
+                <User className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
               </div>
             </div>
           )}

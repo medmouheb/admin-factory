@@ -138,126 +138,260 @@ function ReferencesPage() {
 
   return (
     <Main>
-      <div className='flex flex-col space-y-6 p-4 md:p-8 pt-6'>
-        <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-          <div>
-            <h1 className='text-3xl font-bold tracking-tight'>References</h1>
-            <p className='text-muted-foreground mt-2'>
-              Manage your parts catalogue, including Lear and Tesca part numbers.
-            </p>
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button onClick={handleAdd} className="shadow-lg hover:shadow-xl transition-all">
-              <Plus className='mr-2 h-4 w-4' /> Add Reference
+      <div className="flex flex-col space-y-6 p-4 md:p-8 pt-6">
+        {/* Enhanced Header with Gradient */}
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-600 via-amber-600 to-yellow-600 p-6 sm:p-8 shadow-2xl">
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+          <div className="relative flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">References</h1>
+              </div>
+              <p className="text-amber-100 text-sm sm:text-base ml-0 sm:ml-14">
+                Manage your parts catalogue, including Lear and Tesca part numbers.
+              </p>
+            </div>
+            <Button onClick={handleAdd} className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
+              <Plus className="mr-2 h-4 w-4" /> Add Reference
             </Button>
           </div>
         </div>
 
-        <div className='flex items-center justify-between gap-4 bg-background p-4 rounded-lg border shadow-sm'>
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search references..."
-              className="pl-9 bg-muted/50 focus:bg-background transition-colors"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        {/* Enhanced Search Card */}
+        <div className="rounded-2xl border-2 bg-gradient-to-br from-white to-gray-50/50 p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 w-full max-w-md space-y-2">
+              <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Search className="w-4 h-4 text-orange-600" />
+                Search References
+              </span>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by Lear PN, Tesca PN, or description..."
+                  className="pl-10 h-11 border-2 focus:ring-4 focus:ring-orange-500/20"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={fetchParts} 
+              className="h-11 border-2 mt-7"
+              title="Refresh"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           </div>
-          <Button variant="outline" size="icon" onClick={fetchParts} title="Refresh">
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
 
-        <div className="rounded-md border bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead className="w-[100px]">Lear PN</TableHead>
-                <TableHead>Tesca PN</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Qty/Box</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    <div className="flex justify-center items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading data...
+        {/* Enhanced Table Card */}
+        <div className="rounded-2xl border-2 bg-white shadow-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50">
+                <TableRow className="border-b-2 border-orange-200">
+                  <TableHead className="w-[180px] font-bold text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                      </svg>
+                      <span className="uppercase text-xs tracking-wider">Lear PN</span>
                     </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead className="w-[180px] font-bold text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                      </svg>
+                      <span className="uppercase text-xs tracking-wider">Tesca PN</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-bold text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                      <span className="uppercase text-xs tracking-wider">Description</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-[120px] text-right font-bold text-gray-800">
+                    <div className="flex items-center justify-end gap-2">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                      <span className="uppercase text-xs tracking-wider">Qty/Box</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-[80px] text-right font-bold text-gray-800">
+                    <div className="flex items-center justify-end gap-2">
+                      <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                      <span className="uppercase text-xs tracking-wider">Actions</span>
+                    </div>
+                  </TableHead>
                 </TableRow>
-              ) : data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.map((part) => (
-                  <TableRow key={part.id} className="hover:bg-muted/50 transition-colors">
-                    <TableCell className="font-medium">{part.learPN}</TableCell>
-                    <TableCell>{part.tescaPN}</TableCell>
-                    <TableCell>{part.desc}</TableCell>
-                    <TableCell className="text-right">{part.qtyPerBox || '-'}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEdit(part)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => setPartToDelete(part)}
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center">
+                      <div className="flex flex-col justify-center items-center gap-3 text-muted-foreground">
+                        <svg className="h-8 w-8 animate-spin text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span className="font-medium">Loading references...</span>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : data.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="font-medium">No references found matching criteria.</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((part, index) => (
+                    <TableRow 
+                      key={part.id} 
+                      className={`hover:bg-orange-50/50 transition-colors border-b ${
+                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                      }`}
+                    >
+                      <TableCell className="font-mono text-sm font-semibold text-gray-900">{part.learPN}</TableCell>
+                      <TableCell className="font-mono text-sm text-gray-600">{part.tescaPN}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{part.desc}</TableCell>
+                      <TableCell className="text-right">
+                        <span className="inline-flex items-center rounded-lg px-3 py-1 text-xs font-bold shadow-sm bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                          {part.qtyPerBox || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-orange-100 hover:text-orange-700 transition-colors">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(part)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setPartToDelete(part)}
+                              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {data.length} of {totalItems} entries
+        {/* Enhanced Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white border-2 shadow-lg">
+          <div className="text-sm text-gray-600 font-medium">
+            Showing <span className="font-bold text-gray-900">{data.length}</span> of <span className="font-bold text-gray-900">{totalItems}</span> entries
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setPage(1)}
+              disabled={page === 1 || loading}
+              className="h-9 border-2"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
+              className="h-9 border-2"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
             </Button>
-            <div className="text-sm font-medium">
-              Page {page} of {totalPages}
+            
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (page <= 3) {
+                  pageNum = i + 1;
+                } else if (page >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = page - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={i}
+                    variant={page === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPage(pageNum)}
+                    disabled={loading}
+                    className={`h-9 w-9 border-2 ${
+                      page === pageNum ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg' : ''
+                    }`}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
             </div>
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages || loading}
+              className="h-9 border-2"
             >
               Next
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages || loading}
+              className="h-9 border-2"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
             </Button>
           </div>
         </div>
