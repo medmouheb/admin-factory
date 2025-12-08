@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth-store'
-import { User, Bell, Search, Moon, Sun, ChevronRight } from 'lucide-react'
+import { User, Moon, Sun, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/context/theme-provider'
 import { useLocation } from '@tanstack/react-router'
@@ -59,28 +59,28 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           'relative flex h-full items-center gap-3 px-4 sm:px-6 sm:gap-4 transition-all duration-300',
         )}
       >
-        <SidebarTrigger 
-          variant='ghost' 
+        <SidebarTrigger
+          variant='ghost'
           className='max-md:scale-110 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:rotate-12
             relative overflow-hidden
             before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-            before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500' 
+            before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500'
         />
         <Separator orientation='vertical' className='h-6 transition-all duration-300 hover:h-8 hover:bg-primary/50' />
-        
+
         {/* Breadcrumbs */}
         <div className="hidden md:flex items-center gap-2 text-sm animate-in fade-in slide-in-from-left-2 duration-500">
           {breadcrumbs.length > 0 ? (
             breadcrumbs.map((crumb, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="flex items-center gap-2 animate-in fade-in slide-in-from-left-1 duration-300"
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
               >
                 <span className={cn(
                   "transition-all duration-300 relative group",
-                  crumb.isLast 
-                    ? "font-medium text-foreground" 
+                  crumb.isLast
+                    ? "font-medium text-foreground"
                     : "text-muted-foreground hover:text-primary cursor-pointer hover:translate-x-0.5",
                   !crumb.isLast && "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                 )}>
@@ -97,34 +97,9 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
         </div>
 
         {children}
-        
-        <div className="ml-auto flex items-center gap-2">
-          {/* Search Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 hover:bg-primary/10 transition-all duration-300 hover:scale-110 hover:rotate-3 relative overflow-hidden
-              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
-            title="Search"
-          >
-            <Search className="h-4 w-4 transition-transform duration-300" />
-          </Button>
 
-          {/* Notifications */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 hover:bg-primary/10 transition-all duration-300 hover:scale-110 relative overflow-hidden
-                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent
-                before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
-              title="Notifications"
-            >
-              <Bell className="h-4 w-4 transition-transform duration-300 hover:rotate-12" />
-            </Button>
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background animate-pulse" />
-          </div>
+        <div className="ml-auto flex items-center gap-2">
+
 
           {/* Theme Toggle */}
           <Button

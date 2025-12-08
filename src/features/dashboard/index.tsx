@@ -18,7 +18,7 @@ import { FileText, Users, Activity, AlertCircle, Download, TrendingUp, TrendingD
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { isSameDay, subMonths } from 'date-fns'
+import { format, subDays } from 'date-fns'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -80,22 +80,135 @@ export function Dashboard() {
     fetchData()
   }, [])
 
-  const downloadReport = () => {
-    const doc = new jsPDF()
-    doc.text('Dashboard Report', 20, 10)
+  const downloadReport = async () => {
+    try {
+      toast.info('Generating report...')
+      const doc = new jsPDF()
+      const today = new Date()
+      // Default to last 30 days for the report to match default analytics view
+      const thirtyDaysAgo = subDays(today, 30)
+      const start = format(thirtyDaysAgo, 'yyyy-MM-dd')
+      const end = format(today, 'yyyy-MM-dd')
 
-    autoTable(doc, {
-      head: [['Metric', 'Value']],
-      body: [
-        ['Total Tickets', stats.totalTickets],
-        ['Active Users', stats.activeUsers],
-        ['Parts', stats.parts],
-        ['Materials', stats.materials],
-      ],
-    })
+      // Fetch Analytics Data for the report
+      const res = await fetch(`http://localhost:8080/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=day`, {
+        credentials: 'include'
+      })
+      const analyticsData = await res.json()
 
-    doc.save('dashboard-report.pdf')
-    toast.success('Report downloaded')
+      // Title
+      doc.setFontSize(22)
+      doc.setTextColor(40, 40, 40)
+      doc.text('Dashboard Report', 14, 20)
+
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`Generated on ${format(today, 'PPP')} - Period: Last 30 Days`, 14, 28)
+
+      let yPos = 35
+
+      // 1. General Overview Section
+      doc.setFontSize(14)
+      doc.setTextColor(0, 0, 0)
+      doc.text('1. General Overview', 14, yPos)
+      yPos += 6
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Tickets (All Time)', stats.totalTickets.toLocaleString()],
+          ['Active Users (All Time)', stats.activeUsers.toLocaleString()],
+          ['Total Parts', stats.parts.toLocaleString()],
+          ['Total Materials', stats.materials.toLocaleString()],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [41, 128, 185] },
+        styles: { fontSize: 10 }
+      })
+
+      // @ts-ignore
+      yPos = doc.lastAutoTable.finalY + 15
+
+      // 2. Analytics Performance Section
+      if (analyticsData && analyticsData.summary) {
+        doc.setFontSize(14)
+        doc.text('2. Performance Metrics (Last 30 Days)', 14, yPos)
+        yPos += 6
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Metric', 'Value']],
+          body: [
+            ['Tickets Generated', analyticsData.summary.totalCount.toLocaleString()],
+            ['Active Generators', analyticsData.summary.activeUsers.toLocaleString()],
+            ['Avg. Generation Time', `${analyticsData.summary.averageTimeSeconds}s`],
+          ],
+          theme: 'grid',
+          headStyles: { fillColor: [39, 174, 96] },
+          styles: { fontSize: 10 }
+        })
+        // @ts-ignore
+        yPos = doc.lastAutoTable.finalY + 15
+      }
+
+      // 3. Shift Production Section
+      if (analyticsData && analyticsData.shifts) {
+        doc.setFontSize(14)
+        doc.text('3. Production by Shift', 14, yPos)
+        yPos += 6
+
+        const total = analyticsData.shifts.morning + analyticsData.shifts.afternoon + analyticsData.shifts.night
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Shift', 'Tickets Generated', 'Share']],
+          body: [
+            ['Morning', analyticsData.shifts.morning.toLocaleString(), total ? `${((analyticsData.shifts.morning / total) * 100).toFixed(1)}%` : '0%'],
+            ['Afternoon', analyticsData.shifts.afternoon.toLocaleString(), total ? `${((analyticsData.shifts.afternoon / total) * 100).toFixed(1)}%` : '0%'],
+            ['Night', analyticsData.shifts.night.toLocaleString(), total ? `${((analyticsData.shifts.night / total) * 100).toFixed(1)}%` : '0%'],
+          ],
+          theme: 'striped',
+          headStyles: { fillColor: [211, 84, 0] },
+          styles: { fontSize: 10 }
+        })
+        // @ts-ignore
+        yPos = doc.lastAutoTable.finalY + 15
+      }
+
+      // 4. Daily Breakdown Section
+      if (analyticsData && analyticsData.chartData && analyticsData.chartData.length > 0) {
+        if (yPos > 250) {
+          doc.addPage()
+          yPos = 20
+        }
+
+        doc.setFontSize(14)
+        doc.text('4. Daily Breakdown', 14, yPos)
+        yPos += 6
+
+        const rows = analyticsData.chartData.map((item: any) => [
+          format(new Date(item.date), 'yyyy-MM-dd'),
+          item.count,
+          item.errors
+        ])
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Date', 'Tickets', 'Errors']],
+          body: rows,
+          theme: 'plain',
+          headStyles: { fillColor: [142, 68, 173] },
+          styles: { fontSize: 9 }
+        })
+      }
+
+      doc.save('detailed-dashboard-report.pdf')
+      toast.success('Report downloaded successfully')
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to generate report')
+    }
   }
 
   const container = {

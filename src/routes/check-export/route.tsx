@@ -37,12 +37,12 @@ function RouteComponent() {
 }
 
 function MissingClerkPubKey() {
-    'bg-foreground/10 rounded-sm py-0.5 px-1 text-xs text-foreground font-bold'
+  'bg-foreground/10 rounded-sm py-0.5 px-1 text-xs text-foreground font-bold'
   return (
     <AuthenticatedLayout>
-      
-      <StepperDemo/>
-      
+
+      <StepperDemo />
+
     </AuthenticatedLayout>
   )
 }
