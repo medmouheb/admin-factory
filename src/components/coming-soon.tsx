@@ -1,5 +1,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { 
+  Barcode, 
+  Ticket, 
+  Search, 
+  Filter, 
+  Plus, 
+  Download, 
+  RefreshCw,
+  MoreVertical,
+  Calendar,
+  FileText,
+  Trash2,
+  Edit,
+  Printer,
+  X
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import jsPDF from 'jspdf'
 import JsBarcode from 'jsbarcode'
 import { useAuthStore } from "@/stores/auth-store"
@@ -685,355 +703,382 @@ export function ComingSoon() {
   }
 
   return (
-    <div className="p-6 space-y-4 animate-in fade-in duration-500">
-      <h1 className="text-2xl font-semibold animate-in slide-in-from-top-4 duration-700">
-        Ticket Codes
-      </h1>
-
-      <div className="flex gap-3 mb-4">
-        <Button
-          onClick={() => navigate({ to: '/reapirage' })}
-          className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-        >
-          ➕ New Ticket
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setOpenBarcodeSearchDialog(true)}
-          className="transition-all duration-200 hover:scale-105 hover:shadow-md"
-        >
-          🔍 Get Ticket by Barcode
-        </Button>
-      </div>
-
-      <div className="rounded-2xl border border-border/60 bg-card/50 p-4 shadow-lg backdrop-blur animate-in slide-in-from-bottom-4 duration-700 delay-100">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">Filters</p>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="secondary" className="transition-all duration-300 hover:scale-105">
-                {activeFiltersCount} active
-              </Badge>
-              {activeFiltersCount > 0 && (
-                <Button
-                  variant="link"
-                  className="px-0 text-xs transition-all duration-200 hover:scale-105"
-                  onClick={resetFilters}
-                >
-                  Reset
-                </Button>
-              )}
+    <div className="min-h-screen bg-background p-6 space-y-6">
+      {/* Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-8 shadow-xl"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+              className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm"
+            >
+              <Ticket className="h-10 w-10 text-white" />
+            </motion.div>
+            <div>
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-4xl font-bold text-white mb-2"
+              >
+                Ticket Codes
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-white/90 text-lg"
+              >
+                Manage and track ticket codes
+              </motion.p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
+            <Button
+              onClick={() => navigate({ to: '/reapirage' })}
+              className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="mr-2 h-4 w-4" /> New Ticket
+            </Button>
             <Button
               variant="outline"
-              size="sm"
-              onClick={() => fetchTicketCodes()}
-              className="transition-all duration-200 hover:scale-105 hover:shadow-md"
+              onClick={() => setOpenBarcodeSearchDialog(true)}
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-200 hover:scale-105"
             >
-              Refresh
+              <Search className="mr-2 h-4 w-4" /> Scan Barcode
             </Button>
           </div>
         </div>
+      </motion.div>
 
-        <Separator className="my-4" />
+      {/* Search & Stats Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="grid gap-6"
+      >
+        <Card className="shadow-md bg-white/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-lg font-bold text-foreground">Filters & Search</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {activeFiltersCount > 0 && (
+                <Button
+                  variant="ghost" 
+                  size="sm"
+                  onClick={resetFilters}
+                  className="h-8 text-muted-foreground hover:text-foreground"
+                >
+                  Reset Filters ({activeFiltersCount})
+                </Button>
+              )}
+              <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fetchTicketCodes()}
+                  className="h-8 w-8 p-0"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label htmlFor="search">Ticket code</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Search ticket code..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="hu">HU Number</Label>
+                <Input
+                  id="hu"
+                  placeholder="Filter by HU..."
+                  value={hu}
+                  onChange={(e) => {
+                    setHu(e.target.value)
+                    setPage(1)
+                  }}
+                />
+              </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="search">Ticket code</Label>
-            <div className="flex gap-2">
-              <Input
-                id="search"
-                placeholder="e.g. TK-00001"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <Button onClick={handleSearch}>
-                Search
+              <div className="space-y-2">
+                <Label htmlFor="date">Date</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => {
+                      setDate(e.target.value)
+                      setPage(1)
+                    }}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Sort Order</Label>
+                <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => {
+                  setSortOrder(value)
+                  setPage(1)
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sort by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">Newest first</SelectItem>
+                    <SelectItem value="asc">Oldest first</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Table */}
+      {/* Table Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Card className="shadow-lg border-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-purple-50/50">
+                <TableRow>
+                  <TableHead className="w-40 text-xs font-bold uppercase tracking-wider text-purple-900">
+                    Ticket Code
+                  </TableHead>
+                  <TableHead className="w-40 text-xs font-bold uppercase tracking-wider text-purple-900">
+                    Operateur
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                    Lear PN
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                    Quantity
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                    HU
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                    Created At
+                  </TableHead>
+                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900 text-right">
+                    Tickets
+                  </TableHead>
+                  {auth.user?.role !== 'operateur' && (
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900 text-right w-24">
+                      Actions
+                    </TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {!loading && filteredData.length > 0 && filteredData.map((item, index) => (
+                  <TableRow
+                    key={item.id}
+                    className="group cursor-pointer hover:bg-purple-50/30 transition-colors duration-200"
+                    onClick={() => handleOpenTickets(item.code)}
+                  >
+                    <TableCell className="font-semibold text-foreground">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex size-8 items-center justify-center rounded-lg bg-purple-100 text-xs font-bold text-purple-700 shadow-sm">
+                          {((page - 1) * limit) + index + 1}
+                        </span>
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium">{item.code}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">
+                            ID: {String(item.id).substring(0, 8)}...
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-sm">
+                      <div className="flex items-center gap-2">
+                         <Badge variant="outline" className="font-mono bg-slate-50">
+                           {item.matricule}
+                         </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-sm font-medium text-slate-600 bg-slate-100/50 px-2 py-1 rounded">
+                        {item.learPN || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {item.quantity ? (
+                         <span className="text-sm font-medium">
+                           {item.quantity} units
+                         </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {item.hu || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{new Date(item.createdAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(item.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={ticketBadgeVariant(item.totalTickets)} className="shadow-sm">
+                        {item.totalTickets ?? "0"}
+                      </Badge>
+                    </TableCell>
+                    {auth.user?.role !== 'operateur' && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-purple-100 hover:text-purple-600 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openEditDialogForTicketCode(item)
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="mr-2 h-4 w-4 text-orange-500" />
+                              Edit details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openDeleteDialogForTicketCode(item)
+                              }}
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete record
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+
+                {!loading && filteredData.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="p-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="p-4 rounded-full bg-purple-50 ring-8 ring-purple-50/50">
+                          <Search className="h-8 w-8 text-purple-300" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold">No tickets found</h3>
+                          <p className="text-muted-foreground max-w-[400px]">
+                            We couldn't find any ticket codes matching your current filter criteria.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={resetFilters}
+                          className="mt-2"
+                        >
+                          Clear all filters
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {loading && (
+                  <TableRow>
+                   <TableCell colSpan={8} className="p-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <div className="relative">
+                          <div className="h-12 w-12 rounded-full border-4 border-purple-100 border-t-purple-600 animate-spin" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold">Loading data...</h3>
+                          <p className="text-muted-foreground">
+                            Please wait while we fetch the latest records.
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="border-t bg-gray-50/50 p-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filteredData.length > 0 ? ((page - 1) * limit) + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(page * limit, data.length)}</span> of <span className="font-medium text-foreground">{data.length || 0}</span> results
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={prevPage}
+                disabled={page === 1}
+                className="shadow-sm bg-white"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1 mx-2">
+                  <span className="text-sm font-medium">Page {page} of {totalPages}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={nextPage}
+                disabled={page === totalPages}
+                className="shadow-sm bg-white"
+              >
+                Next
               </Button>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="hu">HU</Label>
-            <Input
-              id="hu"
-              placeholder="e.g. HU-12345"
-              value={hu}
-              onChange={(e) => {
-                setHu(e.target.value)
-                setPage(1)
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value)
-                setPage(1)
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Sort</Label>
-            <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => {
-              setSortOrder(value)
-              setPage(1)
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Newest first</SelectItem>
-                <SelectItem value="asc">Oldest first</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-card via-card/80 to-muted/40 shadow-2xl shadow-primary/10 backdrop-blur">
-        <Table>
-          <TableHeader className="bg-muted/60">
-            <TableRow>
-              <TableHead className="w-40 text-xs uppercase tracking-wide">
-                Ticket Code
-              </TableHead>
-              <TableHead className="w-40 text-xs uppercase tracking-wide">
-                Operateur
-              </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide">
-                Lear PN
-              </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide">
-                Quantity
-              </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide">
-                HU
-              </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide">
-                Created At
-              </TableHead>
-              <TableHead className="text-xs uppercase tracking-wide text-right">
-                Tickets
-              </TableHead>
-              {auth.user?.role !== 'operateur' && (
-                <TableHead className="text-xs uppercase tracking-wide text-right w-24">
-                  Actions
-                </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {!loading && filteredData.length > 0 && filteredData.map((item, index) => (
-              <TableRow
-                key={item.id}
-                className={`group cursor-pointer border-b border-border/40 transition-all duration-300 hover:-translate-y-[2px] hover:bg-primary/10 hover:shadow-md ${index % 2 === 0 ? "bg-background/40" : "bg-muted/20"} animate-in fade-in slide-in-from-left-4`}
-                style={{ animationDelay: `${index * 50}ms` }}
-                onClick={() => handleOpenTickets(item.code)}
-              >
-                <TableCell className="flex items-center gap-3 font-semibold text-primary">
-                  <span className="inline-flex size-7 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary shadow-inner">
-                    {((page - 1) * limit) + index + 1}
-                  </span>
-                  <div className="space-y-1">
-                    <p className="text-base">{item.code}</p>
-                    <p className="text-xs text-muted-foreground">
-                      ID: {item.id}
-                    </p>
-                  </div>
-                </TableCell>
-
-                <TableCell className="text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span> {item.matricule}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span className="font-mono">{item.learPN || '—'}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span>{item.quantity || '—'}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span className="font-mono text-xs">{item.hu || '—'}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span>{formatDate(item.createdAt)}</span>
-                    <span className="text-xs text-muted-foreground/70">
-                      {new Date(item.createdAt).toLocaleDateString(undefined, { weekday: "long" })}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={ticketBadgeVariant(item.totalTickets)}>
-                    {item.totalTickets ?? "—"}
-                  </Badge>
-                </TableCell>
-                {auth.user?.role !== 'operateur' && (
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="sr-only">Open menu</span>
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                            />
-                          </svg>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openEditDialogForTicketCode(item)
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <svg
-                            className="mr-2 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openDeleteDialogForTicketCode(item)
-                          }}
-                          className="cursor-pointer text-destructive focus:text-destructive"
-                        >
-                          <svg
-                            className="mr-2 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-
-            {!loading && filteredData.length === 0 && (
-              <TableRow className="animate-in fade-in duration-500">
-                <TableCell colSpan={3} className="p-10 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-base font-medium text-muted-foreground">
-                      No ticket codes match these filters.
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={resetFilters}
-                      className="text-xs mt-2 transition-all duration-200 hover:scale-105"
-                    >
-                      Clear all filters
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-
-            {loading && (
-              <TableRow className="animate-in fade-in duration-300">
-                <TableCell colSpan={3} className="p-10 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="relative">
-                      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    </div>
-                    <p className="text-sm text-muted-foreground animate-pulse">
-                      Loading results…
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button
-          variant="outline"
-          onClick={prevPage}
-          disabled={page === 1}
-          className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          ← Previous
-        </Button>
-
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">Page</p>
-          <Badge variant="secondary" className="font-semibold">
-            {page}
-          </Badge>
-          <p className="text-sm text-muted-foreground">
-            of <b>{totalPages}</b>
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={nextPage}
-          disabled={page === totalPages}
-          className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next →
-        </Button>
-      </div>
+        </Card>
+      </motion.div>
 
       {/* ---------------------- */}
       {/* TICKETS POPUP DIALOG   */}
@@ -1043,11 +1088,11 @@ export function ComingSoon() {
           <DialogHeader className="animate-in slide-in-from-top-4 duration-500 flex-shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
                   Tickets for: <span className="font-mono">{selectedCode}</span>
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  <span className="font-semibold">{tickets.length}</span> total records • <span className="font-semibold text-primary">{filteredTickets.length}</span> after filters
+                  <span className="font-semibold">{tickets.length}</span> total records • <span className="font-semibold text-purple-600">{filteredTickets.length}</span> after filters
                 </p>
               </div>
               <Badge variant="secondary" className="text-sm px-3 py-1 animate-in fade-in duration-500 delay-200">
@@ -1056,7 +1101,7 @@ export function ComingSoon() {
             </div>
           </DialogHeader>
 
-          <div className="space-y-4 rounded-2xl border border-border/60 bg-gradient-to-br from-card/80 via-card/60 to-muted/30 p-5 shadow-xl backdrop-blur animate-in slide-in-from-bottom-4 duration-500 delay-100 flex-1 overflow-y-auto min-h-0">
+          <div className="space-y-4 rounded-2xl border border-purple-100 bg-white/60 p-5 shadow-inner backdrop-blur animate-in slide-in-from-bottom-4 duration-500 delay-100 flex-1 overflow-y-auto min-h-0">
             {/* Enhanced Filters Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
