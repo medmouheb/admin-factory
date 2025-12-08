@@ -3,10 +3,11 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth-store'
-import { User, Moon, Sun, ChevronRight } from 'lucide-react'
+import { User, Moon, Sun, ChevronRight, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/context/theme-provider'
 import { useLocation } from '@tanstack/react-router'
+import { Search } from '../search'
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
