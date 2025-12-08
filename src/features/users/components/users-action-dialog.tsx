@@ -147,8 +147,24 @@ export function UsersActionDialog({
         unit: 'mm',
         format: [50, 50],
       })
+      const m = 2
+      const w = 46
+      const h = 46
+      
+      doc.setLineWidth(0.2)
+      doc.setDrawColor(0)
 
-      // Helper to generate barcode image
+      // Border & Grid
+      doc.rect(m, m, w, h)
+      doc.line(m, 9, m + w, 9)
+      
+      // Header
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.text('TESCA', m + 2, 7)
+      doc.text('LOGIN', m + w - 2, 7, { align: 'right' })
+
+      // Helper for barcode
       const getBarcodeImage = (text: string, showText: boolean) => {
         const canvas = document.createElement('canvas')
         JsBarcode(canvas, text, {
@@ -160,55 +176,36 @@ export function UsersActionDialog({
         return canvas.toDataURL('image/png')
       }
 
-      // 1. Header: Tesca Tunisia
-      doc.setFontSize(11)
-      doc.setFont('helvetica', 'bold')
-      // Center text horizontally: (PageWidth - TextWidth) / 2
-      // const pageWidth = 50;
-      doc.text('Tesca Tunisia', 25, 6, { align: 'center' })
-
-      // 2. Sub-header: Access Login
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Access Login', 25, 10, { align: 'center' })
-
-      // Divider line
-      doc.setLineWidth(0.3)
-      doc.line(5, 12, 45, 12)
-
-      // 3. User Name
+      // User Name
       doc.setFontSize(10)
       doc.setFont('helvetica', 'bold')
       const fullName = `${userData.firstName} ${userData.lastName}`
-      doc.text(fullName, 25, 17, { align: 'center' })
-
-      // 4. Matricule Section
+      doc.text(fullName, 25, 14, { align: 'center' })
+      
+      doc.line(m, 16, m + w, 16)
+      
+      // Matricule
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
-      doc.text('Matricule:', 5, 22)
-      
+      doc.text('Matricule:', m + 2, 20)
       const matriculeImg = getBarcodeImage(userData.matricule, true) // show text below
-      // Adjust image placement
-      doc.addImage(matriculeImg, 'PNG', 5, 23, 40, 10)
+      doc.addImage(matriculeImg, 'PNG', m + 2, 21, w - 4, 8)
 
-      // 5. Password Section
-      // Moved down a bit more to avoid overlap
-      doc.text('Password:', 5, 36)
-
+      // Password
       if (password) {
-        const passwordImg = getBarcodeImage(password, false) // hide text below for security/cleanliness look? 
-        // Or if user wants to scan it, text might be helpful if scan fails? 
-        // User asked to make it beautiful. Standard practice for login cards usually hides cleartext password if it's strictly a barcode login, 
-        // but often printed slips show it. The previous code hid it. I'll keep it hidden in barcode but barcode itself encodes it.
-        doc.addImage(passwordImg, 'PNG', 5, 37, 40, 8)
+        doc.text('Password:', m + 2, 33)
+        const passwordImg = getBarcodeImage(password, false)
+        doc.addImage(passwordImg, 'PNG', m + 2, 34, w - 4, 8)
       } else {
-        doc.setFontSize(8)
-        doc.text('(No password)', 5, 39)
+        doc.text('(No Password)', 25, 38, { align: 'center' })
       }
 
-      // Add a border around the whole ticket maybe?
-      doc.setLineWidth(0.5)
-      doc.rect(1, 1, 48, 48) // Border just inside the 50x50 edge
+       doc.line(m, 44, m + w, 44)
+
+      // Footer: Date
+      doc.setFontSize(7)
+      const now = new Date()
+      doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 25, 48, { align: 'center' })
 
       // Print
       doc.autoPrint()

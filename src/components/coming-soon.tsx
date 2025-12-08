@@ -454,57 +454,58 @@ export function ComingSoon() {
 
   const generateTicketPDF = (ticketCode: string) => {
     const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+    const m = 0.2
+    const w = 4.6
+    const h = 4.6
 
-    let y = 0.3; // top margin
+    doc.setLineWidth(0.02)
+    doc.setDrawColor(0)
 
-    // Title
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('tesca', 0.2, y);
-    y += 0.5;
+    // Border & Grid
+    doc.rect(m, m, w, h)
+    doc.line(m, 0.9, m + w, 0.9)
+    doc.line(m, 1.5, m + w, 1.5)
+    doc.line(m, 3.9, m + w, 3.9)
 
-    // Ticket Code text
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(paginatedTickets[0].learPN || "", 0.2, y);
-    y += 0.4;
+    // Header
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(12)
+    doc.text('TESCA', m + 0.2, 0.7)
+    doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
 
+    // Ref (LearPN)
+    const ref = paginatedTickets[0]?.learPN || ""
+    doc.setFontSize(11)
+    doc.text(ref, 2.5, 1.35, { align: 'center' })
 
-    // Ticket Code text
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Oper : ${auth.user?.matricule}` || "", 0.2, y);
-    y += 0.4;
-
-    // Barcode for ticket code
+    // Barcode
     const canvas1 = document.createElement('canvas');
     if (ticketCode) {
       JsBarcode(canvas1, ticketCode, {
         format: 'CODE128',
-        width: 0.8,
-        height: 20,
+        width: 4,
+        height: 80,
         displayValue: false,
+        margin: 0
       });
-      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0.2, y, 4.6, 1);
+      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8);
     }
-    y += 1.1;
 
-    // Ticket code (centered)
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    const textWidth = doc.getTextWidth(ticketCode || '');
-    const xCentered = (5 - textWidth) / 2;
-    doc.text(ticketCode || '', xCentered, y);
-    y += 0.6;
+    // Ticket Code Text
+    doc.setFontSize(10)
+    doc.text(ticketCode || '', 2.5, 3.75, { align: 'center' })
 
-    // Date & Time
-    const now = new Date();
-    doc.setFontSize(6);
-    doc.text(
-      `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
-      0.2,
-      y
-    );
+    // Footer
+    doc.setFontSize(9)
+    doc.text(`Op: ${auth.user?.matricule || ''}`, m + 0.1, 4.3)
+    const qty = selectedTicketCode?.quantity || '' // Use selectedTicketCode quantity
+    doc.text(`Qty: ${qty}`, m + w - 0.1, 4.3, { align: 'right' })
+
+    // Date
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    const now = new Date()
+    doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 2.5, 4.7, { align: 'center' })
 
     // Print
     const blob = doc.output('blob');
@@ -517,7 +518,6 @@ export function ComingSoon() {
     iframe.onload = () => {
       setTimeout(() => {
         iframe.contentWindow?.print();
-        // Cleanup
         setTimeout(() => {
           document.body.removeChild(iframe);
           URL.revokeObjectURL(url);

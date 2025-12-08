@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as CheckExportRouteRouteImport } from './routes/check-export/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as CheckExportIndexRouteImport } from './routes/check-export/index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedTransferManagementRouteImport } from './routes/_authenticated/transfer-management'
+import { Route as AuthenticatedScannageRouteImport } from './routes/_authenticated/scannage'
 import { Route as AuthenticatedRetouchPacketsRouteImport } from './routes/_authenticated/retouch-packets'
 import { Route as AuthenticatedReferencesRouteImport } from './routes/_authenticated/references'
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
@@ -36,6 +38,7 @@ import { Route as CheckExportAuthenticatedRouteRouteImport } from './routes/chec
 import { Route as CheckExportauthRouteRouteImport } from './routes/check-export/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
+import { Route as AuthenticatedTicketsDoneIndexRouteImport } from './routes/_authenticated/tickets-done/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
@@ -59,6 +62,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckExportIndexRoute = CheckExportIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CheckExportRouteRoute,
+} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -75,6 +83,11 @@ const AuthenticatedTransferManagementRoute =
     path: '/transfer-management',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedScannageRoute = AuthenticatedScannageRouteImport.update({
+  id: '/scannage',
+  path: '/scannage',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRetouchPacketsRoute =
   AuthenticatedRetouchPacketsRouteImport.update({
     id: '/retouch-packets',
@@ -188,6 +201,12 @@ const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTicketsDoneIndexRoute =
+  AuthenticatedTicketsDoneIndexRouteImport.update({
+    id: '/tickets-done/',
+    path: '/tickets-done/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
@@ -283,9 +302,11 @@ export interface FileRoutesByFullPath {
   '/reapirage': typeof AuthenticatedReapirageRoute
   '/references': typeof AuthenticatedReferencesRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/scannage': typeof AuthenticatedScannageRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/': typeof AuthenticatedIndexRoute
+  '/check-export/': typeof CheckExportIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -299,10 +320,11 @@ export interface FileRoutesByFullPath {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/tickets-done': typeof AuthenticatedTicketsDoneIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/check-export': typeof CheckExportAuthenticatedRouteRouteWithChildren
+  '/check-export': typeof CheckExportIndexRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -321,6 +343,7 @@ export interface FileRoutesByTo {
   '/reapirage': typeof AuthenticatedReapirageRoute
   '/references': typeof AuthenticatedReferencesRoute
   '/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/scannage': typeof AuthenticatedScannageRoute
   '/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/workspace': typeof AuthenticatedWorkspaceRoute
   '/': typeof AuthenticatedIndexRoute
@@ -337,6 +360,7 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/tickets-done': typeof AuthenticatedTicketsDoneIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesById {
@@ -364,9 +388,11 @@ export interface FileRoutesById {
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
   '/_authenticated/references': typeof AuthenticatedReferencesRoute
   '/_authenticated/retouch-packets': typeof AuthenticatedRetouchPacketsRoute
+  '/_authenticated/scannage': typeof AuthenticatedScannageRoute
   '/_authenticated/transfer-management': typeof AuthenticatedTransferManagementRoute
   '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/check-export/': typeof CheckExportIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -380,6 +406,7 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/_authenticated/tickets-done/': typeof AuthenticatedTicketsDoneIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -405,9 +432,11 @@ export interface FileRouteTypes {
     | '/reapirage'
     | '/references'
     | '/retouch-packets'
+    | '/scannage'
     | '/transfer-management'
     | '/workspace'
     | '/'
+    | '/check-export/'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
@@ -421,6 +450,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/settings/'
     | '/tasks'
+    | '/tickets-done'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -443,6 +473,7 @@ export interface FileRouteTypes {
     | '/reapirage'
     | '/references'
     | '/retouch-packets'
+    | '/scannage'
     | '/transfer-management'
     | '/workspace'
     | '/'
@@ -459,6 +490,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/settings'
     | '/tasks'
+    | '/tickets-done'
     | '/users'
   id:
     | '__root__'
@@ -485,9 +517,11 @@ export interface FileRouteTypes {
     | '/_authenticated/reapirage'
     | '/_authenticated/references'
     | '/_authenticated/retouch-packets'
+    | '/_authenticated/scannage'
     | '/_authenticated/transfer-management'
     | '/_authenticated/workspace'
     | '/_authenticated/'
+    | '/check-export/'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
@@ -501,6 +535,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
+    | '/_authenticated/tickets-done/'
     | '/_authenticated/users/'
   fileRoutesById: FileRoutesById
 }
@@ -535,6 +570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/check-export/': {
+      id: '/check-export/'
+      path: '/'
+      fullPath: '/check-export/'
+      preLoaderRoute: typeof CheckExportIndexRouteImport
+      parentRoute: typeof CheckExportRouteRoute
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -554,6 +596,13 @@ declare module '@tanstack/react-router' {
       path: '/transfer-management'
       fullPath: '/transfer-management'
       preLoaderRoute: typeof AuthenticatedTransferManagementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/scannage': {
+      id: '/_authenticated/scannage'
+      path: '/scannage'
+      fullPath: '/scannage'
+      preLoaderRoute: typeof AuthenticatedScannageRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/retouch-packets': {
@@ -710,6 +759,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tickets-done/': {
+      id: '/_authenticated/tickets-done/'
+      path: '/tickets-done'
+      fullPath: '/tickets-done'
+      preLoaderRoute: typeof AuthenticatedTicketsDoneIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks/': {
       id: '/_authenticated/tasks/'
       path: '/tasks'
@@ -837,6 +893,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
   AuthenticatedReferencesRoute: typeof AuthenticatedReferencesRoute
   AuthenticatedRetouchPacketsRoute: typeof AuthenticatedRetouchPacketsRoute
+  AuthenticatedScannageRoute: typeof AuthenticatedScannageRoute
   AuthenticatedTransferManagementRoute: typeof AuthenticatedTransferManagementRoute
   AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -845,6 +902,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
+  AuthenticatedTicketsDoneIndexRoute: typeof AuthenticatedTicketsDoneIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
 }
 
@@ -858,6 +916,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,
   AuthenticatedReferencesRoute: AuthenticatedReferencesRoute,
   AuthenticatedRetouchPacketsRoute: AuthenticatedRetouchPacketsRoute,
+  AuthenticatedScannageRoute: AuthenticatedScannageRoute,
   AuthenticatedTransferManagementRoute: AuthenticatedTransferManagementRoute,
   AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
@@ -866,6 +925,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
+  AuthenticatedTicketsDoneIndexRoute: AuthenticatedTicketsDoneIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
 }
 
@@ -903,12 +963,14 @@ const CheckExportAuthenticatedRouteRouteWithChildren =
 interface CheckExportRouteRouteChildren {
   CheckExportauthRouteRoute: typeof CheckExportauthRouteRouteWithChildren
   CheckExportAuthenticatedRouteRoute: typeof CheckExportAuthenticatedRouteRouteWithChildren
+  CheckExportIndexRoute: typeof CheckExportIndexRoute
 }
 
 const CheckExportRouteRouteChildren: CheckExportRouteRouteChildren = {
   CheckExportauthRouteRoute: CheckExportauthRouteRouteWithChildren,
   CheckExportAuthenticatedRouteRoute:
     CheckExportAuthenticatedRouteRouteWithChildren,
+  CheckExportIndexRoute: CheckExportIndexRoute,
 }
 
 const CheckExportRouteRouteWithChildren =

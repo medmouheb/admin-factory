@@ -47,7 +47,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Check Export',
-          url: '/reapirage',
+          url: '/check-export',
           icon: ShieldCheck,
           roles: ['operateur', 'superviseur', 'admin', 'manager'],
         },
@@ -71,7 +71,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Tickets Done',
-          url: '/help-center',
+          url: '/tickets-done',
           icon: HelpCircle,
           roles: ['operateur', 'superviseur', 'admin', 'manager'],
         },

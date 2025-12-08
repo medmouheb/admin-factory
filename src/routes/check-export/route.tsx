@@ -1,14 +1,7 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { ClerkProvider } from '@clerk/clerk-react'
-import { ExternalLink, Key } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { ConfigDrawer } from '@/components/config-drawer'
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout'
-import { Main } from '@/components/layout/main'
-import { ThemeSwitch } from '@/components/theme-switch'
-import StepperDemo from '@/components/stepper'
+import StepperFull from '@/components/repair-stepper'
 
 export const Route = createFileRoute('/check-export')({
   component: RouteComponent,
@@ -37,12 +30,9 @@ function RouteComponent() {
 }
 
 function MissingClerkPubKey() {
-  'bg-foreground/10 rounded-sm py-0.5 px-1 text-xs text-foreground font-bold'
   return (
     <AuthenticatedLayout>
-
-      <StepperDemo />
-
+      <StepperFull />
     </AuthenticatedLayout>
   )
 }

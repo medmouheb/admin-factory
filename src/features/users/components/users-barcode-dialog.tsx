@@ -37,61 +37,78 @@ export function UsersBarcodeDialog() {
         unit: 'mm',
         format: [50, 50],
       })
+      // Custom minimal margins locally
+      const m = 1
+      const w = 48
+      const h = 48
+      
+      doc.setLineWidth(0.1)
+      doc.setDrawColor(0)
 
-      // Helper to generate barcode image
+      // Border
+      doc.rect(m, m, w, h)
+      
+      // Header
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.text('tesca', m + 1, 6) // Moved up
+      doc.text('LOGIN', m + w - 1, 6, { align: 'right' })
+
+      doc.setLineWidth(0.05)
+      doc.line(m, 8, m + w, 8)
+
+      // Helper for barcode
       const getBarcodeImage = (text: string, showText: boolean) => {
         const canvas = document.createElement('canvas')
-        JsBarcode(canvas, text, {
-          format: 'CODE128',
-          displayValue: showText,
-          fontSize: 40,
-          margin: 0,
-        })
+        try {
+          JsBarcode(canvas, text, {
+            format: 'CODE128',
+            displayValue: showText,
+            fontSize: 40,
+            margin: 0,
+            width: 4, 
+            height: 100, // Source height
+          })
+        } catch (e) {
+          return null
+        }
         return canvas.toDataURL('image/png')
       }
 
-      // 1. Header: Tesca Tunisia
+      // User Name
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
-      doc.text('Tesca Tunisia', 25, 6, { align: 'center' })
+      const fullName = `${currentRow.firstName} ${currentRow.lastName}`
+      doc.text(fullName, 25, 12, { align: 'center' }) // Moved up
+      
+      doc.line(m, 14, m + w, 14)
 
-      // 2. Sub-header: Access Login
+      // Matricule Section
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
-      doc.text('Access Login', 25, 10, { align: 'center' })
-
-      // Divider line
-      doc.setLineWidth(0.3)
-      doc.line(5, 12, 45, 12)
-
-      // 3. User Name
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      const fullName = `${currentRow.firstName} ${currentRow.lastName}`
-      doc.text(fullName, 25, 17, { align: 'center' })
-
-      // 4. Matricule Section
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Matricule:', 5, 22)
+      doc.text('Matricule:', m + 1, 17)
       
-      const matriculeImg = getBarcodeImage(currentRow.matricule, true) // show text below
-      doc.addImage(matriculeImg, 'PNG', 5, 23, 40, 10)
-
-      // 5. Password Section
-      doc.text('Password:', 5, 36)
-
-      if (currentRow.password) {
-        const passwordImg = getBarcodeImage(currentRow.password, false)
-        doc.addImage(passwordImg, 'PNG', 5, 37, 40, 8)
-      } else {
-        doc.setFontSize(8)
-        doc.text('(No password)', 5, 39)
+      const matriculeImg = getBarcodeImage(currentRow.matricule, true)
+      if (matriculeImg) {
+        doc.addImage(matriculeImg, 'PNG', m + 1, 18, w - 2, 10) // Tcompacted
       }
 
-      // Add a border around the whole ticket
-      doc.setLineWidth(0.5)
-      doc.rect(1, 1, 48, 48) // Border just inside the 50x50 edge
+      // Password Section (Maximize space here)
+      if (currentRow.password) {
+        doc.text('Password:', m + 1, 31)
+        
+        // Match Matricule style: show text (true) and consistent alignment
+        const passwordImg = getBarcodeImage(currentRow.password, true)
+        if (passwordImg) {
+          doc.addImage(passwordImg, 'PNG', m + 1, 32, w - 2, 11) 
+        }
+      } else {
+        doc.text('(No Password)', 25, 38, { align: 'center' })
+      }
+
+      doc.line(m, 16, m + w, 16)
+
+
 
       // Print
       doc.autoPrint()

@@ -107,26 +107,21 @@ export function TransferPrepComponent() {
     !barcodesLocal.some((b) => b.barcode2 === b2)
 
   const validateBarcode2 = async (value: string) => {
-    if (!prefix6) {
-      showError('Lear PN is missing.', 'barcode2')
+    const fail = (msg: string) => {
+      showError(msg, 'barcode2')
+      setBarcode2('')
       return false
     }
-    if (!value.startsWith(prefix6)) {
-      showError(`Must start with ${prefix6}`, 'barcode2')
-      return false
-    }
-    if (value.length !== 13) {
-      showError('Must be 13 chars', 'barcode2')
-      return false
-    }
-    if (!isBarcode2Unique(value)) {
-      showError('Already used', 'barcode2')
-      return false
-    }
-    if (barcodesLocal.length >= qty) {
-      showError('Reached required quantity', 'barcode2')
-      return false
-    }
+
+    if (!prefix6) return fail('Lear PN is missing.')
+
+    if (!value.startsWith(prefix6)) return fail(`Must start with ${prefix6}`)
+
+    if (value.length !== 13) return fail('Must be 13 chars')
+
+    if (!isBarcode2Unique(value)) return fail('Already used')
+
+    if (barcodesLocal.length >= qty) return fail('Reached required quantity')
 
     // Check if barcode already exists in database
     try {
@@ -198,84 +193,8 @@ export function TransferPrepComponent() {
       toast.success('Ticket generated.')
       await bulkValidate(data.code)
 
-        const doc = new jsPDF({ unit: 'cm', format: [5, 5] })
-
-        let y = 0.3 // top margin
-
-        // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
-
-        // Title
-        doc.setFontSize(10) // smaller than before
-        doc.setFont('helvetica', 'bold')
-        doc.text('tesca                             SK', 0.2, y)
-        y += 0.5
-
-        // Lear PN
-        doc.setFontSize(7)
-        doc.setFont('helvetica', 'normal')
-        doc.text(learPN, 0.2, y)
-        y += 0.4
-
-        // Barcode for ticket code
-        const canvas1 = document.createElement('canvas')
-        if (data.code) {
-          JsBarcode(canvas1, data.code, {
-            format: 'CODE128',
-            width: 1, // narrower to fit
-            height: 20, // slightly shorter
-            displayValue: false,
-          })
-          doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0, y, 4.6, 1) // width adjusted
-        }
-        y += 1.1
-
-        // Ticket code (centered)
-        doc.setFontSize(8)
-        doc.setFont('helvetica', 'bold')
-        const textWidth = doc.getTextWidth(data.code || '')
-        const xCentered = (5 - textWidth) / 2 // center in 5cm page
-        doc.text(data.code || '', xCentered, y)
-        y += 0.6
-
-        // Operator
-        doc.setFontSize(7)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y)
-        y += 0.4
-
-        // Quantity
-        doc.setFontSize(7)
-        doc.setFont('helvetica', 'normal')
-        doc.text(`Qty: ${qty}`, 0.2, y)
-        y += 0.4
-
-        // Date & Time
-        const now = new Date()
-        doc.setFontSize(6)
-        doc.text(
-          `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
-          0.2,
-          y
-        )
-
-        // Print
-        const blob = doc.output('blob')
-        const url = URL.createObjectURL(blob)
-        const iframe = document.createElement('iframe')
-        iframe.style.display = 'none'
-        iframe.src = url
-        document.body.appendChild(iframe)
-
-        iframe.onload = () => {
-          setTimeout(() => {
-            iframe.contentWindow?.print()
-            // Cleanup
-            setTimeout(() => {
-              document.body.removeChild(iframe)
-              URL.revokeObjectURL(url)
-            }, 100000)
-          }, 100)
-        }
+      // Ticket generation logic moved to generateTicketPDF function
+      generateTicketPDF(data.code)
       
     } catch (err: any) {
       showError(err.message || 'Ticket generation failed')
@@ -344,7 +263,7 @@ export function TransferPrepComponent() {
     if (!ticketCode) return
     try {
       // await savePacket()
-      generateTicketPDF()
+      generateTicketPDF(ticketCode)
     } catch (e) {
       // Error handled in savePacket
     }
@@ -431,7 +350,7 @@ export function TransferPrepComponent() {
   const PreviewTicket = () => {
     if (!showPreview || !ticketCode) return null
 
-    const combinedBarcode = `${learPN}${ticketCode}`
+    const combinedBarcode = ticketCode
 
     const now = new Date()
     const dateStr = now.toLocaleDateString('en-US', {
@@ -529,48 +448,39 @@ export function TransferPrepComponent() {
             </div>
 
             {/* Ticket Preview */}
-            <div className='mx-auto max-w-md rounded-lg border-4 border-gray-800 bg-white p-6 shadow-lg'>
-              <div className='space-y-4'>
-                {/* Header Row */}
-                <div className='flex items-start justify-between'>
-                  <div className='text-4xl font-bold'>tesca</div>
-                  <div className='text-4xl font-bold'>SK</div>
+            {/* Ticket Preview Box */}
+            <div className='mx-auto bg-white shadow-lg overflow-hidden' style={{ width: '300px', height: '300px' }}>
+              <div className='h-full w-full border-2 border-black flex flex-col'>
+                
+                {/* 1. Header Section */}
+                <div className='h-[15%] border-b border-black flex items-center justify-between px-2'>
+                  <div className='text-3xl font-extrabold tracking-tight'>tesca</div>
+                  <div className='text-2xl font-bold'>SK</div>
                 </div>
 
-                {/* Lear PN */}
-                <div className='border-b-2 border-gray-300 pb-2 text-xl font-semibold'>
-                  {learPN}
+                {/* 2. Lear PN Section */}
+                <div className='h-[15%] border-b border-black flex items-center justify-center'>
+                   <span className='text-lg font-bold'>{learPN}</span>
                 </div>
 
-                {/* Barcode */}
-                <div className='flex flex-col items-center gap-2 bg-white py-4'>
-                  <canvas
-                    id='preview-barcode-canvas'
-                    className='max-w-full'
-                  ></canvas>
-                  <div className='font-mono text-sm font-semibold tracking-wider'>
-                    {learPN} {ticketCode}
+                {/* 3. Barcode Section */}
+                <div className='h-[50%] border-b border-black flex flex-col items-center justify-center p-1'>
+                  {/* Canvas will be filled by JsBarcode */}
+                  <canvas id='preview-barcode-canvas' className='h-[70%] w-[90%]'></canvas>
+                  <div className='font-bold text-lg mt-1'>{ticketCode}</div>
+                </div>
+
+                {/* 4. Footer Section */}
+                <div className='h-[20%] relative'>
+                  <div className='flex justify-between px-2 pt-1 font-bold text-sm'>
+                    <span>Oper: {auth.user?.matricule || 'N/A'}</span>
+                    <span>Qty: {qty}</span>
+                  </div>
+                  <div className='absolute bottom-1 w-full text-center text-[10px] text-gray-600'>
+                     Date: {dateStr} Time: {timeStr}
                   </div>
                 </div>
 
-                {/* Operator */}
-                <div className='text-center'>
-                  <div className='text-lg font-bold'>
-                    Oper: {auth.user?.matricule || 'N/A'}
-                  </div>
-                </div>
-
-                {/* Quantity */}
-                <div className='text-center'>
-                  <div className='text-base font-semibold'>Qty: {qty}</div>
-                </div>
-
-                {/* Date & Time */}
-                <div className='border-t-2 border-gray-300 pt-2 text-center text-sm'>
-                  <div className='font-semibold'>
-                    Date: {dateStr} Time: {timeStr}
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -585,7 +495,7 @@ export function TransferPrepComponent() {
               <button
                 onClick={() => {
                   setShowPreview(false)
-                  generateTicketPDF()
+                  generateTicketPDF(ticketCode)
                 }}
                 className='flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl'
               >
@@ -611,66 +521,59 @@ export function TransferPrepComponent() {
     )
   }
 
-  const generateTicketPDF = () => {
+  const generateTicketPDF = (codeToPrint = ticketCode) => {
     const doc = new jsPDF({ unit: 'cm', format: [5, 5] })
+    const m = 0.2
+    const w = 4.6
+    const h = 4.6
 
-    let y = 0.3 // top margin
+    doc.setLineWidth(0.02)
+    doc.setDrawColor(0)
 
-    // (You can generate QR code here if needed, e.g., using QRCode.js or other lib)
+    // Border & Grid
+    doc.rect(m, m, w, h)
+    doc.line(m, 0.9, m + w, 0.9)
+    doc.line(m, 1.5, m + w, 1.5)
+    doc.line(m, 3.9, m + w, 3.9)
 
-    // Title
-    doc.setFontSize(10) // smaller than before
+    // Header
     doc.setFont('helvetica', 'bold')
-    doc.text('tesca                             SK', 0.2, y)
-    y += 0.5
+    doc.setFontSize(14)
+    doc.text('tesca', m + 0.2, 0.7)
+    doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
 
     // Lear PN
-    doc.setFontSize(7)
-    doc.setFont('helvetica', 'normal')
-    doc.text(learPN, 0.2, y)
-    y += 0.4
+    doc.setFontSize(11)
+    doc.text(learPN, 2.5, 1.35, { align: 'center' })
 
-    // Barcode for ticket code
-    const canvas1 = document.createElement('canvas')
-    if (ticketCode) {
-      JsBarcode(canvas1, ticketCode, {
+    // Barcode
+    const canvas = document.createElement('canvas')
+    if (codeToPrint) {
+      JsBarcode(canvas, codeToPrint, {
         format: 'CODE128',
-        width: 1, // narrower to fit
-        height: 20, // slightly shorter
+        width: 4,
+        height: 80,
         displayValue: false,
+        margin: 0,
       })
-      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', 0, y, 4.6, 1) // width adjusted
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8)
     }
-    y += 1.1
 
-    // Ticket code (centered)
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'bold')
-    const textWidth = doc.getTextWidth(ticketCode || '')
-    const xCentered = (5 - textWidth) / 2 // center in 5cm page
-    doc.text(ticketCode || '', xCentered, y)
-    y += 0.6
+    // Ticket Code Text
+    doc.setFontSize(10)
+    doc.text(codeToPrint || '', 2.5, 3.75, { align: 'center' })
 
-    // Operator
-    doc.setFontSize(7)
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Oper: ${auth.user?.matricule}`, 0.2, y)
-    y += 0.4
+    // Footer
+    doc.setFontSize(9)
+    doc.text(`Oper: ${auth.user?.matricule}`, m + 0.1, 4.3)
+    doc.text(`Qty: ${qty}`, m + w - 0.1, 4.3, { align: 'right' })
 
-    // Quantity
+    // Date
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    doc.text(`Qty: ${qty}`, 0.2, y)
-    y += 0.4
-
-    // Date & Time
     const now = new Date()
-    doc.setFontSize(6)
-    doc.text(
-      `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`,
-      0.2,
-      y
-    )
+    const dateStr = `Date: ${now.toLocaleDateString()} Time: ${now.toLocaleTimeString()}`
+    doc.text(dateStr, 2.5, 4.7, { align: 'center' })
 
     // Print
     const blob = doc.output('blob')
@@ -683,16 +586,16 @@ export function TransferPrepComponent() {
     iframe.onload = () => {
       setTimeout(() => {
         iframe.contentWindow?.print()
-        // Cleanup
         setTimeout(() => {
           document.body.removeChild(iframe)
           URL.revokeObjectURL(url)
-        }, 100000)
+        }, 10000)
       }, 100)
     }
   }
 
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
+
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
 
   return (
@@ -880,6 +783,7 @@ export function TransferPrepComponent() {
                           'Traceability code must be exactly 13 characters',
                           'barcode2'
                         )
+                        setBarcode2('')
                         return
                       }
                       await handleAdd()

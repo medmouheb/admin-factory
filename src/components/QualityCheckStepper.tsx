@@ -274,17 +274,52 @@ function TicketGenerationForm({ huGalia, quantity, location, operatorId, setOper
         const code = `TKT-${Math.floor(Math.random() * 100000)}`
         setTicketCode(code)
 
-        const doc = new jsPDF({ unit: 'cm', format: [8, 8] })
-        doc.setFontSize(10)
-        doc.text(`Ticket: ${code}`, 0.5, 1)
-        doc.text(`HU: ${huGalia}`, 0.5, 1.5)
-        doc.text(`Qty: ${quantity}`, 0.5, 2)
-        doc.text(`Loc: ${location}`, 0.5, 2.5)
-        doc.text(`Operator: ${operatorId}`, 0.5, 3)
+        const doc = new jsPDF({ unit: 'cm', format: [5, 5] })
+        const m = 0.2
+        const w = 4.6
+        const h = 4.6
 
+        doc.setLineWidth(0.02)
+        doc.setDrawColor(0)
+
+        // Border & Grid
+        doc.rect(m, m, w, h)
+        doc.line(m, 0.9, m + w, 0.9)
+        doc.line(m, 1.5, m + w, 1.5)
+        doc.line(m, 3.9, m + w, 3.9)
+
+        // Header
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(12)
+        doc.text('TESCA', m + 0.2, 0.7)
+        doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
+
+        // Ref (HU/LearPN)
+        doc.setFontSize(11)
+        doc.text(huGalia || '', 2.5, 1.35, { align: 'center' })
+
+        // Barcode
         const canvas = document.createElement('canvas')
-        JsBarcode(canvas, code, { format: 'CODE128', displayValue: false })
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0.5, 3.5, 6, 2)
+        JsBarcode(canvas, code, {
+            format: 'CODE128',
+            width: 4, height: 80, displayValue: false, margin: 0
+        })
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8)
+
+        // Ticket Code Text
+        doc.setFontSize(10)
+        doc.text(code, 2.5, 3.75, { align: 'center' })
+
+        // Footer
+        doc.setFontSize(9)
+        doc.text(`Op: ${operatorId}`, m + 0.1, 4.3)
+        doc.text(`Qty: ${quantity}`, m + w - 0.1, 4.3, { align: 'right' })
+
+        // Date
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        const now = new Date()
+        doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 2.5, 4.7, { align: 'center' })
 
         doc.save(`ticket-${code}.pdf`)
         toast.success('Ticket Generated')
@@ -306,9 +341,40 @@ function TicketGenerationForm({ huGalia, quantity, location, operatorId, setOper
                 </div>
 
                 {ticketCode ? (
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <h3 className="text-xl font-bold text-green-700">Ticket Generated</h3>
-                        <p className="text-2xl font-mono mt-2">{ticketCode}</p>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="bg-white shadow-lg border-2 border-black w-[250px] h-[250px] flex flex-col text-black">
+                             {/* Header */}
+                             <div className="h-[15%] border-b border-black flex justify-between items-center px-2">
+                                 <span className="font-bold text-lg">TESCA</span>
+                                 <span className="font-bold text-lg">SK</span>
+                             </div>
+                             {/* Ref */}
+                             <div className="h-[15%] border-b border-black flex justify-center items-center font-bold">
+                                 {huGalia}
+                             </div>
+                             {/* Barcode */}
+                             <div className="h-[50%] border-b border-black flex flex-col justify-center items-center p-1">
+                                 <canvas ref={(ref) => {
+                                     if (ref && ticketCode) {
+                                         JsBarcode(ref, ticketCode, { format: 'CODE128', width: 2, height: 50, displayValue: false, margin: 0 })
+                                     }
+                                 }} className="w-[90%] h-[70%] mb-1"></canvas>
+                                 <span className="font-bold text-sm">{ticketCode}</span>
+                             </div>
+                             {/* Footer */}
+                             <div className="h-[20%] relative p-1">
+                                  <div className="flex justify-between font-bold text-xs">
+                                      <span>Op: {operatorId}</span>
+                                      <span>Qty: {quantity}</span>
+                                  </div>
+                                  <div className="absolute bottom-0 w-full text-center text-[10px] left-0">
+                                      {new Date().toLocaleDateString()}
+                                  </div>
+                             </div>
+                        </div>
+                        <div className="text-center p-2 bg-green-50 rounded-lg w-full">
+                           <h3 className="text-lg font-bold text-green-700">Ticket Generated & Saved</h3>
+                        </div>
                     </div>
                 ) : (
                     <Button onClick={generateTicket} className='w-full bg-green-600 hover:bg-green-700'>
