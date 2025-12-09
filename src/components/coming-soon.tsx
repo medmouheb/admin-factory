@@ -29,13 +29,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { 
-  Barcode, 
-  Ticket, 
-  Search, 
-  Filter, 
-  Plus, 
-  Download, 
+import {
+  Barcode,
+  Ticket,
+  Search,
+  Filter,
+  Plus,
+  Download,
   RefreshCw,
   MoreVertical,
   Calendar,
@@ -705,7 +705,7 @@ export function ComingSoon() {
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
       {/* Header Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -722,7 +722,7 @@ export function ComingSoon() {
               <Ticket className="h-10 w-10 text-white" />
             </motion.div>
             <div>
-              <motion.h1 
+              <motion.h1
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
@@ -730,7 +730,7 @@ export function ComingSoon() {
               >
                 Ticket Codes
               </motion.h1>
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
@@ -774,7 +774,7 @@ export function ComingSoon() {
             <div className="flex items-center gap-2">
               {activeFiltersCount > 0 && (
                 <Button
-                  variant="ghost" 
+                  variant="ghost"
                   size="sm"
                   onClick={resetFilters}
                   className="h-8 text-muted-foreground hover:text-foreground"
@@ -783,10 +783,10 @@ export function ComingSoon() {
                 </Button>
               )}
               <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => fetchTicketCodes()}
-                  className="h-8 w-8 p-0"
+                variant="ghost"
+                size="sm"
+                onClick={() => fetchTicketCodes()}
+                className="h-8 w-8 p-0"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
@@ -808,7 +808,7 @@ export function ComingSoon() {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="hu">HU Number</Label>
                 <Input
@@ -922,9 +922,9 @@ export function ComingSoon() {
 
                     <TableCell className="text-sm">
                       <div className="flex items-center gap-2">
-                         <Badge variant="outline" className="font-mono bg-slate-50">
-                           {item.matricule}
-                         </Badge>
+                        <Badge variant="outline" className="font-mono bg-slate-50">
+                          {item.matricule}
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -934,9 +934,9 @@ export function ComingSoon() {
                     </TableCell>
                     <TableCell>
                       {item.quantity ? (
-                         <span className="text-sm font-medium">
-                           {item.quantity} units
-                         </span>
+                        <span className="text-sm font-medium">
+                          {item.quantity} units
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -1029,7 +1029,7 @@ export function ComingSoon() {
 
                 {loading && (
                   <TableRow>
-                   <TableCell colSpan={8} className="p-12 text-center">
+                    <TableCell colSpan={8} className="p-12 text-center">
                       <div className="flex flex-col items-center justify-center gap-4">
                         <div className="relative">
                           <div className="h-12 w-12 rounded-full border-4 border-purple-100 border-t-purple-600 animate-spin" />
@@ -1064,7 +1064,7 @@ export function ComingSoon() {
                 Previous
               </Button>
               <div className="flex items-center gap-1 mx-2">
-                  <span className="text-sm font-medium">Page {page} of {totalPages}</span>
+                <span className="text-sm font-medium">Page {page} of {totalPages}</span>
               </div>
               <Button
                 variant="outline"

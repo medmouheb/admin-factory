@@ -79,7 +79,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const isLearPNValid = () => /^p.{15}$/i.test(learPN.trim())
   const isStorageValid = () => /^s.{9}$/i.test(storageUnit.trim())
   const isPartLoaded = () => part.tescaPN.trim() && part.desc.trim()
-  const isQtyValid = () => /^Q\d+$/.test(part.qtyPerBox.trim())
+  const isQtyValid = () => /^Q\d{1,3}$/.test(part.qtyPerBox.trim())
 
   /** Fetch part by Lear PN */
   const handleFetchPart = async () => {
@@ -198,7 +198,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
       {/* Main Form Card */}
       <Card className='rounded-3xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 hover:shadow-3xl transition-all border-0 bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm overflow-hidden'>
         <div className='absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-500/10 to-pink-500/10 rounded-full blur-3xl -z-10 transform translate-x-48 -translate-y-48'></div>
-        
+
         <CardHeader className='pb-6'>
           <CardTitle className='text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2'>
             <svg className='w-6 h-6 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -264,11 +264,11 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   </span>
                 </Label>
                 <div className='relative'>
-                  <Input 
-                    className='h-14 px-4 text-base font-mono bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl cursor-not-allowed' 
-                    readOnly 
-                    value={part.tescaPN} 
-                    placeholder='Will be filled automatically...' 
+                  <Input
+                    className='h-14 px-4 text-base font-mono bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl cursor-not-allowed'
+                    readOnly
+                    value={part.tescaPN}
+                    placeholder='Will be filled automatically...'
                   />
                   {part.tescaPN && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -292,11 +292,11 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   </span>
                 </Label>
                 <div className='relative'>
-                  <Input 
-                    className='h-14 px-4 text-base bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 rounded-xl cursor-not-allowed' 
-                    readOnly 
-                    value={part.desc} 
-                    placeholder='Will be filled automatically...' 
+                  <Input
+                    className='h-14 px-4 text-base bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 rounded-xl cursor-not-allowed'
+                    readOnly
+                    value={part.desc}
+                    placeholder='Will be filled automatically...'
                   />
                   {part.desc && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>

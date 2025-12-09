@@ -35,7 +35,7 @@ import {
 
 export function NavGroup({ title, items }: NavGroupProps) {
   const { state, isMobile } = useSidebar()
-  const href = useLocation({ select: (location) => location.href })
+  const pathname = useLocation({ select: (location) => location.pathname })
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3 mt-2
@@ -50,14 +50,14 @@ export function NavGroup({ title, items }: NavGroupProps) {
           const key = `${item.title}-${item.url}`
 
           if (!item.items)
-            return <SidebarMenuLink key={key} item={item} href={href} index={index} />
+            return <SidebarMenuLink key={key} item={item} href={pathname} index={index} />
 
           if (state === 'collapsed' && !isMobile)
             return (
-              <SidebarMenuCollapsedDropdown key={key} item={item} href={href} />
+              <SidebarMenuCollapsedDropdown key={key} item={item} href={pathname} />
             )
 
-          return <SidebarMenuCollapsible key={key} item={item} href={href} index={index} />
+          return <SidebarMenuCollapsible key={key} item={item} href={pathname} index={index} />
         })}
       </SidebarMenu>
     </SidebarGroup>
@@ -75,9 +75,9 @@ function NavBadge({ children }: { children: ReactNode }) {
 function SidebarMenuLink({ item, href, index }: { item: NavLink; href: string; index: number }) {
   const { setOpenMobile } = useSidebar()
   const isActive = checkIsActive(href, item)
-  
+
   return (
-    <SidebarMenuItem 
+    <SidebarMenuItem
       className="animate-in fade-in slide-in-from-left-2 duration-300"
       style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
     >
@@ -131,7 +131,7 @@ function SidebarMenuCollapsible({
 }) {
   const { setOpenMobile } = useSidebar()
   const isActive = checkIsActive(href, item, true)
-  
+
   return (
     <Collapsible
       asChild
@@ -143,7 +143,7 @@ function SidebarMenuCollapsible({
         style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
       >
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton 
+          <SidebarMenuButton
             tooltip={item.title}
             className={`
               group relative overflow-hidden transition-all duration-300 rounded-lg
@@ -171,7 +171,7 @@ function SidebarMenuCollapsible({
             {item.items.map((subItem, subIndex) => {
               const subIsActive = checkIsActive(href, subItem)
               return (
-                <SidebarMenuSubItem 
+                <SidebarMenuSubItem
                   key={subItem.title}
                   className="animate-in fade-in slide-in-from-left-1 duration-200"
                   style={{ animationDelay: `${subIndex * 20}ms`, animationFillMode: 'backwards' }}
@@ -227,9 +227,9 @@ function SidebarMenuCollapsedDropdown({
             <ChevronRight className='ms-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent 
-          side='right' 
-          align='start' 
+        <DropdownMenuContent
+          side='right'
+          align='start'
           sideOffset={4}
           className="animate-in fade-in slide-in-from-left-2 duration-200"
         >
@@ -238,8 +238,8 @@ function SidebarMenuCollapsedDropdown({
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {item.items.map((sub) => (
-            <DropdownMenuItem 
-              key={`${sub.title}-${sub.url}`} 
+            <DropdownMenuItem
+              key={`${sub.title}-${sub.url}`}
               asChild
               className="cursor-pointer transition-colors duration-200"
             >

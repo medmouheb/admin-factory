@@ -3,11 +3,12 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth-store'
-import { User, Moon, Sun, ChevronRight, Bell } from 'lucide-react'
+import { User, Moon, Sun, ChevronRight, Bell, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/context/theme-provider'
+import { useSearch } from '@/context/search-provider'
 import { useLocation } from '@tanstack/react-router'
-import { Search } from '../search'
+
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
@@ -17,6 +18,7 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
 export function Header({ className, fixed, children, ...props }: HeaderProps) {
   const { auth } = useAuthStore()
   const { theme, setTheme } = useTheme()
+  const { setOpen } = useSearch()
   const [offset, setOffset] = useState(0)
   const location = useLocation()
 
@@ -64,16 +66,16 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           'relative flex h-full items-center gap-3 px-4 sm:px-6 sm:gap-4 transition-all duration-300',
         )}
       >
-        <SidebarTrigger 
-          variant='ghost' 
+        <SidebarTrigger
+          variant='ghost'
           className='max-md:scale-110 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-125 hover:rotate-12
             relative overflow-hidden group
             before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
             before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
-            shadow-sm hover:shadow-md hover:shadow-primary/20' 
+            shadow-sm hover:shadow-md hover:shadow-primary/20'
         />
         <Separator orientation='vertical' className='h-6 transition-all duration-300 hover:h-8 hover:bg-gradient-to-b hover:from-primary hover:to-primary/50' />
-        
+
         {/* Enhanced Breadcrumbs */}
         <div className="hidden md:flex items-center gap-2 text-sm animate-in fade-in slide-in-from-left-2 duration-500">
           {breadcrumbs.length > 0 ? (
@@ -85,8 +87,8 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
               >
                 <span className={cn(
                   "transition-all duration-300 relative group px-2 py-1 rounded-md",
-                  crumb.isLast 
-                    ? "font-semibold text-foreground bg-primary/10" 
+                  crumb.isLast
+                    ? "font-semibold text-foreground bg-primary/10"
                     : "text-muted-foreground hover:text-primary hover:bg-primary/5 cursor-pointer hover:translate-x-0.5",
                   !crumb.isLast && "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 hover:after:w-full"
                 )}>
@@ -114,6 +116,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
               before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
               shadow-sm hover:shadow-md hover:shadow-primary/20"
             title="Search"
+            onClick={() => setOpen((prev) => !prev)}
           >
             <Search className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
           </Button>
@@ -164,10 +167,10 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
               <div className="hidden sm:flex flex-col items-end">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground text-sm transition-all duration-300 group-hover:text-primary group-hover:translate-x-[-2px]">
-                    {auth.user.username}
+                    {auth.user.matricule}
                   </span>
                   <span className="rounded-full bg-gradient-to-br from-primary to-primary/70 px-2.5 py-0.5 text-xs font-medium text-primary-foreground shadow-md transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary/30">
-                    {auth.user.role?.[0] || 'User'}
+                    {auth.user.role || 'User'}
                   </span>
                 </div>
                 {auth.user.matricule && (

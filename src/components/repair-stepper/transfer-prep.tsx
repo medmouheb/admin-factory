@@ -14,7 +14,7 @@ import { useStepper } from './stepper-config'
 import { BarcodeEntry } from './types'
 
 export function TransferPrepComponent() {
-  const stepper = useStepper()
+
   const { currentData, setCurrentData } = useCurrentData()
   const { auth } = useAuthStore()
 
@@ -85,13 +85,7 @@ export function TransferPrepComponent() {
     setTimeout(() => barcode1Ref.current?.focus(), 60)
   }, [])
 
-  useEffect(() => {
-    console.log('Transfer Prep Step   ', stepper.current.id)
 
-    if (stepper.current.id === 'ContainerManagement') {
-      setTimeout(() => barcode1Ref.current?.focus(), 60)
-    }
-  }, [stepper.current.id])
 
   // Keep global state in sync
   useEffect(() => {
@@ -195,7 +189,7 @@ export function TransferPrepComponent() {
 
       // Ticket generation logic moved to generateTicketPDF function
       generateTicketPDF(data.code)
-      
+
     } catch (err: any) {
       showError(err.message || 'Ticket generation failed')
     } finally {
@@ -451,7 +445,7 @@ export function TransferPrepComponent() {
             {/* Ticket Preview Box */}
             <div className='mx-auto bg-white shadow-lg overflow-hidden' style={{ width: '300px', height: '300px' }}>
               <div className='h-full w-full border-2 border-black flex flex-col'>
-                
+
                 {/* 1. Header Section */}
                 <div className='h-[15%] border-b border-black flex items-center justify-between px-2'>
                   <div className='text-3xl font-extrabold tracking-tight'>tesca</div>
@@ -460,7 +454,7 @@ export function TransferPrepComponent() {
 
                 {/* 2. Lear PN Section */}
                 <div className='h-[15%] border-b border-black flex items-center justify-center'>
-                   <span className='text-lg font-bold'>{learPN}</span>
+                  <span className='text-lg font-bold'>{learPN}</span>
                 </div>
 
                 {/* 3. Barcode Section */}
@@ -477,7 +471,7 @@ export function TransferPrepComponent() {
                     <span>Qty: {qty}</span>
                   </div>
                   <div className='absolute bottom-1 w-full text-center text-[10px] text-gray-600'>
-                     Date: {dateStr} Time: {timeStr}
+                    Date: {dateStr} Time: {timeStr}
                   </div>
                 </div>
 
@@ -714,13 +708,13 @@ export function TransferPrepComponent() {
                   className={cn(
                     'h-12 rounded-xl border-2 font-mono text-base uppercase transition-all duration-300 hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20',
                     shakingField === 'barcode1' &&
-                      'animate-shake border-red-500 ring-4 ring-red-500/20',
+                    'animate-shake border-red-500 ring-4 ring-red-500/20',
                     barcode1.length > 0 &&
-                      barcode1.length < 15 &&
-                      'border-yellow-500 ring-2 ring-yellow-500/20',
+                    barcode1.length < 15 &&
+                    'border-yellow-500 ring-2 ring-yellow-500/20',
                     barcode1.length === 15 &&
-                      barcode1.startsWith('L') &&
-                      'border-green-500 ring-2 ring-green-500/20'
+                    barcode1.startsWith('L') &&
+                    'border-green-500 ring-2 ring-green-500/20'
                   )}
                   placeholder='L + 14 characters...'
                   maxLength={15}
@@ -731,8 +725,8 @@ export function TransferPrepComponent() {
                       'font-medium',
                       barcode1.length === 0 && 'text-gray-400',
                       barcode1.length > 0 &&
-                        barcode1.length < 15 &&
-                        'text-yellow-600',
+                      barcode1.length < 15 &&
+                      'text-yellow-600',
                       barcode1.length === 15 && 'text-green-600'
                     )}
                   >
@@ -792,12 +786,12 @@ export function TransferPrepComponent() {
                   className={cn(
                     'h-12 rounded-xl border-2 font-mono text-base uppercase transition-all duration-300 hover:border-indigo-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20',
                     shakingField === 'barcode2' &&
-                      'animate-shake border-red-500 ring-4 ring-red-500/20',
+                    'animate-shake border-red-500 ring-4 ring-red-500/20',
                     barcode2.length > 0 &&
-                      barcode2.length < 13 &&
-                      'border-yellow-500 ring-2 ring-yellow-500/20',
+                    barcode2.length < 13 &&
+                    'border-yellow-500 ring-2 ring-yellow-500/20',
                     barcode2.length === 13 &&
-                      'border-green-500 ring-2 ring-green-500/20'
+                    'border-green-500 ring-2 ring-green-500/20'
                   )}
                   placeholder={
                     prefix6
@@ -814,8 +808,8 @@ export function TransferPrepComponent() {
                       'font-medium',
                       barcode2.length === 0 && 'text-gray-400',
                       barcode2.length > 0 &&
-                        barcode2.length < 13 &&
-                        'text-yellow-600',
+                      barcode2.length < 13 &&
+                      'text-yellow-600',
                       barcode2.length === 13 && 'text-green-600'
                     )}
                   >
