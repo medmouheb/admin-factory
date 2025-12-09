@@ -74,6 +74,8 @@ type Ticket = {
 
 export function ComingSoon() {
   const [data, setData] = useState<TicketCode[]>([])
+  const [selectedOne, setSelectedOne] = useState<TicketCode>()
+
   const [searchInput, setSearchInput] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
@@ -453,6 +455,7 @@ export function ComingSoon() {
   const { auth } = useAuthStore()
 
   const generateTicketPDF = (ticketCode: string) => {
+    console.log(selectedOne)
     const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
     const m = 0.2
     const w = 4.6
@@ -474,14 +477,14 @@ export function ComingSoon() {
     doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
 
     // Ref (LearPN)
-    const ref = paginatedTickets[0]?.learPN || ""
+    const ref = selectedOne?.learPN || ""
     doc.setFontSize(11)
     doc.text(ref, 2.5, 1.35, { align: 'center' })
 
     // Barcode
     const canvas1 = document.createElement('canvas');
-    if (ticketCode) {
-      JsBarcode(canvas1, ticketCode, {
+    if (selectedOne?.code) {
+      JsBarcode(canvas1, selectedOne?.code, {
         format: 'CODE128',
         width: 4,
         height: 80,
@@ -493,18 +496,18 @@ export function ComingSoon() {
 
     // Ticket Code Text
     doc.setFontSize(10)
-    doc.text(ticketCode || '', 2.5, 3.75, { align: 'center' })
+    doc.text(selectedOne?.code || '', 2.5, 3.75, { align: 'center' })
 
     // Footer
     doc.setFontSize(9)
-    doc.text(`Op: ${auth.user?.matricule || ''}`, m + 0.1, 4.3)
-    const qty = selectedTicketCode?.quantity || '' // Use selectedTicketCode quantity
+    doc.text(`Op: ${selectedOne?.matricule || ''}`, m + 0.1, 4.3)
+    const qty = selectedOne?.quantity || '' // Use selectedTicketCode quantity
     doc.text(`Qty: ${qty}`, m + w - 0.1, 4.3, { align: 'right' })
 
     // Date
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    const now = new Date()
+    const now = new Date(selectedOne?.createdAt || '')
     doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 2.5, 4.7, { align: 'center' })
 
     // Print
@@ -889,9 +892,7 @@ export function ComingSoon() {
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
                     Created At
                   </TableHead>
-                  <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900 text-right">
-                    Tickets
-                  </TableHead>
+
                   {auth.user?.role !== 'operateur' && (
                     <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900 text-right w-24">
                       Actions
@@ -904,7 +905,7 @@ export function ComingSoon() {
                   <TableRow
                     key={item.id}
                     className="group cursor-pointer hover:bg-purple-50/30 transition-colors duration-200"
-                    onClick={() => handleOpenTickets(item.code)}
+                    onClick={() => { setSelectedOne(item); handleOpenTickets(item.code) }}
                   >
                     <TableCell className="font-semibold text-foreground">
                       <div className="flex items-center gap-3">
@@ -954,11 +955,7 @@ export function ComingSoon() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={ticketBadgeVariant(item.totalTickets)} className="shadow-sm">
-                        {item.totalTickets ?? "0"}
-                      </Badge>
-                    </TableCell>
+
                     {auth.user?.role !== 'operateur' && (
                       <TableCell className="text-right">
                         <DropdownMenu>
