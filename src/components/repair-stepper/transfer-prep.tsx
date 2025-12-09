@@ -141,6 +141,7 @@ export function TransferPrepComponent() {
   const handleAdd = async () => {
     if (barcode1 !== learPN) {
       showError('Réf Lear must match', 'barcode1')
+      setBarcode1('')
       return
     }
     if (!(await validateBarcode2(barcode2))) return
@@ -654,8 +655,11 @@ export function TransferPrepComponent() {
           {itemsLeft > 0 ? (
             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
               {/* Réf Lear Input */}
-              <div className='group space-y-3'>
-                <Label className='flex items-center gap-2 text-sm font-semibold text-gray-700'>
+              <div className='group relative z-10 space-y-3'>
+                <Label
+                  htmlFor='barcode1'
+                  className='flex items-center gap-2 text-sm font-semibold text-gray-700'
+                >
                   <svg
                     className='h-4 w-4 text-blue-600'
                     fill='none'
@@ -675,6 +679,7 @@ export function TransferPrepComponent() {
                   </span>
                 </Label>
                 <Input
+                  id='barcode1'
                   ref={barcode1Ref}
                   value={barcode1}
                   onChange={(e) => {
@@ -694,14 +699,17 @@ export function TransferPrepComponent() {
                           'Réf Lear must be exactly 15 characters',
                           'barcode1'
                         )
+                        setBarcode1('')
                       } else if (!barcode1.startsWith('L')) {
                         showError('Réf Lear must start with L', 'barcode1')
+                        setBarcode1('')
                       } else if (
                         barcode1.toLowerCase() === learPN.toLowerCase()
                       ) {
                         barcode2Ref.current?.focus()
                       } else {
                         showError('Réf Lear must match Lear PN', 'barcode1')
+                        setBarcode1('')
                       }
                     }
                   }}
@@ -741,8 +749,11 @@ export function TransferPrepComponent() {
               </div>
 
               {/* Traceability Code Input */}
-              <div className='group space-y-3'>
-                <Label className='flex items-center gap-2 text-sm font-semibold text-gray-700'>
+              <div className='group relative z-10 space-y-3'>
+                <Label
+                  htmlFor='barcode2'
+                  className='flex items-center gap-2 text-sm font-semibold text-gray-700'
+                >
                   <svg
                     className='h-4 w-4 text-indigo-600'
                     fill='none'
@@ -762,6 +773,7 @@ export function TransferPrepComponent() {
                   </span>
                 </Label>
                 <Input
+                  id='barcode2'
                   ref={barcode2Ref}
                   value={barcode2}
                   onChange={(e) => {

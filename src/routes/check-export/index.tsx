@@ -5,5 +5,5 @@ export const Route = createFileRoute('/check-export/')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/check-export/"!</div>
+  return <div>Hello "/reapirage/"!</div>
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { useTheme } from '@/context/theme-provider'
 import { useSearch } from '@/context/search-provider'
 import { useLocation } from '@tanstack/react-router'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
@@ -120,6 +121,9 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           >
             <Search className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
           </Button>
+
+          {/* Language Switcher */}
+          <LanguageSwitcher />
 
           {/* Enhanced Notifications */}
           <div className="relative">

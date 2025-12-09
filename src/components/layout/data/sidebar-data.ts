@@ -47,7 +47,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Check Export',
-          url: '/check-export',
+          url: '/reapirage',
           icon: ShieldCheck,
           roles: ['operateur', 'superviseur', 'admin', 'manager'],
         },
