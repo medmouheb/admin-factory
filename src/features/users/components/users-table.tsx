@@ -28,6 +28,7 @@ import { type User } from '../data/schema'
 import { usersColumns as columns } from './users-columns'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { useUsers } from './users-provider'
 
 type DataTableProps = {
   data: User[]
@@ -38,6 +39,7 @@ type DataTableProps = {
 
 export function UsersTable({ data, search, navigate, roleFilter }: DataTableProps) {
   // Local UI-only states
+  const { setRefreshCallback } = useUsers()
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -88,6 +90,11 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
       setIsFetching(false)
     }
   }
+
+  // Register fetchUsers with the context
+  useEffect(() => {
+    setRefreshCallback(fetchUsers)
+  }, [search.username, search.role, search.page, search.pageSize, roleFilter, setRefreshCallback])
 
   useEffect(() => {
     fetchUsers()

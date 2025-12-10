@@ -32,10 +32,13 @@ import {
   type NavLink,
   type NavGroup as NavGroupProps,
 } from './types'
+import { useTranslation } from 'react-i18next'
 
 export function NavGroup({ title, items }: NavGroupProps) {
   const { state, isMobile } = useSidebar()
   const pathname = useLocation({ select: (location) => location.pathname })
+  const { t } = useTranslation()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest px-3 mb-3 mt-2
@@ -43,7 +46,7 @@ export function NavGroup({ title, items }: NavGroupProps) {
         relative
         after:absolute after:bottom-0 after:left-3 after:right-3 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent
         after:opacity-50">
-        {title}
+        {t(title)}
       </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item, index) => {
@@ -74,6 +77,7 @@ function NavBadge({ children }: { children: ReactNode }) {
 
 function SidebarMenuLink({ item, href, index }: { item: NavLink; href: string; index: number }) {
   const { setOpenMobile } = useSidebar()
+  const { t } = useTranslation()
   const isActive = checkIsActive(href, item)
 
   return (
@@ -84,7 +88,7 @@ function SidebarMenuLink({ item, href, index }: { item: NavLink; href: string; i
       <SidebarMenuButton
         asChild
         isActive={isActive}
-        tooltip={item.title}
+        tooltip={t(item.title)}
         className={`
           group relative overflow-hidden transition-all duration-300 rounded-lg
           hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent
@@ -111,7 +115,7 @@ function SidebarMenuLink({ item, href, index }: { item: NavLink; href: string; i
             `} />
           )}
           <span className="transition-all duration-300 group-hover:translate-x-1 group-hover:font-medium">
-            {item.title}
+            {t(item.title)}
           </span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
         </Link>
@@ -130,6 +134,7 @@ function SidebarMenuCollapsible({
   index: number
 }) {
   const { setOpenMobile } = useSidebar()
+  const { t } = useTranslation()
   const isActive = checkIsActive(href, item, true)
 
   return (
@@ -144,7 +149,7 @@ function SidebarMenuCollapsible({
       >
         <CollapsibleTrigger asChild>
           <SidebarMenuButton
-            tooltip={item.title}
+            tooltip={t(item.title)}
             className={`
               group relative overflow-hidden transition-all duration-300 rounded-lg
               hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent
@@ -160,7 +165,7 @@ function SidebarMenuCollapsible({
             {item.icon && (
               <item.icon className={`transition-all duration-300 group-hover:scale-125 group-hover:rotate-6 ${isActive ? 'text-primary scale-110 drop-shadow-md' : ''}`} />
             )}
-            <span className="transition-all duration-300 group-hover:translate-x-1 group-hover:font-medium">{item.title}</span>
+            <span className="transition-all duration-300 group-hover:translate-x-1 group-hover:font-medium">{t(item.title)}</span>
             {item.badge && <NavBadge>{item.badge}</NavBadge>}
             <ChevronRight className='ms-auto transition-all duration-300 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180 group-hover:text-primary group-hover:scale-110' />
           </SidebarMenuButton>
@@ -191,7 +196,7 @@ function SidebarMenuCollapsible({
                       {subItem.icon && (
                         <subItem.icon className={`transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${subIsActive ? 'text-primary scale-105' : ''}`} />
                       )}
-                      <span className="transition-all duration-300 group-hover:font-medium">{subItem.title}</span>
+                      <span className="transition-all duration-300 group-hover:font-medium">{t(subItem.title)}</span>
                       {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
                     </Link>
                   </SidebarMenuSubButton>

@@ -38,6 +38,7 @@ import {
 import { Plus, Search, MoreHorizontal, Pencil, Trash, ChevronLeft, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/references')({
   component: ReferencesPage,
@@ -54,6 +55,7 @@ interface Part {
 }
 
 function ReferencesPage() {
+  const { t } = useTranslation()
   const [data, setData] = useState<Part[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -152,14 +154,14 @@ function ReferencesPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">References</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('references.title')}</h1>
               </div>
               <p className="text-amber-100 text-sm sm:text-base ml-0 sm:ml-14">
-                Manage your parts catalogue, including Lear and Tesca part numbers.
+                {t('references.subtitle')}
               </p>
             </div>
             <Button onClick={handleAdd} className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-              <Plus className="mr-2 h-4 w-4" /> Add Reference
+              <Plus className="mr-2 h-4 w-4" /> {t('references.addReference')}
             </Button>
           </div>
         </div>
@@ -170,26 +172,26 @@ function ReferencesPage() {
             <div className="flex-1 w-full max-w-md space-y-2">
               <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <Search className="w-4 h-4 text-orange-600" />
-                Search References
+                {t('references.searchReferences')}
               </span>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by Lear PN, Tesca PN, or description..."
+                  placeholder={t('references.searchPlaceholder')}
                   className="pl-10 h-11 border-2 focus:ring-4 focus:ring-orange-500/20"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={fetchParts} 
+            <Button
+              variant="outline"
+              onClick={fetchParts}
               className="h-11 border-2 mt-7"
               title="Refresh"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('common.refresh')}
             </Button>
           </div>
         </div>
@@ -205,7 +207,7 @@ function ReferencesPage() {
                       <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                       </svg>
-                      <span className="uppercase text-xs tracking-wider">Lear PN</span>
+                      <span className="uppercase text-xs tracking-wider">{t('references.learPN')}</span>
                     </div>
                   </TableHead>
                   <TableHead className="w-[180px] font-bold text-gray-800">
@@ -213,7 +215,7 @@ function ReferencesPage() {
                       <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                       </svg>
-                      <span className="uppercase text-xs tracking-wider">Tesca PN</span>
+                      <span className="uppercase text-xs tracking-wider">{t('references.tescaPN')}</span>
                     </div>
                   </TableHead>
                   <TableHead className="font-bold text-gray-800">
@@ -221,7 +223,7 @@ function ReferencesPage() {
                       <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                       </svg>
-                      <span className="uppercase text-xs tracking-wider">Description</span>
+                      <span className="uppercase text-xs tracking-wider">{t('references.description')}</span>
                     </div>
                   </TableHead>
                   <TableHead className="w-[120px] text-right font-bold text-gray-800">
@@ -229,7 +231,7 @@ function ReferencesPage() {
                       <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
-                      <span className="uppercase text-xs tracking-wider">Qty/Box</span>
+                      <span className="uppercase text-xs tracking-wider">{t('references.qtyPerBox')}</span>
                     </div>
                   </TableHead>
                   <TableHead className="w-[80px] text-right font-bold text-gray-800">
@@ -237,7 +239,7 @@ function ReferencesPage() {
                       <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                       </svg>
-                      <span className="uppercase text-xs tracking-wider">Actions</span>
+                      <span className="uppercase text-xs tracking-wider">{t('common.actions')}</span>
                     </div>
                   </TableHead>
                 </TableRow>
@@ -250,7 +252,7 @@ function ReferencesPage() {
                         <svg className="h-8 w-8 animate-spin text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span className="font-medium">Loading references...</span>
+                        <span className="font-medium">{t('references.loadingReferences')}</span>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -261,17 +263,16 @@ function ReferencesPage() {
                         <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span className="font-medium">No references found matching criteria.</span>
+                        <span className="font-medium">{t('references.noReferencesFound')}</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   data.map((part, index) => (
-                    <TableRow 
-                      key={part.id} 
-                      className={`hover:bg-orange-50/50 transition-colors border-b ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
-                      }`}
+                    <TableRow
+                      key={part.id}
+                      className={`hover:bg-orange-50/50 transition-colors border-b ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                        }`}
                     >
                       <TableCell className="font-mono text-sm font-semibold text-gray-900">{part.learPN}</TableCell>
                       <TableCell className="font-mono text-sm text-gray-600">{part.tescaPN}</TableCell>
@@ -290,17 +291,17 @@ function ReferencesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleEdit(part)}>
                               <Pencil className="mr-2 h-4 w-4" />
-                              Edit
+                              {t('common.edit')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => setPartToDelete(part)}
                               className="text-red-600 focus:text-red-600 focus:bg-red-50"
                             >
                               <Trash className="mr-2 h-4 w-4" />
-                              Delete
+                              {t('common.delete')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -316,7 +317,7 @@ function ReferencesPage() {
         {/* Enhanced Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white border-2 shadow-lg">
           <div className="text-sm text-gray-600 font-medium">
-            Showing <span className="font-bold text-gray-900">{data.length}</span> of <span className="font-bold text-gray-900">{totalItems}</span> entries
+            {t('common.showing')} <span className="font-bold text-gray-900">{data.length}</span> {t('common.of')} <span className="font-bold text-gray-900">{totalItems}</span> {t('common.entries')}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -338,9 +339,9 @@ function ReferencesPage() {
               className="h-9 border-2"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
+              {t('common.previous')}
             </Button>
-            
+
             {/* Page Numbers */}
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -354,7 +355,7 @@ function ReferencesPage() {
                 } else {
                   pageNum = page - 2 + i;
                 }
-                
+
                 return (
                   <Button
                     key={i}
@@ -362,9 +363,8 @@ function ReferencesPage() {
                     size="sm"
                     onClick={() => setPage(pageNum)}
                     disabled={loading}
-                    className={`h-9 w-9 border-2 ${
-                      page === pageNum ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg' : ''
-                    }`}
+                    className={`h-9 w-9 border-2 ${page === pageNum ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-lg' : ''
+                      }`}
                   >
                     {pageNum}
                   </Button>
@@ -379,7 +379,7 @@ function ReferencesPage() {
               disabled={page === totalPages || loading}
               className="h-9 border-2"
             >
-              Next
+              {t('common.next')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
             <Button
@@ -399,7 +399,7 @@ function ReferencesPage() {
         <Dialog open={isaddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className="max-w-3xl sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="hidden">Reference Form</DialogTitle>
+              <DialogTitle className="hidden">{t('references.referenceForm')}</DialogTitle>
             </DialogHeader>
             <div className="pt-4">
               <AddReferenceForm
@@ -413,20 +413,20 @@ function ReferencesPage() {
         <AlertDialog open={!!partToDelete} onOpenChange={(open) => !open && setPartToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t('common.areYouSure')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the reference
+                {t('common.cannotBeUndone')} {t('references.deleteConfirm')}
                 <span className="font-semibold text-foreground"> {partToDelete?.learPN} </span>
-                and remove it from our servers.
+                {t('references.andRemove')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               >
-                Delete
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

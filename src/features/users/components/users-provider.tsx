@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { type User } from '../data/schema'
 
@@ -9,6 +9,8 @@ type UsersContextType = {
   setOpen: (str: UsersDialogType | null) => void
   currentRow: User | null
   setCurrentRow: React.Dispatch<React.SetStateAction<User | null>>
+  refreshUsers: () => void
+  setRefreshCallback: (callback: () => void) => void
 }
 
 const UsersContext = React.createContext<UsersContextType | null>(null)
@@ -16,9 +18,18 @@ const UsersContext = React.createContext<UsersContextType | null>(null)
 export function UsersProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useDialogState<UsersDialogType>(null)
   const [currentRow, setCurrentRow] = useState<User | null>(null)
+  const refreshCallbackRef = useRef<() => void>(() => { })
+
+  const refreshUsers = useCallback(() => {
+    refreshCallbackRef.current()
+  }, [])
+
+  const setRefreshCallback = useCallback((callback: () => void) => {
+    refreshCallbackRef.current = callback
+  }, [])
 
   return (
-    <UsersContext value={{ open, setOpen, currentRow, setCurrentRow }}>
+    <UsersContext value={{ open, setOpen, currentRow, setCurrentRow, refreshUsers, setRefreshCallback }}>
       {children}
     </UsersContext>
   )

@@ -28,79 +28,73 @@ export const sidebarData: SidebarData = {
       logo: Command,
       plan: '',
     },
-    /*  {
-         name: 'Acme Inc',
-         logo: GalleryVerticalEnd,
-         plan: 'Enterprise',
-       },*/
-
   ],
   navGroups: [
     {
-      title: 'General',
+      title: 'sidebar.general', // Translation key
       items: [
         {
-          title: 'Dashboard',
+          title: 'sidebar.dashboard',
           url: '/',
           icon: LayoutDashboard,
           roles: ['superviseur', 'admin', 'manager'],
         },
         {
-          title: 'Check Export',
+          title: 'sidebar.checkExport',
           url: '/reapirage',
           icon: ShieldCheck,
           roles: ['operateur', 'superviseur', 'admin', 'manager'],
         },
         {
-          title: 'Retouch Packets',
+          title: 'sidebar.retouchPackets',
           url: '/retouch-packets',
           icon: ListTodo,
           roles: ['manager'],
         },
         {
-          title: 'Quality Check',
+          title: 'sidebar.qualityCheck',
           url: '/quality-check',
           icon: ClipboardCheck,
           roles: ['manager'],
         },
         {
-          title: 'Transfer Management',
+          title: 'sidebar.transferManagement',
           url: '/transfer-management',
           icon: Truck,
           roles: ['manager'],
         },
         {
-          title: 'Tickets Done',
+          title: 'sidebar.ticketsDone',
           url: '/tickets-done',
           icon: HelpCircle,
           roles: ['operateur', 'superviseur', 'admin', 'manager'],
         },
         {
-          title: 'Users',
+          title: 'sidebar.users',
           url: '/users',
           icon: Users,
           roles: ['superviseur', 'admin', 'manager'],
         },
         {
-          title: 'Export Import',
+          title: 'sidebar.exportImport',
           url: '/export-import',
           icon: ArrowRightLeft,
           roles: ['admin', 'manager'],
         },
         {
-          title: 'References',
+          title: 'sidebar.references',
           url: '/references',
           icon: FileText,
           roles: ['admin', 'manager', 'superviseur',],
         },
         {
-          title: 'Materials',
+          title: 'sidebar.materials',
           url: '/materials',
           icon: Box,
           roles: ['admin', 'manager', 'superviseur'],
         },
         {
-          title: 'Logs',
+          title: 'sidebar.logs',
           url: '/logs',
           icon: ScrollText,
           roles: ['admin', 'manager'],

@@ -54,44 +54,7 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
               <ChevronsUpDown className='ms-auto transition-all duration-300 group-hover:scale-110 group-hover:rotate-12' />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg shadow-xl border-2 animate-in fade-in slide-in-from-top-2 duration-300'
-            align='start'
-            side={isMobile ? 'bottom' : 'right'}
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className='text-muted-foreground text-xs uppercase tracking-wider font-semibold'>
-              Teams
-            </DropdownMenuLabel>
-            {teams.map((team, index) => (
-              <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
-                className='gap-2 p-2 transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 cursor-pointer
-                  relative overflow-hidden group
-                  before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/10 before:to-transparent
-                  before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
-                  animate-in fade-in slide-in-from-left-1 duration-200'
-                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-              >
-                <div className='flex size-6 items-center justify-center rounded-sm border transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:border-primary/50 group-hover:shadow-sm'>
-                  <team.logo className='size-4 shrink-0 transition-transform duration-300 group-hover:scale-110' />
-                </div>
-                <span className='transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-primary'>{team.name}</span>
-                <DropdownMenuShortcut className='transition-all duration-300 group-hover:text-primary group-hover:font-semibold'>⌘{index + 1}</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className='gap-2 p-2 transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 cursor-pointer
-              relative overflow-hidden group
-              before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/10 before:to-transparent
-              before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500'>
-              <div className='bg-background flex size-6 items-center justify-center rounded-md border transition-all duration-300 group-hover:scale-110 group-hover:border-primary/50 group-hover:shadow-sm'>
-                <Plus className='size-4 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110' />
-              </div>
-              <div className='text-muted-foreground font-medium transition-all duration-300 group-hover:text-primary group-hover:translate-x-0.5'>Add team</div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
+
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

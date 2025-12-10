@@ -8,9 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { useCurrentData } from './context'
-import { useStepper } from './stepper-config'
 import { BarcodeEntry } from './types'
 
 export function TransferPrepComponent() {
@@ -221,39 +219,6 @@ export function TransferPrepComponent() {
     }
   }
 
-  const savePacket = async () => {
-    try {
-      const packetData = {
-        id: ticketCode,
-        huGalia: currentData.materile.storageUn,
-        location: '354D',
-        status: 'Ready for Transfer',
-        quantity: qty,
-        date: new Date().toISOString().split('T')[0],
-        pieces: barcodesLocal.map((b) => ({
-          barcode: b.barcode2,
-          status: 'OK',
-        })),
-        userId: auth.user?.matricule || 'Unknown',
-        userMatricule: auth.user?.matricule,
-      }
-
-      const res = await fetch('http://localhost:8080/api/packets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(packetData),
-      })
-
-      if (!res.ok) throw new Error('Failed to save packet')
-      toast.success('Packet saved to database')
-    } catch (error) {
-      console.error(error)
-      showError('Failed to save packet')
-      throw error
-    }
-  }
-
   const handleGenerateAndPrint = async () => {
     if (!ticketCode) return
     try {
@@ -306,40 +271,7 @@ export function TransferPrepComponent() {
     return zpl.trim()
   }
 
-  // Envoi du ZPL à l'imprimante Zebra via backend
-  const printToGodex = async () => {
-    try {
-      setProcessing(true)
-      const ezplCode = generateZPL()
 
-      // Convertir le code EZPL en Blob
-      const blob = new Blob([ezplCode], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-
-      // Créer un iframe caché pour l'impression
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-
-      iframe.onload = function () {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.print()
-        }
-        setTimeout(() => {
-          document.body.removeChild(iframe)
-          URL.revokeObjectURL(url)
-        }, 1000)
-      }
-
-      toast.success("Impression lancée sur l'imprimante par défaut")
-    } catch (err: any) {
-      showError(err.message || 'Impression échouée')
-      // downloadZPL(); // Function not defined
-    } finally {
-      setProcessing(false)
-    }
-  }
 
   // Preview du ticket
   const PreviewTicket = () => {

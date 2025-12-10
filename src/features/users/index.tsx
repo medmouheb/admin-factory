@@ -9,10 +9,12 @@ import { AutocompleteSearch } from './components/autocomplete-search'
 import { useAuthStore } from '@/stores/auth-store'
 import { type User } from './data/schema'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function Users() {
+  const { t } = useTranslation()
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const { user } = useAuthStore((state) => state.auth)
@@ -30,12 +32,12 @@ export function Users() {
         params.set('page', '1')
         params.set('size', '1000')
         if (roleFilter) params.set('role', roleFilter)
-        
+
         const res = await fetch(`http://localhost:8080/api/users/search?${params.toString()}`, {
           credentials: 'include',
         })
         if (!res.ok) return
-        
+
         const json = await res.json()
         const list = Array.isArray(json?.users) ? json.users : []
         setAllUsers(
@@ -67,7 +69,7 @@ export function Users() {
         username: selectedUser.matricule,
       }),
     })
-    toast.success(`Showing results for ${selectedUser.firstName} ${selectedUser.lastName}`)
+    toast.success(`${t('users.showingResultsFor')} ${selectedUser.firstName} ${selectedUser.lastName}`)
   }
 
   return (
@@ -86,10 +88,10 @@ export function Users() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">User Management</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">{t('users.title')}</h1>
               </div>
               <p className="text-purple-100 text-sm sm:text-base ml-0 sm:ml-14">
-                Manage system users and their permissions.
+                {t('users.subtitle')}
               </p>
             </div>
             <UsersPrimaryButtons />
@@ -103,12 +105,12 @@ export function Users() {
               <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Quick Search
+              {t('users.quickSearch')}
             </span>
             <AutocompleteSearch
               users={allUsers}
               onSelect={handleUserSelect}
-              placeholder="Search users by name, matricule, or email..."
+              placeholder={t('users.searchPlaceholder')}
             />
           </div>
         </div>

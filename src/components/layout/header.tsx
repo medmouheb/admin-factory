@@ -126,20 +126,6 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           <LanguageSwitcher />
 
           {/* Enhanced Notifications */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 hover:bg-gradient-to-br hover:from-primary/10 hover:to-primary/5 transition-all duration-300 hover:scale-110 relative overflow-hidden group
-                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/30 before:to-transparent
-                before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500
-                shadow-sm hover:shadow-md hover:shadow-primary/20"
-              title="Notifications"
-            >
-              <Bell className="h-4 w-4 transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
-            </Button>
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-gradient-to-br from-red-500 to-red-600 ring-2 ring-background animate-pulse shadow-lg shadow-red-500/50" />
-          </div>
 
           {/* Enhanced Theme Toggle */}
           <Button

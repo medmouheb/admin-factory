@@ -38,6 +38,7 @@ import {
 import { Plus, Search, MoreHorizontal, Pencil, Trash, ChevronLeft, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/materials')({
     component: MaterialsPage,
@@ -54,6 +55,7 @@ interface Material {
 }
 
 function MaterialsPage() {
+    const { t } = useTranslation()
     const [data, setData] = useState<Material[]>([])
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
@@ -141,14 +143,14 @@ function MaterialsPage() {
             <div className='flex flex-col space-y-6 p-4 md:p-8 pt-6'>
                 <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
                     <div>
-                        <h1 className='text-3xl font-bold tracking-tight'>Materials</h1>
+                        <h1 className='text-3xl font-bold tracking-tight'>{t('materials.title')}</h1>
                         <p className='text-muted-foreground mt-2'>
-                            Manage your materials inventory.
+                            {t('materials.subtitle')}
                         </p>
                     </div>
                     <div className='flex items-center gap-2'>
                         <Button onClick={handleAdd} className="shadow-lg hover:shadow-xl transition-all">
-                            <Plus className='mr-2 h-4 w-4' /> Add Material
+                            <Plus className='mr-2 h-4 w-4' /> {t('materials.addMaterial')}
                         </Button>
                     </div>
                 </div>
@@ -157,7 +159,7 @@ function MaterialsPage() {
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search materials..."
+                            placeholder={t('materials.searchMaterials')}
                             className="pl-9 bg-muted/50 focus:bg-background transition-colors"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -172,11 +174,11 @@ function MaterialsPage() {
                     <Table>
                         <TableHeader className="bg-muted/50">
                             <TableRow>
-                                <TableHead className="w-[150px]">Material</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Storage</TableHead>
-                                <TableHead className="text-right">Avail Stock</TableHead>
-                                <TableHead className="w-[80px] text-right">Actions</TableHead>
+                                <TableHead className="w-[150px]">{t('materials.material')}</TableHead>
+                                <TableHead>{t('materials.description')}</TableHead>
+                                <TableHead>{t('materials.storage')}</TableHead>
+                                <TableHead className="text-right">{t('materials.availStock')}</TableHead>
+                                <TableHead className="w-[80px] text-right">{t('common.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -185,14 +187,14 @@ function MaterialsPage() {
                                     <TableCell colSpan={5} className="h-24 text-center">
                                         <div className="flex justify-center items-center gap-2 text-muted-foreground">
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            Loading data...
+                                            {t('common.loadingData')}
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ) : data.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                                        No results found.
+                                        {t('common.noResults')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -211,17 +213,17 @@ function MaterialsPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
                                                     <DropdownMenuItem onClick={() => handleEdit(item)}>
                                                         <Pencil className="mr-2 h-4 w-4" />
-                                                        Edit
+                                                        {t('common.edit')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => setMaterialToDelete(item)}
                                                         className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                                     >
                                                         <Trash className="mr-2 h-4 w-4" />
-                                                        Delete
+                                                        {t('common.delete')}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -235,7 +237,7 @@ function MaterialsPage() {
 
                 <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                        Showing {data.length} of {totalItems} entries
+                        {t('common.showing')} {data.length} {t('common.of')} {totalItems} {t('common.entries')}
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
@@ -245,10 +247,10 @@ function MaterialsPage() {
                             disabled={page === 1 || loading}
                         >
                             <ChevronLeft className="h-4 w-4" />
-                            Previous
+                            {t('common.previous')}
                         </Button>
                         <div className="text-sm font-medium">
-                            Page {page} of {totalPages}
+                            {t('common.page')} {page} {t('common.of')} {totalPages}
                         </div>
                         <Button
                             variant="outline"
@@ -256,7 +258,7 @@ function MaterialsPage() {
                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages || loading}
                         >
-                            Next
+                            {t('common.next')}
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
@@ -265,7 +267,7 @@ function MaterialsPage() {
                 <Dialog open={isaddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogContent className="max-w-3xl sm:max-w-2xl">
                         <DialogHeader>
-                            <DialogTitle className="hidden">Material Form</DialogTitle>
+                            <DialogTitle className="hidden">{t('materials.materialForm')}</DialogTitle>
                         </DialogHeader>
                         <div className="pt-4">
                             <AddMaterialForm
@@ -279,20 +281,20 @@ function MaterialsPage() {
                 <AlertDialog open={!!materialToDelete} onOpenChange={(open) => !open && setMaterialToDelete(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('common.areYouSure')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the material
+                                {t('common.cannotBeUndone')} {t('materials.deleteConfirm')}
                                 <span className="font-semibold text-foreground"> {materialToDelete?.material} </span>
-                                and remove it from our servers.
+                                {t('references.andRemove')}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={handleDelete}
                                 className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                             >
-                                Delete
+                                {t('common.delete')}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

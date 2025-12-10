@@ -1,15 +1,22 @@
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface OverviewProps {
   stats: { date: string; count: number }[]
 }
 
 export default function Overview({ stats = [] }: OverviewProps) {
+  const { t } = useTranslation()
   const [data, setData] = useState<any[]>([])
 
   useEffect(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const months = [
+      t('overview.jan'), t('overview.feb'), t('overview.mar'),
+      t('overview.apr'), t('overview.may'), t('overview.jun'),
+      t('overview.jul'), t('overview.aug'), t('overview.sep'),
+      t('overview.oct'), t('overview.nov'), t('overview.dec')
+    ]
     const currentYear = new Date().getFullYear()
 
     const monthlyStats = months.map(name => ({
@@ -29,7 +36,7 @@ export default function Overview({ stats = [] }: OverviewProps) {
     })
 
     setData(monthlyStats)
-  }, [stats])
+  }, [stats, t])
 
   // Custom tooltip with beautiful styling
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -50,7 +57,7 @@ export default function Overview({ stats = [] }: OverviewProps) {
           </div>
           <div className="mt-3 pt-3 border-t border-border">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Total:</span>
+              <span className="text-xs text-muted-foreground">{t('overview.total')}:</span>
               <span className="text-sm font-bold text-foreground">
                 {payload.reduce((sum: number, entry: any) => sum + entry.value, 0).toLocaleString()}
               </span>
@@ -103,7 +110,7 @@ export default function Overview({ stats = [] }: OverviewProps) {
         />
         <Bar
           dataKey="tickets"
-          name="Tickets Generated"
+          name={t('overview.ticketsGenerated')}
           fill="url(#ticketsGradient)"
           radius={[8, 8, 0, 0]}
           animationDuration={1000}
@@ -118,7 +125,7 @@ export default function Overview({ stats = [] }: OverviewProps) {
         </Bar>
         <Bar
           dataKey="errors"
-          name="Failed Attempts"
+          name={t('overview.failedAttempts')}
           fill="url(#errorsGradient)"
           radius={[8, 8, 0, 0]}
           animationDuration={1000}

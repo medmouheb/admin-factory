@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void }) {
+  const { t } = useTranslation()
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
 
@@ -85,7 +87,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const handleFetchPart = async () => {
     if (!isLearPNValid()) {
       setLearPN('')
-      return showError('Lear PN must start with P and be 16 characters', 'learPN')
+      return showError(t('repairStepper.learPNInvalid'), 'learPN')
     }
 
     setLoading(true)
@@ -112,10 +114,10 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
         },
       }))
 
-      toast.success('Part loaded')
+      toast.success(t('repairStepper.partLoaded'))
       setTimeout(() => storageRef.current?.focus(), 200)
     } catch {
-      showError('Part not found', 'learPN')
+      showError(t('repairStepper.partNotFound'), 'learPN')
       setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
       setLearPN('')
     } finally {
@@ -127,7 +129,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const handleStorageDone = async () => {
     if (!isStorageValid()) {
       setStorageUnit('')
-      return showError('HU must start with S and be 10 chars', 'storage')
+      return showError(t('repairStepper.huInvalid'), 'storage')
     }
 
     // Check if HU is unique
@@ -144,13 +146,13 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
       if (!data.isUnique) {
         setStorageUnit('')
-        return showError('HU already exists. Please use a unique HU.', 'storage')
+        return showError(t('repairStepper.huExists'), 'storage')
       }
 
-      toast.success('HU accepted')
+      toast.success(t('repairStepper.huAccepted'))
       setTimeout(() => qtyRef.current?.focus(), 200)
     } catch (error) {
-      showError('Failed to validate HU uniqueness', 'storage')
+      showError(t('repairStepper.huValidationFailed'), 'storage')
       setStorageUnit('')
     } finally {
       setLoading(false)
@@ -159,12 +161,12 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
   /** Final step: ENTER on quantity */
   const handleQuantityNext = () => {
-    if (!isLearPNValid()) return showError('Lear PN invalid', 'learPN')
-    if (!isPartLoaded()) return showError('Part not loaded', 'learPN')
-    if (!isStorageValid()) return showError('HU invalid', 'storage')
+    if (!isLearPNValid()) return showError(t('repairStepper.learPNInvalidError'), 'learPN')
+    if (!isPartLoaded()) return showError(t('repairStepper.partNotLoadedError'), 'learPN')
+    if (!isStorageValid()) return showError(t('repairStepper.huInvalid'), 'storage')
     if (!isQtyValid()) {
       part.qtyPerBox = ""
-      return showError('Quantity must be Q<number>', 'quantity')
+      return showError(t('repairStepper.quantityInvalid'), 'quantity')
 
     }
 
@@ -189,9 +191,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
             <svg className='w-8 h-8' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' />
             </svg>
-            Part & Material Information
+            {t('repairStepper.partMaterialInfo')}
           </h1>
-          <p className='text-purple-100 text-sm'>Enter part and material details to begin the transfer process</p>
+          <p className='text-purple-100 text-sm'>{t('repairStepper.partMaterialSubtitle')}</p>
         </div>
       </div>
 
@@ -204,7 +206,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
             <svg className='w-6 h-6 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
             </svg>
-            Data Entry Form
+            {t('repairStepper.dataEntryForm')}
           </CardTitle>
         </CardHeader>
 
@@ -218,7 +220,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' />
                   </svg>
                 </div>
-                <h3 className='text-xl font-bold text-gray-800'>Part Information</h3>
+                <h3 className='text-xl font-bold text-gray-800'>{t('repairStepper.partInformation')}</h3>
               </div>
 
               {/* Lear PN */}
@@ -227,8 +229,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-4 h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
                   </svg>
-                  Lear PN
-                  <span className='text-xs text-gray-500 font-normal'>(Press Enter to fetch)</span>
+                  {t('repairStepper.learPN')}
+                  <span className='text-xs text-gray-500 font-normal'>{t('repairStepper.pressEnterToFetch')}</span>
                 </Label>
                 <Input
                   className={cn(
@@ -240,7 +242,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   onChange={(e) => setLearPN(e.target.value)}
                   onKeyDown={(e) => enter(e, handleFetchPart)}
                   maxLength={16}
-                  placeholder='P + 15 characters'
+                  placeholder={t('repairStepper.learPNPlaceholder')}
                   autoComplete='off'
                   disabled={loading}
                 />
@@ -248,7 +250,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
                     <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
                   </svg>
-                  Must start with 'P' and be exactly 16 characters
+                  {t('repairStepper.learPNHint')}
                 </p>
               </div>
 
@@ -258,9 +260,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                   </svg>
-                  Tesca PN
+                  {t('repairStepper.tescaPN')}
                   <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800'>
-                    Auto-filled
+                    {t('repairStepper.autoFilled')}
                   </span>
                 </Label>
                 <div className='relative'>
@@ -286,9 +288,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-4 h-4 text-pink-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16m-7 6h7' />
                   </svg>
-                  Description
+                  {t('repairStepper.description')}
                   <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800'>
-                    Auto-filled
+                    {t('repairStepper.autoFilled')}
                   </span>
                 </Label>
                 <div className='relative'>
@@ -317,7 +319,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' />
                   </svg>
                 </div>
-                <h3 className='text-xl font-bold text-gray-800'>Material Information</h3>
+                <h3 className='text-xl font-bold text-gray-800'>{t('repairStepper.materialInformation')}</h3>
               </div>
 
               {/* HU Galia */}
@@ -326,8 +328,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4' />
                   </svg>
-                  HU Galia
-                  <span className='text-xs text-gray-500 font-normal'>(Press Enter to validate)</span>
+                  {t('repairStepper.huGalia')}
+                  <span className='text-xs text-gray-500 font-normal'>{t('repairStepper.pressEnterToValidate')}</span>
                 </Label>
                 <Input
                   className={cn(
@@ -339,7 +341,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   onChange={(e) => setStorageUnit(e.target.value)}
                   onKeyDown={(e) => enter(e, handleStorageDone)}
                   maxLength={10}
-                  placeholder='S + 9 characters'
+                  placeholder={t('repairStepper.huPlaceholder')}
                   autoComplete='off'
                   disabled={loading}
                 />
@@ -347,7 +349,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
                     <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
                   </svg>
-                  Must start with 'S' and be exactly 10 characters
+                  {t('repairStepper.huHint')}
                 </p>
               </div>
 
@@ -357,8 +359,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-4 h-4 text-cyan-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 20l4-16m2 16l4-16M6 9h14M4 15h14' />
                   </svg>
-                  Quantity
-                  <span className='text-xs text-gray-500 font-normal'>(Press Enter to continue)</span>
+                  {t('repairStepper.quantity')}
+                  <span className='text-xs text-gray-500 font-normal'>{t('repairStepper.pressEnterToContinue')}</span>
                 </Label>
                 <Input
                   className={cn(
@@ -369,7 +371,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   value={part.qtyPerBox}
                   onChange={(e) => setPart((prev) => ({ ...prev, qtyPerBox: e.target.value }))}
                   onKeyDown={(e) => enter(e, handleQuantityNext)}
-                  placeholder='Q + number (e.g., Q10)'
+                  placeholder={t('repairStepper.quantityPlaceholder')}
                   autoComplete='off'
                   disabled={loading}
                 />
@@ -377,7 +379,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
                     <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
                   </svg>
-                  Format: Q followed by a number (e.g., Q10, Q25)
+                  {t('repairStepper.quantityHint')}
                 </p>
               </div>
 
@@ -386,7 +388,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <div className='mt-6 p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 animate-pulse'>
                   <div className='flex items-center gap-3'>
                     <div className='w-5 h-5 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin'></div>
-                    <p className='text-sm font-semibold text-indigo-700'>Processing...</p>
+                    <p className='text-sm font-semibold text-indigo-700'>{t('repairStepper.processing')}</p>
                   </div>
                 </div>
               )}
@@ -400,7 +402,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                   <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
                 </svg>
-                Form Status
+                {t('repairStepper.formStatus')}
               </h4>
               <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
@@ -418,7 +420,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                       </svg>
                     )}
                   </div>
-                  <p className='text-xs font-semibold text-gray-600'>Part Info</p>
+                  <p className='text-xs font-semibold text-gray-600'>{t('repairStepper.partInfo')}</p>
                 </div>
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
                   <div className={cn(
@@ -435,7 +437,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                       </svg>
                     )}
                   </div>
-                  <p className='text-xs font-semibold text-gray-600'>HU Galia</p>
+                  <p className='text-xs font-semibold text-gray-600'>{t('repairStepper.huGalia')}</p>
                 </div>
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
                   <div className={cn(
@@ -452,7 +454,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                       </svg>
                     )}
                   </div>
-                  <p className='text-xs font-semibold text-gray-600'>Quantity</p>
+                  <p className='text-xs font-semibold text-gray-600'>{t('repairStepper.quantity')}</p>
                 </div>
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
                   <div className={cn(
@@ -469,7 +471,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                       </svg>
                     )}
                   </div>
-                  <p className='text-xs font-semibold text-gray-600'>Ready</p>
+                  <p className='text-xs font-semibold text-gray-600'>{t('repairStepper.ready')}</p>
                 </div>
               </div>
             </div>

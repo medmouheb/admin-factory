@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Main } from '@/components/layout/main'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 type ViewMode = 'menu' | 'export' | 'import'
 
 export default function ExportImportView() {
+    const { t } = useTranslation()
     const [mode, setMode] = useState<ViewMode>('menu')
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -19,7 +21,7 @@ export default function ExportImportView() {
 
     const handleExport = async (type: 'materials' | 'tickets' | 'parts') => {
         if (!startDate || !endDate) {
-            toast.error('Please select both start and end dates')
+            toast.error(t('exportImport.selectBothDates'))
             return
         }
 
@@ -57,10 +59,10 @@ export default function ExportImportView() {
             window.URL.revokeObjectURL(downloadUrl)
             document.body.removeChild(a)
 
-            toast.success(`Successfully exported ${type}`)
+            toast.success(`${t('exportImport.successExport')} ${type}`)
         } catch (error) {
             console.error('Export error:', error)
-            toast.error(`Failed to export ${type}`)
+            toast.error(`${t('exportImport.failedExport')} ${type}`)
         } finally {
             setIsExporting(false)
         }
@@ -84,10 +86,10 @@ export default function ExportImportView() {
 
             if (!response.ok) throw new Error('Import failed')
 
-            toast.success(`Successfully imported ${type}`)
+            toast.success(`${t('exportImport.successImport')} ${type}`)
         } catch (error) {
             console.error('Import error:', error)
-            toast.error(`Failed to import ${type}`)
+            toast.error(`${t('exportImport.failedImport')} ${type}`)
         } finally {
             setIsImporting(false)
         }
@@ -97,11 +99,11 @@ export default function ExportImportView() {
         <Main fixed>
             <div className="min-h-screen bg-background/30 p-6 space-y-8">
                 {/* Header */}
-                <motion.div 
-                   initial={{ opacity: 0, y: -20 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   transition={{ duration: 0.5 }}
-                   className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-8 shadow-xl"
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 p-8 shadow-xl"
                 >
                     <div className="flex items-start gap-4">
                         <motion.div
@@ -113,21 +115,21 @@ export default function ExportImportView() {
                             <ArrowRightLeft className="h-10 w-10 text-white" />
                         </motion.div>
                         <div>
-                            <motion.h1 
+                            <motion.h1
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 }}
                                 className="text-4xl font-bold text-white mb-2"
                             >
-                                Export / Import
+                                {t('exportImport.title')}
                             </motion.h1>
-                            <motion.p 
+                            <motion.p
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.4 }}
                                 className="text-white/90 text-lg"
                             >
-                                Manage data export and import operations
+                                {t('exportImport.subtitle')}
                             </motion.p>
                         </div>
                     </div>
@@ -136,14 +138,14 @@ export default function ExportImportView() {
                 <AnimatePresence mode="wait">
                     {mode === 'menu' && (
                         <motion.div
-                           key="menu"
-                           initial={{ opacity: 0, y: 20 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -20 }}
-                           transition={{ duration: 0.3 }}
-                           className='flex h-full flex-col items-center justify-center gap-8 py-10'
+                            key="menu"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className='flex h-full flex-col items-center justify-center gap-8 py-10'
                         >
-                             <div className='grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2'>
+                            <div className='grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Export Card */}
                                 <Card
                                     className='group relative overflow-hidden cursor-pointer transition-all hover:shadow-2xl hover:-translate-y-1 border-0 bg-white/50 backdrop-blur-sm'
@@ -155,9 +157,9 @@ export default function ExportImportView() {
                                             <FileDown className='h-12 w-12 text-purple-600' />
                                         </div>
                                         <div>
-                                            <CardTitle className='text-3xl font-bold text-purple-900'>Export Data</CardTitle>
+                                            <CardTitle className='text-3xl font-bold text-purple-900'>{t('exportImport.exportData')}</CardTitle>
                                             <CardDescription className="text-lg mt-2">
-                                                Download reports for materials, tickets, and parts
+                                                {t('exportImport.exportDesc')}
                                             </CardDescription>
                                         </div>
                                     </CardHeader>
@@ -174,9 +176,9 @@ export default function ExportImportView() {
                                             <FileUp className='h-12 w-12 text-blue-600' />
                                         </div>
                                         <div>
-                                            <CardTitle className='text-3xl font-bold text-blue-900'>Import Data</CardTitle>
+                                            <CardTitle className='text-3xl font-bold text-blue-900'>{t('exportImport.importData')}</CardTitle>
                                             <CardDescription className="text-lg mt-2">
-                                                Upload data files to update the system
+                                                {t('exportImport.importDesc')}
                                             </CardDescription>
                                         </div>
                                     </CardHeader>
@@ -187,12 +189,12 @@ export default function ExportImportView() {
 
                     {mode !== 'menu' && (
                         <motion.div
-                           key="content"
-                           initial={{ opacity: 0, x: 20 }}
-                           animate={{ opacity: 1, x: 0 }}
-                           exit={{ opacity: 0, x: -20 }}
-                           transition={{ duration: 0.3 }}
-                           className="w-full max-w-5xl mx-auto"
+                            key="content"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full max-w-5xl mx-auto"
                         >
                             <Button
                                 variant='ghost'
@@ -200,7 +202,7 @@ export default function ExportImportView() {
                                 onClick={() => setMode('menu')}
                             >
                                 <ArrowLeft className='h-4 w-4' />
-                                Back to Menu
+                                {t('exportImport.backToMenu')}
                             </Button>
 
                             <Card className={`shadow-xl border-t-4 ${mode === 'export' ? 'border-t-purple-500' : 'border-t-blue-500'}`}>
@@ -215,12 +217,12 @@ export default function ExportImportView() {
                                         </div>
                                         <div>
                                             <CardTitle className="text-2xl">
-                                                {mode === 'export' ? 'Export Data Configuration' : 'Import Data Upload'}
+                                                {mode === 'export' ? t('exportImport.exportConfig') : t('exportImport.importUpload')}
                                             </CardTitle>
                                             <CardDescription className="text-base">
-                                                {mode === 'export' 
-                                                    ? 'Select date range and choose data type to generate reports'
-                                                    : 'Upload Excel files (.xlsx, .xls) to batch update system records'
+                                                {mode === 'export'
+                                                    ? t('exportImport.exportConfigDesc')
+                                                    : t('exportImport.importUploadDesc')
                                                 }
                                             </CardDescription>
                                         </div>
@@ -231,7 +233,7 @@ export default function ExportImportView() {
                                         <div className='space-y-8'>
                                             <div className='grid gap-6 sm:grid-cols-2 p-6 bg-muted/20 rounded-xl border border-border/50'>
                                                 <div className='space-y-3'>
-                                                    <Label htmlFor='startDate' className="font-semibold text-foreground">Start Date</Label>
+                                                    <Label htmlFor='startDate' className="font-semibold text-foreground">{t('exportImport.startDate')}</Label>
                                                     <Input
                                                         id='startDate'
                                                         type='date'
@@ -241,7 +243,7 @@ export default function ExportImportView() {
                                                     />
                                                 </div>
                                                 <div className='space-y-3'>
-                                                    <Label htmlFor='endDate' className="font-semibold text-foreground">End Date</Label>
+                                                    <Label htmlFor='endDate' className="font-semibold text-foreground">{t('exportImport.endDate')}</Label>
                                                     <Input
                                                         id='endDate'
                                                         type='date'
@@ -262,7 +264,7 @@ export default function ExportImportView() {
                                                         disabled={isExporting}
                                                     >
                                                         <FileSpreadsheet className='h-8 w-8 text-muted-foreground' />
-                                                        <span className="capitalize font-semibold text-lg">Export {type}</span>
+                                                        <span className="capitalize font-semibold text-lg">{t(`exportImport.export${type.charAt(0).toUpperCase() + type.slice(1)}` as any)}</span>
                                                     </Button>
                                                 ))}
                                             </div>
@@ -275,10 +277,10 @@ export default function ExportImportView() {
                                                     <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                                                         <FileSpreadsheet className='h-5 w-5' />
                                                     </div>
-                                                    Import Parts
+                                                    {t('exportImport.importParts')}
                                                 </div>
                                                 <div className='space-y-2'>
-                                                    <Label htmlFor='parts-file' className="sr-only">Select File</Label>
+                                                    <Label htmlFor='parts-file' className="sr-only">{t('exportImport.selectFile')}</Label>
                                                     <Input
                                                         id='parts-file'
                                                         type='file'
@@ -291,7 +293,7 @@ export default function ExportImportView() {
                                                         disabled={isImporting}
                                                     />
                                                     <p className="text-xs text-muted-foreground pt-1 pl-1">
-                                                        Supported formats: .xlsx, .xls
+                                                        {t('exportImport.supportedFormats')}
                                                     </p>
                                                 </div>
                                             </div>
@@ -302,10 +304,10 @@ export default function ExportImportView() {
                                                     <div className="p-2 bg-green-100 rounded-lg text-green-600">
                                                         <FileSpreadsheet className='h-5 w-5' />
                                                     </div>
-                                                    Import Materials
+                                                    {t('exportImport.importMaterials')}
                                                 </div>
                                                 <div className='space-y-2'>
-                                                    <Label htmlFor='materials-file' className="sr-only">Select File</Label>
+                                                    <Label htmlFor='materials-file' className="sr-only">{t('exportImport.selectFile')}</Label>
                                                     <Input
                                                         id='materials-file'
                                                         type='file'
@@ -318,7 +320,7 @@ export default function ExportImportView() {
                                                         disabled={isImporting}
                                                     />
                                                     <p className="text-xs text-muted-foreground pt-1 pl-1">
-                                                        Supported formats: .xlsx, .xls
+                                                        {t('exportImport.supportedFormats')}
                                                     </p>
                                                 </div>
                                             </div>

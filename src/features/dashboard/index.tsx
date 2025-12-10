@@ -16,14 +16,16 @@ import { RecentActivity } from './components/recent-activity'
 import { useAuthStore } from '@/stores/auth-store'
 import { FileText, Users, Activity, AlertCircle, Download, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { format, subDays } from 'date-fns'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { useTranslation } from 'react-i18next'
 
 export function Dashboard() {
   const { user } = useAuthStore((state) => state.auth)
+  const { t } = useTranslation()
   const [users, setUsers] = useState<any[]>([])
   const [stats, setStats] = useState({
     totalTickets: 0,
@@ -81,7 +83,7 @@ export function Dashboard() {
   }, [])
 
 
-   const downloadReport = async () => {
+  const downloadReport = async () => {
     try {
       toast.info('Generating report...')
       const doc = new jsPDF()
@@ -226,52 +228,52 @@ export function Dashboard() {
     show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   }
 
-  const statCards = [
+  const statCards = useMemo(() => [
     {
-      title: 'Total Tickets',
+      title: t('dashboard.totalTickets'),
       value: stats.totalTickets.toLocaleString(),
       change: '+12.5%',
       trend: 'up',
-      period: 'from last month',
+      period: t('dashboard.fromLastMonth'),
       icon: FileText,
       gradient: 'from-orange-500 to-amber-500',
       iconBg: 'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20',
       iconColor: 'text-orange-600 dark:text-orange-400',
     },
     {
-      title: 'Total Parts',
+      title: t('dashboard.totalParts'),
       value: stats.parts.toLocaleString(),
       change: '+8.2%',
       trend: 'up',
-      period: 'from last month',
+      period: t('dashboard.fromLastMonth'),
       icon: Activity,
       gradient: 'from-teal-500 to-cyan-500',
       iconBg: 'bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/20 dark:to-cyan-950/20',
       iconColor: 'text-teal-600 dark:text-teal-400',
     },
     {
-      title: 'Active Users',
+      title: t('dashboard.activeUsers'),
       value: stats.activeUsers.toLocaleString(),
       change: '+4.3%',
       trend: 'up',
-      period: 'from last month',
+      period: t('dashboard.fromLastMonth'),
       icon: Users,
       gradient: 'from-violet-500 to-purple-500',
       iconBg: 'bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20',
       iconColor: 'text-violet-600 dark:text-violet-400',
     },
     {
-      title: 'Materials',
+      title: t('dashboard.materials'),
       value: stats.materials.toLocaleString(),
       change: '+15.8%',
       trend: 'up',
-      period: 'from last month',
+      period: t('dashboard.fromLastMonth'),
       icon: AlertCircle,
       gradient: 'from-blue-500 to-indigo-500',
       iconBg: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
     },
-  ]
+  ], [t, stats.totalTickets, stats.parts, stats.activeUsers, stats.materials])
 
   return (
     <Main className="p-4 md:p-6 lg:p-8">
@@ -283,18 +285,18 @@ export function Dashboard() {
         <div className="relative flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight animate-in fade-in slide-in-from-left-2 duration-500">
-              Dashboard
+              {t('dashboard.title')}
             </h1>
             <p className="text-primary-foreground/90 text-sm sm:text-base animate-in fade-in slide-in-from-left-2 duration-500 delay-100">
-              Welcome back, <span className="font-semibold text-white">{user?.firstName} {user?.lastName}</span>
+              {t('dashboard.welcomeBack')}, <span className="font-semibold text-white">{user?.firstName} {user?.lastName}</span>
             </p>
           </div>
-          <Button 
-            onClick={downloadReport} 
+          <Button
+            onClick={downloadReport}
             className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all hover:scale-105 animate-in fade-in slide-in-from-right-2 duration-500"
           >
             <Download className="mr-2 h-4 w-4" />
-            Download Report
+            {t('dashboard.downloadReport')}
           </Button>
         </div>
       </div>
@@ -307,13 +309,13 @@ export function Dashboard() {
         <div className="w-full overflow-x-auto pb-2">
           <TabsList className="bg-gradient-to-r from-muted/80 to-muted/50 border-2 shadow-sm">
             <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
-              Overview
+              {t('dashboard.overview')}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
-              Analytics
+              {t('dashboard.analytics')}
             </TabsTrigger>
             <TabsTrigger value="reports" disabled>
-              Reports
+              {t('dashboard.reports')}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -327,14 +329,14 @@ export function Dashboard() {
             className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
             {statCards.map((stat, index) => (
-              <motion.div key={stat.title} variants={item}>
+              <motion.div key={index} variants={item}>
                 <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-2 group cursor-pointer">
                   {/* Gradient Accent Bar */}
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.gradient}`}></div>
-                  
+
                   {/* Shine Effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-                  
+
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="space-y-0">
                       <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
@@ -350,11 +352,10 @@ export function Dashboard() {
                       {stat.value}
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full ${
-                        stat.trend === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400' :
+                      <span className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full ${stat.trend === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400' :
                         stat.trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400' :
-                        'bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400'
-                      }`}>
+                          'bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400'
+                        }`}>
                         {stat.trend === 'up' && <TrendingUp className="h-3 w-3" />}
                         {stat.trend === 'down' && <TrendingDown className="h-3 w-3" />}
                         {stat.trend === 'neutral' && <Minus className="h-3 w-3" />}
@@ -378,9 +379,9 @@ export function Dashboard() {
                     <Activity className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-bold">Ticket Generation Overview</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t('dashboard.ticketGenerationOverview')}</CardTitle>
                     <CardDescription className="mt-1">
-                      Monthly breakdown of generated tickets vs failed attempts.
+                      {t('dashboard.monthlyBreakdown')}
                     </CardDescription>
                   </div>
                 </div>
@@ -401,9 +402,9 @@ export function Dashboard() {
                     <Users className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-bold">User Leaderboard</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t('dashboard.userLeaderboard')}</CardTitle>
                     <CardDescription className="mt-1">
-                      Top performers by ticket generation score.
+                      {t('dashboard.topPerformers')}
                     </CardDescription>
                   </div>
                 </div>
@@ -420,9 +421,9 @@ export function Dashboard() {
                     <Activity className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-bold">Recent Activity</CardTitle>
+                    <CardTitle className="text-xl font-bold">{t('dashboard.recentActivity')}</CardTitle>
                     <CardDescription className="mt-1">
-                      Latest system events and user actions.
+                      {t('dashboard.latestEvents')}
                     </CardDescription>
                   </div>
                 </div>

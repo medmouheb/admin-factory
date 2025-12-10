@@ -1,15 +1,16 @@
 import { defineStepper } from '@stepperize/react'
+import i18n from '@/i18n/config'
 
 export const { useStepper, steps, utils } = defineStepper(
     {
         id: 'ContainerManagement',
-        title: 'Container Management',
-        description: 'Identify & Isolate HU',
+        get title() { return i18n.t('repairStepper.containerManagement') },
+        get description() { return i18n.t('repairStepper.containerManagementDesc') },
     },
 
     {
         id: 'TransferPrep',
-        title: 'Transfer Preparation',
-        description: 'Generate Transfer Label',
+        get title() { return i18n.t('repairStepper.transferPrep') },
+        get description() { return i18n.t('repairStepper.transferPrepDesc') },
     }
 )

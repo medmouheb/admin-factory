@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { MaterialAndPartForm } from './material-and-part-form'
 import { TransferPrepComponent } from './transfer-prep'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export function StepperInner() {
+  const { t } = useTranslation()
   const stepper = useStepper()
   const { currentData, setCurrentData } = useCurrentData()
   const currentIndex = utils.getIndex(stepper.current.id)
@@ -57,18 +59,18 @@ export function StepperInner() {
                   </svg>
                 </div>
                 <h2 className='text-4xl font-bold text-white tracking-tight'>
-                  Check Export
+                  {t('repairStepper.title')}
                 </h2>
               </div>
               <p className='text-blue-100 text-base ml-14'>
-                Follow the steps to complete the check.
+                {t('repairStepper.subtitle')}
               </p>
             </div>
             <div className='flex items-center gap-3'>
               <div className='rounded-2xl bg-white/20 backdrop-blur-sm px-6 py-3 shadow-lg border border-white/30'>
-                <div className='text-xs font-semibold text-blue-100 mb-1'>Progress</div>
+                <div className='text-xs font-semibold text-blue-100 mb-1'>{t('repairStepper.progress')}</div>
                 <div className='text-2xl font-bold text-white'>
-                  Step {currentIndex + 1} / {steps.length}
+                  {t('repairStepper.step')} {currentIndex + 1} / {steps.length}
                 </div>
               </div>
             </div>
@@ -82,7 +84,7 @@ export function StepperInner() {
             {stepper.all.map((step, index) => {
               const isActive = currentIndex === index
               const isCompleted = currentIndex > index
-              const isDisabled = 
+              const isDisabled =
                 (index === 1 && !isStep1Valid) ||
                 (index === 2 && (!isStep1Valid || !isStep2Valid))
 
@@ -105,7 +107,7 @@ export function StepperInner() {
                   {isActive && (
                     <div className='absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer'></div>
                   )}
-                  
+
                   <div className='relative flex items-start gap-4'>
                     {/* Step Number/Icon */}
                     <div className={cn(
@@ -190,7 +192,7 @@ export function StepperInner() {
                 <svg className='w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
                 </svg>
-                Back
+                {t('repairStepper.back')}
               </Button>
               <Button
                 onClick={stepper.next}
@@ -201,7 +203,7 @@ export function StepperInner() {
                 }
                 className='group relative w-full sm:w-40 h-12 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:hover:scale-100'
               >
-                {stepper.isLast ? 'Complete' : 'Next'}
+                {stepper.isLast ? t('repairStepper.complete') : t('repairStepper.next')}
                 <svg className='w-5 h-5 ml-2 transition-transform group-hover:translate-x-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
                 </svg>
@@ -216,7 +218,7 @@ export function StepperInner() {
                 <svg className='w-6 h-6 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
                 </svg>
-                New Packet
+                {t('repairStepper.newPacket')}
               </Button>
             </div>
           )}

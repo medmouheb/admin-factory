@@ -28,6 +28,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { jsPDF } from 'jspdf'
 import JsBarcode from 'jsbarcode'
+import { useUsers } from './users-provider'
 
 const roleOptions = [
   { label: 'Admin', value: 'admin' },
@@ -114,6 +115,7 @@ export function UsersActionDialog({
   onOpenChange,
 }: UserActionDialogProps) {
   const isEdit = !!currentRow
+  const { refreshUsers } = useUsers()
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
@@ -150,14 +152,14 @@ export function UsersActionDialog({
       const m = 2
       const w = 46
       const h = 46
-      
+
       doc.setLineWidth(0.2)
       doc.setDrawColor(0)
 
       // Border & Grid
       doc.rect(m, m, w, h)
       doc.line(m, 9, m + w, 9)
-      
+
       // Header
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
@@ -181,9 +183,9 @@ export function UsersActionDialog({
       doc.setFont('helvetica', 'bold')
       const fullName = `${userData.firstName} ${userData.lastName}`
       doc.text(fullName, 25, 14, { align: 'center' })
-      
+
       doc.line(m, 16, m + w, 16)
-      
+
       // Matricule
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
@@ -200,7 +202,7 @@ export function UsersActionDialog({
         doc.text('(No Password)', 25, 38, { align: 'center' })
       }
 
-       doc.line(m, 44, m + w, 44)
+      doc.line(m, 44, m + w, 44)
 
       // Footer: Date
       doc.setFontSize(7)
@@ -211,7 +213,7 @@ export function UsersActionDialog({
       doc.autoPrint()
       const blob = doc.output('blob')
       const url = URL.createObjectURL(blob)
-      
+
       const iframe = document.createElement('iframe')
       iframe.style.display = 'none'
       iframe.src = url
@@ -219,7 +221,7 @@ export function UsersActionDialog({
       iframe.onload = () => {
         iframe.contentWindow?.print()
       }
-      
+
       toast.success('Printing ticket...')
     } catch (e) {
       console.error('PDF generation error', e)
@@ -253,7 +255,7 @@ export function UsersActionDialog({
           return
         }
         toast.success('User updated')
-        
+
         if (values.password) {
           generatePDF(values, values.password)
         }
@@ -270,7 +272,7 @@ export function UsersActionDialog({
           return
         }
         toast.success('User created')
-        
+
         if (values.password) {
           generatePDF(values, values.password)
         }
@@ -278,6 +280,7 @@ export function UsersActionDialog({
 
       form.reset()
       onOpenChange(false)
+      refreshUsers() // Refresh the user list
     } catch (error) {
       toast.error('Server error')
     } finally {
@@ -429,12 +432,12 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
-              
+
               <div className="border-t pt-4 mt-2">
                 <p className="text-sm font-medium text-muted-foreground mb-3">
                   🔐 Security Credentials
                 </p>
-                
+
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
@@ -481,9 +484,9 @@ export function UsersActionDialog({
           </Form>
         </div>
         <DialogFooter className="border-t pt-4">
-          <Button 
-            type='submit' 
-            form='user-form' 
+          <Button
+            type='submit'
+            form='user-form'
             disabled={isLoading}
             className="min-w-[120px] transition-all hover:shadow-md"
           >

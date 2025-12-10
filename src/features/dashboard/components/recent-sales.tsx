@@ -1,10 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useEffect, useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
 import { Trophy, Medal, Award } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface User {
   id: string
@@ -26,6 +26,7 @@ interface RecentSalesProps {
 }
 
 export function RecentSales({ users, leaderboardData }: RecentSalesProps) {
+  const { t } = useTranslation()
   const [displayUsers, setDisplayUsers] = useState<UserStats[]>([])
   const [maxScore, setMaxScore] = useState(0)
 
@@ -98,20 +99,20 @@ export function RecentSales({ users, leaderboardData }: RecentSalesProps) {
                   <p className='text-sm font-semibold leading-none'>{user.firstName} {user.lastName}</p>
                   {index < 3 && (
                     <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                      Top {index + 1}
+                      {t('recentSales.top')} {index + 1}
                     </Badge>
                   )}
                 </div>
                 <div className="text-right">
                   <span className="font-bold text-sm">{user.score}</span>
-                  <span className="text-xs text-muted-foreground ml-1">pts</span>
+                  <span className="text-xs text-muted-foreground ml-1">{t('recentSales.pts')}</span>
                 </div>
               </div>
 
               <div className="w-full flex items-center gap-3">
                 <Progress value={scorePercentage} className="h-1.5 flex-1" />
                 <p className='text-xs text-muted-foreground w-24 text-right truncate'>
-                  {user.tickets} Tickets
+                  {user.tickets} {t('recentSales.tickets')}
                 </p>
               </div>
             </div>
@@ -119,7 +120,7 @@ export function RecentSales({ users, leaderboardData }: RecentSalesProps) {
         )
       })}
       {displayUsers.length === 0 && (
-        <div className="text-sm text-muted-foreground text-center py-8">No users found.</div>
+        <div className="text-sm text-muted-foreground text-center py-8">{t('recentSales.noUsersFound')}</div>
       )}
     </div>
   )

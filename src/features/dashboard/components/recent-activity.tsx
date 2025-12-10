@@ -1,6 +1,7 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatDistanceToNow } from 'date-fns'
 import { CheckCircle2, AlertCircle, UserPlus, FileText, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface ActivityItem {
   id: number
@@ -15,6 +16,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ activities = [] }: RecentActivityProps) {
+  const { t } = useTranslation()
   const getIcon = (type: string, status: string) => {
     if (status === 'error') return <AlertCircle className="h-4 w-4 text-red-500" />
     if (status === 'warning') return <AlertCircle className="h-4 w-4 text-amber-500" />
@@ -44,7 +46,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
 
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium leading-none">
-                <span className="font-semibold">{activity.ticketCode}</span> Generated
+                <span className="font-semibold">{activity.ticketCode}</span> {t('recentActivity.generated')}
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
@@ -52,7 +54,7 @@ export function RecentActivity({ activities = [] }: RecentActivityProps) {
             </div>
           </div>
         ))}
-        {activities.length === 0 && <p className="text-center text-muted-foreground text-sm py-4">No recent activity</p>}
+        {activities.length === 0 && <p className="text-center text-muted-foreground text-sm py-4">{t('recentActivity.noRecentActivity')}</p>}
       </div>
     </ScrollArea>
   )

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { type User } from '../data/schema'
+import { useUsers } from './users-provider'
 
 type UserDeleteDialogProps = {
   open: boolean
@@ -22,6 +23,7 @@ export function UsersDeleteDialog({
 }: UserDeleteDialogProps) {
   const [value, setValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const { refreshUsers } = useUsers()
 
   const handleDelete = async () => {
     if (value.trim() !== currentRow.matricule) return
@@ -41,6 +43,7 @@ export function UsersDeleteDialog({
 
       toast.success('User deleted successfully')
       onOpenChange(false)
+      refreshUsers() // Refresh the user list
     } catch (error) {
       toast.error('Something went wrong')
     } finally {
