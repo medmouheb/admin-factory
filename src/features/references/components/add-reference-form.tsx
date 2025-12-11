@@ -19,24 +19,20 @@ import { Card, CardContent, CardTitle, CardDescription, CardFooter } from '@/com
 import { Loader2, FileText, Plus, Eraser, CheckCircle2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-
-const formSchema = z.object({
-  learPN: z.string().min(1, 'Lear PN is required'),
-  tescaPN: z.string().min(1, 'Tesca PN is required'),
-  desc: z.string().min(1, 'Description is required'),
-  qtyPerBox: z.string().min(1, 'quantity is required'),
-
-})
-
-
-interface ReferenceFormProps {
-  initialData?: any
-  onSuccess?: () => void
-}
+import { useTranslation } from 'react-i18next'
 
 export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const isEditing = !!initialData
+
+  const formSchema = z.object({
+    learPN: z.string().min(1, t('references.learPNRequired')),
+    tescaPN: z.string().min(1, t('references.tescaPNRequired')),
+    desc: z.string().min(1, t('references.descriptionRequired')),
+    qtyPerBox: z.string().min(1, t('references.quantityRequired')),
+  })
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,10 +49,10 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
     try {
       if (isEditing) {
         await axios.put(`http://localhost:8080/api/parts/${initialData.id}`, values, { withCredentials: true })
-        toast.success('Reference updated successfully')
+        toast.success(t('references.referenceUpdatedSuccess'))
       } else {
         await axios.post('http://localhost:8080/api/parts', values, { withCredentials: true })
-        toast.success('Reference added successfully')
+        toast.success(t('references.referenceAddedSuccess'))
       }
 
       form.reset()
@@ -65,8 +61,8 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
       }
     } catch (error: any) {
       console.error('Error saving reference:', error)
-      toast.error(isEditing ? 'Failed to update reference' : 'Failed to add reference', {
-        description: error.response?.data?.message || 'Please check your connection and try again.',
+      toast.error(isEditing ? t('references.failedToUpdateReference') : t('references.failedToAddReference'), {
+        description: error.response?.data?.message || t('references.checkConnection'),
       })
     } finally {
       setLoading(false)
@@ -75,7 +71,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
 
   const handleReset = () => {
     form.reset()
-    toast.info('Form reset')
+    toast.info(t('references.formReset'))
   }
 
   return (
@@ -94,10 +90,10 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
           <div className="relative flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl sm:text-3xl font-bold text-white">
-                {isEditing ? 'Edit Reference' : 'New Reference'}
+                {isEditing ? t('references.editReference') : t('references.newReference')}
               </CardTitle>
               <CardDescription className="text-amber-100 mt-2">
-                {isEditing ? 'Update the reference details.' : 'Add a new part reference to the master database.'}
+                {isEditing ? t('references.updateReferenceDetails') : t('references.addNewPartReference')}
               </CardDescription>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 transition-transform duration-500 hover:rotate-180">
@@ -119,12 +115,12 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                         </svg>
-                        Lear PN
+                        {t('references.learPN')}
                       </FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <Input
-                            placeholder="exemple L002525407NCPAF"
+                            placeholder={t('references.learPNPlaceholder')}
                             className="pl-10 h-11 border-2 transition-all duration-200 focus:ring-4 focus:ring-orange-500/20 group-hover:border-orange-400 bg-white"
                             {...field}
                           />
@@ -134,7 +130,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         </div>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-600">
-                        The unique Lear part number.
+                        {t('references.learPNDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -150,12 +146,12 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         <svg className="h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        Tesca PN
+                        {t('references.tescaPN')}
                       </FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <Input
-                            placeholder="exemple 350647309"
+                            placeholder={t('references.tescaPNPlaceholder')}
                             className="pl-10 h-11 border-2 transition-all duration-200 focus:ring-4 focus:ring-amber-500/20 group-hover:border-amber-400 bg-white"
                             {...field}
                           />
@@ -165,7 +161,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         </div>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-600">
-                        The corresponding Tesca part number.
+                        {t('references.tescaPNDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -183,12 +179,12 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         <svg className="h-4 w-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                         </svg>
-                        Description
+                        {t('references.description')}
                       </FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <Input
-                            placeholder="exemple CF CC21_L3_RSB60 X3"
+                            placeholder={t('references.descriptionPlaceholder')}
                             className="pl-10 h-11 border-2 transition-all duration-200 focus:ring-4 focus:ring-yellow-500/20 group-hover:border-yellow-400 bg-white"
                             {...field}
                           />
@@ -198,7 +194,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         </div>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-600">
-                        A brief description of the part.
+                        {t('references.descriptionDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -214,12 +210,12 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
-                        Quantity by box
+                        {t('references.quantityByBox')}
                       </FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <Input
-                            placeholder="exemple 10"
+                            placeholder={t('references.quantityPlaceholder')}
                             type="number"
                             className="pl-10 h-11 border-2 transition-all duration-200 focus:ring-4 focus:ring-orange-500/20 group-hover:border-orange-400 bg-white"
                             {...field}
@@ -230,7 +226,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                         </div>
                       </FormControl>
                       <FormDescription className="text-xs text-gray-600">
-                        The quantity of parts by box
+                        {t('references.quantityDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -249,7 +245,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                   className="h-11 border-2 transition-transform active:scale-95 hover:bg-gray-50"
                 >
                   <Eraser className="mr-2 h-4 w-4" />
-                  Reset
+                  {t('references.reset')}
                 </Button>
                 <Button
                   type="submit"
@@ -259,12 +255,12 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isEditing ? 'Updating...' : 'Adding...'}
+                      {isEditing ? t('references.updating') : t('references.adding')}
                     </>
                   ) : (
                     <>
                       {isEditing ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                      {isEditing ? 'Update Reference' : 'Add Reference'}
+                      {isEditing ? t('references.updateReference') : t('references.addReference')}
                     </>
                   )}
                 </Button>
@@ -278,7 +274,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
             <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Ensure all part numbers are verified before submission.
+            {t('references.ensurePartNumbersVerified')}
           </p>
         </CardFooter>
       </Card>

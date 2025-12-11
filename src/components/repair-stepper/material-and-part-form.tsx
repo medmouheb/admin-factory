@@ -270,7 +270,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                     className='h-14 px-4 text-base font-mono bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl cursor-not-allowed'
                     readOnly
                     value={part.tescaPN}
-                    placeholder='Will be filled automatically...'
+                    placeholder={t('repairStepper.willBeFilledAuto')}
                   />
                   {part.tescaPN && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>
@@ -298,7 +298,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                     className='h-14 px-4 text-base bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 rounded-xl cursor-not-allowed'
                     readOnly
                     value={part.desc}
-                    placeholder='Will be filled automatically...'
+                    placeholder={t('repairStepper.willBeFilledAuto')}
                   />
                   {part.desc && (
                     <div className='absolute right-3 top-1/2 -translate-y-1/2'>

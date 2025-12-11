@@ -1,6 +1,7 @@
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import { useEffect, useState } from 'react'
 import { format, getWeek } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 interface AnalyticsChartProps {
   stats: { date: string; count: number; errors?: number }[]
@@ -8,6 +9,7 @@ interface AnalyticsChartProps {
 }
 
 export default function AnalyticsChart({ stats, granularity }: AnalyticsChartProps) {
+  const { t } = useTranslation()
   const [data, setData] = useState<any[]>([])
 
   useEffect(() => {
@@ -82,7 +84,7 @@ export default function AnalyticsChart({ stats, granularity }: AnalyticsChartPro
         <Area
           type='monotone'
           dataKey='tickets'
-          name="Tickets Generated"
+          name={t('analytics.ticketsGenerated')}
           stroke='#3b82f6'
           strokeWidth={3}
           fillOpacity={1}
@@ -93,7 +95,7 @@ export default function AnalyticsChart({ stats, granularity }: AnalyticsChartPro
         <Area
           type='monotone'
           dataKey='errors'
-          name="Errors"
+          name={t('analytics.errors')}
           stroke='#ef4444'
           strokeWidth={3}
           fillOpacity={1}

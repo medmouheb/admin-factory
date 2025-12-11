@@ -12,12 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { type User } from '../data/schema'
 import { useUsers } from './users-provider'
+import { useTranslation } from 'react-i18next'
 
 type DataTableRowActionsProps = {
   row: Row<User>
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
+  const { t } = useTranslation()
   const { setOpen, setCurrentRow } = useUsers()
   return (
     <>
@@ -28,7 +30,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             className='data-[state=open]:bg-muted flex h-8 w-8 p-0'
           >
             <DotsHorizontalIcon className='h-4 w-4' />
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('users.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[160px]'>
@@ -38,7 +40,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               setOpen('edit')
             }}
           >
-            Edit
+            {t('users.edit')}
             <DropdownMenuShortcut>
               <UserPen size={36} />
             </DropdownMenuShortcut>
@@ -50,7 +52,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               setOpen('barcode')
             }}
           >
-            Generate Barcode
+            {t('users.generateBarcode')}
             <DropdownMenuShortcut>
               <Barcode size={35} />
             </DropdownMenuShortcut>
@@ -63,7 +65,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             }}
             className='text-red-500!'
           >
-            Delete
+            {t('users.delete')}
             <DropdownMenuShortcut>
               <Trash2 size={16} />
             </DropdownMenuShortcut>

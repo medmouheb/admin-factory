@@ -18,19 +18,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { useTranslation } from 'react-i18next'
 
 const matriculeRegex = /^[a-zA-Z0-9]+$/
-
-const formSchema = z.object({
-  matricule: z
-    .string()
-    .min(5, 'Matricule must be at least 5 characters long')
-    .regex(matriculeRegex, 'Matricule cannot contain special characters'),
-  password: z
-    .string()
-    .min(1, 'Please enter your password')
-    .min(7, 'Password must be at least 7 characters long'),
-})
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
@@ -41,9 +31,21 @@ export function UserAuthForm({
   redirectTo,
   ...props
 }: UserAuthFormProps) {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const { auth } = useAuthStore()
+
+  const formSchema = z.object({
+    matricule: z
+      .string()
+      .min(5, t('auth.matriculeMinLength'))
+      .regex(matriculeRegex, t('auth.matriculeNoSpecialChars')),
+    password: z
+      .string()
+      .min(1, t('auth.passwordRequired'))
+      .min(7, t('auth.passwordMinLength')),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -98,14 +100,14 @@ export function UserAuthForm({
 
       if (!res.ok) {
         const err = await res.json()
-        toast.error(err.message || 'Invalid credentials')
+        toast.error(err.message || t('auth.invalidCredentials'))
         setIsLoading(false)
         return
       }
 
       // ✅ Successful login
       const userData = await res.json() // optional, backend can return user info
-      toast.success(`Welcome back, ${data.matricule}!`)
+      toast.success(t('auth.welcomeBackUser', { matricule: data.matricule }))
       // Mock successful authentication with expiry computed at success time
 
       // Set user in auth store if you want client-side access
@@ -123,7 +125,7 @@ export function UserAuthForm({
       navigate({ to: targetPath, replace: true })
     } catch (error) {
       console.error(error)
-      toast.error('Server error')
+      toast.error(t('auth.serverError'))
     } finally {
       setIsLoading(false)
     }
@@ -139,10 +141,10 @@ export function UserAuthForm({
         {/* Welcome Text */}
         <div className="space-y-2 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
           <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Welcome Back
+            {t('auth.welcomeBack')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Enter your credentials to access your account
+            {t('auth.enterCredentials')}
           </p>
         </div>
 
@@ -156,11 +158,11 @@ export function UserAuthForm({
                 <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                Matricule
+                {t('auth.matricule')}
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter your matricule"
+                  placeholder={t('auth.enterMatricule')}
                   className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
                   {...field}
                 />
@@ -181,7 +183,7 @@ export function UserAuthForm({
                   <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
-                  Password
+                  {t('auth.password')}
                 </FormLabel>
                 <button
                   type="button"
@@ -189,20 +191,20 @@ export function UserAuthForm({
                     toast.promise(
                       new Promise((resolve) => setTimeout(resolve, 1000)),
                       {
-                        loading: 'Sending notification...',
-                        success: 'Notification sent to abderrahmen.dai.11@gmail.com',
-                        error: 'Failed to send notification',
+                        loading: t('auth.sendingNotification'),
+                        success: t('auth.notificationSent', { email: 'abderrahmen.dai.11@gmail.com' }),
+                        error: t('auth.failedToSendNotification'),
                       }
                     )
                   }}
                   className="text-xs font-medium text-primary hover:underline underline-offset-4 transition-all hover:text-primary/80"
                 >
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </button>
               </div>
               <FormControl>
                 <PasswordInput
-                  placeholder="Enter your password"
+                  placeholder={t('auth.enterPassword')}
                   className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
                   {...field}
                 />
@@ -220,12 +222,12 @@ export function UserAuthForm({
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
+              {t('auth.signingIn')}
             </>
           ) : (
             <>
               <LogIn className="mr-2 h-4 w-4" />
-              Sign in
+              {t('auth.signIn')}
             </>
           )}
         </Button>
@@ -237,7 +239,7 @@ export function UserAuthForm({
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Secure Login
+              {t('auth.secureLogin')}
             </span>
           </div>
         </div>
@@ -247,7 +249,7 @@ export function UserAuthForm({
           <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <span>Your connection is secure and encrypted</span>
+          <span>{t('auth.connectionSecure')}</span>
         </div>
       </form>
     </Form>

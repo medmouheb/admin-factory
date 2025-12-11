@@ -25,10 +25,11 @@ import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { roles } from '../data/data'
 import { type User } from '../data/schema'
 
-import { usersColumns as columns } from './users-columns'
+import { useUsersColumns } from './users-columns'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useUsers } from './users-provider'
+import { useTranslation } from 'react-i18next'
 
 type DataTableProps = {
   data: User[]
@@ -38,6 +39,8 @@ type DataTableProps = {
 }
 
 export function UsersTable({ data, search, navigate, roleFilter }: DataTableProps) {
+  const { t } = useTranslation()
+  const columns = useUsersColumns()
   // Local UI-only states
   const { setRefreshCallback } = useUsers()
 
@@ -65,7 +68,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
       })
       if (!res.ok) {
         const err = await res.json().catch(() => null)
-        toast.error(err?.message || 'Search failed')
+        toast.error(err?.message || t('users.searchFailed'))
         return
       }
       const json = await res.json()
@@ -85,7 +88,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
         })) as User[]
       )
     } catch (e) {
-      toast.error('Server error')
+      toast.error(t('users.serverError'))
     } finally {
       setIsFetching(false)
     }
@@ -160,12 +163,12 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Search by username, matricule, or name...'
+        searchPlaceholder={t('users.searchPlaceholder')}
         searchKey='matricule'
         filters={[
           {
             columnId: 'role',
-            title: 'Role',
+            title: t('users.role'),
             options: roles.map((role) => ({ ...role })),
           },
         ]}
@@ -207,7 +210,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
                       <svg className="h-8 w-8 animate-spin text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
-                      <span className="font-medium">Loading users...</span>
+                      <span className="font-medium">{t('users.loadingUsers')}</span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -247,7 +250,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
                       <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                       </svg>
-                      <span className="font-medium">No users found matching criteria.</span>
+                      <span className="font-medium">{t('users.noUsersFound')}</span>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -19,13 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Loader2, Box, FileText, Plus, Eraser, CheckCircle2, Archive, Package } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-
-const formSchema = z.object({
-    material: z.string().min(1, 'Material is required'),
-    materialDescription: z.string().min(1, 'Description is required'),
-    storageUn: z.string().min(1, 'Storage Unit is required'),
-    availStock: z.string().min(1, 'Available Stock is required'),
-})
+import { useTranslation } from 'react-i18next'
 
 interface MaterialFormProps {
     initialData?: any
@@ -33,8 +27,16 @@ interface MaterialFormProps {
 }
 
 export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
+    const { t } = useTranslation()
     const [loading, setLoading] = useState(false)
     const isEditing = !!initialData
+
+    const formSchema = z.object({
+        material: z.string().min(1, t('materials.materialRequired')),
+        materialDescription: z.string().min(1, t('materials.descriptionRequired')),
+        storageUn: z.string().min(1, t('materials.storageUnitRequired')),
+        availStock: z.string().min(1, t('materials.availableStockRequired')),
+    })
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -51,10 +53,10 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
         try {
             if (isEditing) {
                 await axios.put(`http://localhost:8080/api/materials/${initialData.id}`, values, { withCredentials: true })
-                toast.success('Material updated successfully')
+                toast.success(t('materials.materialUpdatedSuccess'))
             } else {
                 await axios.post('http://localhost:8080/api/materials', values, { withCredentials: true })
-                toast.success('Material added successfully')
+                toast.success(t('materials.materialAddedSuccess'))
             }
 
             form.reset()
@@ -63,8 +65,8 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
             }
         } catch (error: any) {
             console.error('Error saving material:', error)
-            toast.error(isEditing ? 'Failed to update material' : 'Failed to add material', {
-                description: error.response?.data?.message || 'Please check your connection and try again.',
+            toast.error(isEditing ? t('materials.failedToUpdateMaterial') : t('materials.failedToAddMaterial'), {
+                description: error.response?.data?.message || t('materials.checkConnection'),
             })
         } finally {
             setLoading(false)
@@ -73,7 +75,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
 
     const handleReset = () => {
         form.reset()
-        toast.info('Form reset')
+        toast.info(t('materials.formReset'))
     }
 
     return (
@@ -87,10 +89,10 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                     <div className='flex items-center justify-between'>
                         <div>
                             <CardTitle className='text-2xl font-bold tracking-tight'>
-                                {isEditing ? 'Edit Material' : 'New Material'}
+                                {isEditing ? t('materials.editMaterial') : t('materials.newMaterial')}
                             </CardTitle>
                             <CardDescription className='text-muted-foreground mt-2'>
-                                {isEditing ? 'Update the material details.' : 'Add a new material to the inventory.'}
+                                {isEditing ? t('materials.updateMaterialDetails') : t('materials.addNewMaterial')}
                             </CardDescription>
                         </div>
                         <div className='bg-primary/10 rounded-full p-3 transition-transform duration-500 hover:rotate-180'>
@@ -110,12 +112,12 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                         <FormItem className='animate-in fade-in slide-in-from-left-4 duration-500 delay-100 fill-mode-backwards'>
                                             <FormLabel className='flex items-center gap-2'>
                                                 <Box className='h-4 w-4 text-blue-500' />
-                                                Material
+                                                {t('materials.material')}
                                             </FormLabel>
                                             <FormControl>
                                                 <div className='relative group'>
                                                     <Input
-                                                        placeholder='e.g. MAT-001'
+                                                        placeholder={t('materials.materialPlaceholder')}
                                                         className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 group-hover:border-blue-400'
                                                         {...field}
                                                     />
@@ -123,7 +125,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                                 </div>
                                             </FormControl>
                                             <FormDescription>
-                                                The unique identifier for the material.
+                                                {t('materials.materialDescription')}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -137,12 +139,12 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                         <FormItem className='animate-in fade-in slide-in-from-right-4 duration-500 delay-200 fill-mode-backwards'>
                                             <FormLabel className='flex items-center gap-2'>
                                                 <Archive className='h-4 w-4 text-green-500' />
-                                                Storage Unit
+                                                {t('materials.storageUnit')}
                                             </FormLabel>
                                             <FormControl>
                                                 <div className='relative group'>
                                                     <Input
-                                                        placeholder='e.g. WH-A-01'
+                                                        placeholder={t('materials.storageUnitPlaceholder')}
                                                         className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-green-500/20 group-hover:border-green-400'
                                                         {...field}
                                                     />
@@ -150,7 +152,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                                 </div>
                                             </FormControl>
                                             <FormDescription>
-                                                The storage location unit.
+                                                {t('materials.storageUnitDescription')}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -165,12 +167,12 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                         <FormItem className='animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards'>
                                             <FormLabel className='flex items-center gap-2'>
                                                 <FileText className='h-4 w-4 text-orange-500' />
-                                                Description
+                                                {t('materials.description')}
                                             </FormLabel>
                                             <FormControl>
                                                 <div className='relative group'>
                                                     <Input
-                                                        placeholder='e.g. Raw Aluminum Sheet'
+                                                        placeholder={t('materials.descriptionPlaceholder')}
                                                         className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-orange-500/20 group-hover:border-orange-400'
                                                         {...field}
                                                     />
@@ -178,7 +180,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                                 </div>
                                             </FormControl>
                                             <FormDescription>
-                                                A brief description of the material.
+                                                {t('materials.descriptionDesc')}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -192,12 +194,12 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                         <FormItem className='animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-backwards'>
                                             <FormLabel className='flex items-center gap-2'>
                                                 <Package className='h-4 w-4 text-orange-500' />
-                                                Available Stock
+                                                {t('materials.availableStock')}
                                             </FormLabel>
                                             <FormControl>
                                                 <div className='relative group'>
                                                     <Input
-                                                        placeholder='e.g. 500'
+                                                        placeholder={t('materials.availableStockPlaceholder')}
                                                         className='pl-9 transition-all duration-200 focus:ring-2 focus:ring-orange-500/20 group-hover:border-orange-400'
                                                         {...field}
                                                     />
@@ -205,7 +207,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                                 </div>
                                             </FormControl>
                                             <FormDescription>
-                                                Current available stock quantity.
+                                                {t('materials.availableStockDescription')}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -221,7 +223,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                     className='transition-transform active:scale-95'
                                 >
                                     <Eraser className='mr-2 h-4 w-4' />
-                                    Reset
+                                    {t('materials.reset')}
                                 </Button>
                                 <Button
                                     type='submit'
@@ -231,12 +233,12 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                                     {loading ? (
                                         <>
                                             <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                            {isEditing ? 'Updating...' : 'Adding...'}
+                                            {isEditing ? t('materials.updating') : t('materials.adding')}
                                         </>
                                     ) : (
                                         <>
                                             {isEditing ? <CheckCircle2 className='mr-2 h-4 w-4' /> : <Plus className='mr-2 h-4 w-4' />}
-                                            {isEditing ? 'Update Material' : 'Add Material'}
+                                            {isEditing ? t('materials.updateMaterial') : t('materials.addMaterial')}
                                         </>
                                     )}
                                 </Button>
@@ -247,7 +249,7 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
                 <CardFooter className='bg-muted/50 flex justify-center py-4 rounded-b-xl'>
                     <p className='text-muted-foreground text-sm flex items-center gap-2'>
                         <CheckCircle2 className="h-4 w-4" />
-                        Ensure all material details are correct before submission.
+                        {t('materials.ensureMaterialDetailsCorrect')}
                     </p>
                 </CardFooter>
             </Card>

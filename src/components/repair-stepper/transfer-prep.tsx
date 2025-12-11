@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { useCurrentData } from './context'
 import { BarcodeEntry } from './types'
+import { useTranslation } from 'react-i18next'
 
 export function TransferPrepComponent() {
 
+  const { t } = useTranslation()
   const { currentData, setCurrentData } = useCurrentData()
   const { auth } = useAuthStore()
 
@@ -138,7 +140,7 @@ export function TransferPrepComponent() {
 
   const handleAdd = async () => {
     if (barcode1 !== learPN) {
-      showError('Réf Lear must match', 'barcode1')
+      showError(t('repairStepper.refLearMustMatch'), 'barcode1')
       setBarcode1('')
       return
     }
@@ -183,14 +185,14 @@ export function TransferPrepComponent() {
       })
       const data = await res.json()
       setTicketCode(data.code)
-      toast.success('Ticket generated.')
+      toast.success(t('repairStepper.ticketGenerated'))
       await bulkValidate(data.code)
 
       // Ticket generation logic moved to generateTicketPDF function
       generateTicketPDF(data.code)
 
     } catch (err: any) {
-      showError(err.message || 'Ticket generation failed')
+      showError(err.message || t('repairStepper.ticketGenerationFailed'))
     } finally {
       setProcessing(false)
     }
@@ -210,10 +212,10 @@ export function TransferPrepComponent() {
           }))
         ),
       })
-      toast.success(`Saved ${barcodesLocal.length} codes.`)
+      toast.success(t('repairStepper.savedCodes', { count: barcodesLocal.length }))
       setShowPdfButton(true)
     } catch (err: any) {
-      showError(err.message || 'Bulk save failed')
+      showError(err.message || t('repairStepper.bulkSaveFailed'))
     } finally {
       setProcessing(false)
     }
@@ -229,47 +231,6 @@ export function TransferPrepComponent() {
     }
   }
 
-  // Génération du code ZPL pour étiquette Galia format Tesca
-  const generateZPL = () => {
-    // Code-barres combiné: LearPN + TicketCode
-    const combinedBarcode = `${learPN}${ticketCode}`
-
-    // Date et heure actuelles
-    const now = new Date()
-    const dateStr = now.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-    })
-    const timeStr = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    })
-
-    const zpl = `
-      ^XA
-      ^CI28
-      ^PW812
-      ^LL406
-
-      ^FO20,20^A0N,35,35^FDtesca^FS
-
-      ^FO20,80^A0N,25,25^FD${learPN}^FS
-
-      ^FO20,120^BY2,3^BCN,100,N,N,N^FD${combinedBarcode}^FS
-
-      ^FO20,240^A0N,30,30^FD${learPN} ${ticketCode}^FS
-
-      ^FO20,290^A0N,20,20^FDOper: ${auth.user?.matricule}^FS
-
-      ^FO20,320^A0N,20,20^FDDate: ${dateStr} Time: ${timeStr}^FS
-
-      ^XZ
-      `
-    return zpl.trim()
-  }
 
 
 
@@ -369,9 +330,9 @@ export function TransferPrepComponent() {
                 </svg>
               </div>
               <h2 className='mb-2 text-2xl font-bold text-gray-800'>
-                Ticket Preview
+                {t('repairStepper.ticketPreview')}
               </h2>
-              <p className='text-gray-600'>Galia Transfer Label</p>
+              <p className='text-gray-600'>{t('repairStepper.galiaTransferLabel')}</p>
             </div>
 
             {/* Ticket Preview */}
@@ -400,11 +361,11 @@ export function TransferPrepComponent() {
                 {/* 4. Footer Section */}
                 <div className='h-[20%] relative'>
                   <div className='flex justify-between px-2 pt-1 font-bold text-sm'>
-                    <span>Oper: {auth.user?.matricule || 'N/A'}</span>
-                    <span>Qty: {qty}</span>
+                    <span>{t('repairStepper.oper')}: {auth.user?.matricule || t('repairStepper.nA')}</span>
+                    <span>{t('repairStepper.qty')}: {qty}</span>
                   </div>
                   <div className='absolute bottom-1 w-full text-center text-[10px] text-gray-600'>
-                    Date: {dateStr} Time: {timeStr}
+                    {t('repairStepper.date')}: {dateStr} {t('repairStepper.time')}: {timeStr}
                   </div>
                 </div>
 
@@ -417,7 +378,7 @@ export function TransferPrepComponent() {
                 onClick={() => setShowPreview(false)}
                 className='rounded-xl border-2 border-gray-300 px-6 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50'
               >
-                Close
+                {t('repairStepper.close')}
               </button>
               <button
                 onClick={() => {
@@ -439,7 +400,7 @@ export function TransferPrepComponent() {
                     d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'
                   />
                 </svg>
-                Download & Print
+                {t('repairStepper.downloadAndPrint')}
               </button>
             </div>
           </div>
@@ -521,6 +482,7 @@ export function TransferPrepComponent() {
     }
   }
 
+
   const progress = qty === 0 ? 0 : (barcodesLocal.length / qty) * 100
 
   const itemsLeft = Math.max(0, qty - barcodesLocal.length)
@@ -552,10 +514,10 @@ export function TransferPrepComponent() {
                 d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
               />
             </svg>
-            <span className='truncate'>Transfer Preparation</span>
+            <span className='truncate'>{t('repairStepper.transferPreparation')}</span>
           </h1>
           <p className='ml-0 text-xs text-blue-100 sm:ml-0 sm:text-sm'>
-            Scan and collect barcodes for transfer label generation
+            {t('repairStepper.transferSubtitle')}
           </p>
         </div>
       </div>
@@ -579,7 +541,7 @@ export function TransferPrepComponent() {
                 d='M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z'
               />
             </svg>
-            Barcode Scanner
+            {t('repairStepper.barcodeScanner')}
           </CardTitle>
         </CardHeader>
 
@@ -605,9 +567,9 @@ export function TransferPrepComponent() {
                       d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'
                     />
                   </svg>
-                  Réf Lear
+                  {t('repairStepper.refLear')}
                   <span className='text-xs font-normal text-gray-500'>
-                    (15 chars, starts with L)
+                    {t('repairStepper.refLearHint')}
                   </span>
                 </Label>
                 <Input
@@ -628,19 +590,19 @@ export function TransferPrepComponent() {
                     if (e.key === 'Enter') {
                       if (barcode1.length !== 15) {
                         showError(
-                          'Réf Lear must be exactly 15 characters',
+                          t('repairStepper.refLear15Chars'),
                           'barcode1'
                         )
                         setBarcode1('')
                       } else if (!barcode1.startsWith('L')) {
-                        showError('Réf Lear must start with L', 'barcode1')
+                        showError(t('repairStepper.refLearStartL'), 'barcode1')
                         setBarcode1('')
                       } else if (
                         barcode1.toLowerCase() === learPN.toLowerCase()
                       ) {
                         barcode2Ref.current?.focus()
                       } else {
-                        showError('Réf Lear must match Lear PN', 'barcode1')
+                        showError(t('repairStepper.refLearMustMatchPN'), 'barcode1')
                         setBarcode1('')
                       }
                     }
@@ -656,7 +618,7 @@ export function TransferPrepComponent() {
                     barcode1.startsWith('L') &&
                     'border-green-500 ring-2 ring-green-500/20'
                   )}
-                  placeholder='L + 14 characters...'
+                  placeholder={t('repairStepper.refLearPlaceholder')}
                   maxLength={15}
                 />
                 <div className='flex justify-between text-xs'>
@@ -670,11 +632,11 @@ export function TransferPrepComponent() {
                       barcode1.length === 15 && 'text-green-600'
                     )}
                   >
-                    {barcode1.length}/15 characters
+                    {barcode1.length}/15 {t('repairStepper.refLearLength')}
                   </span>
                   {barcode1.length > 0 && !barcode1.startsWith('L') && (
                     <span className='font-medium text-red-600'>
-                      Must start with L
+                      {t('repairStepper.mustStartWithL')}
                     </span>
                   )}
                 </div>
@@ -699,9 +661,9 @@ export function TransferPrepComponent() {
                       d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                     />
                   </svg>
-                  Traceability Code
+                  {t('repairStepper.traceabilityCode')}
                   <span className='text-xs font-normal text-gray-500'>
-                    (13 chars)
+                    {t('repairStepper.traceabilityHint')}
                   </span>
                 </Label>
                 <Input
@@ -718,7 +680,7 @@ export function TransferPrepComponent() {
                     if (e.key === 'Enter') {
                       if (barcode2.length !== 13) {
                         showError(
-                          'Traceability code must be exactly 13 characters',
+                          t('repairStepper.traceability13Chars'),
                           'barcode2'
                         )
                         setBarcode2('')
@@ -739,8 +701,8 @@ export function TransferPrepComponent() {
                   )}
                   placeholder={
                     prefix6
-                      ? `Start with ${prefix6} (13 chars)`
-                      : 'Awaiting Lear PN...'
+                      ? t('repairStepper.traceabilityPlaceholder', { prefix: prefix6 })
+                      : t('repairStepper.awaitingLearPN')
                   }
                   autoComplete='off'
                   maxLength={13}
@@ -757,13 +719,13 @@ export function TransferPrepComponent() {
                       barcode2.length === 13 && 'text-green-600'
                     )}
                   >
-                    {barcode2.length}/13 characters
+                    {barcode2.length}/13 {t('repairStepper.refLearLength')}
                   </span>
                   {prefix6 &&
                     barcode2.length > 0 &&
                     !barcode2.startsWith(prefix6) && (
                       <span className='font-medium text-red-600'>
-                        Must start with {prefix6}
+                        {t('repairStepper.mustStartWith', { prefix: prefix6 })}
                       </span>
                     )}
                 </div>
@@ -787,9 +749,9 @@ export function TransferPrepComponent() {
                 </svg>
               </div>
               <h3 className='mb-2 text-xl font-bold text-gray-800'>
-                All Items Scanned!
+                {t('repairStepper.allItemsScanned')}
               </h3>
-              <p className='text-gray-600'>Ready to generate transfer label</p>
+              <p className='text-gray-600'>{t('repairStepper.readyToGenerate')}</p>
             </div>
           )}
 
@@ -811,7 +773,7 @@ export function TransferPrepComponent() {
                     d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
                   />
                 </svg>
-                Scanning Progress
+                {t('repairStepper.scanningProgress')}
               </CardTitle>
             </CardHeader>
             <CardContent className='relative'>
@@ -822,12 +784,12 @@ export function TransferPrepComponent() {
                       <span className='inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white'>
                         {itemsLeft}
                       </span>
-                      remaining
+                      {t('repairStepper.remaining')}
                     </>
                   ) : (
                     <>
                       <span className='text-2xl'>🎉</span>
-                      Complete!
+                      {t('repairStepper.completeStatus')}
                     </>
                   )}
                 </span>
@@ -843,14 +805,14 @@ export function TransferPrepComponent() {
                 {progress === 100 && (
                   <div className='absolute inset-0 flex items-center justify-center'>
                     <span className='text-xs font-bold text-white drop-shadow-lg'>
-                      COMPLETE
+                      {t('repairStepper.completeStatus').toUpperCase()}
                     </span>
                   </div>
                 )}
               </div>
               <div className='mt-3 flex justify-between text-xs text-gray-600'>
-                <span>{barcodesLocal.length} scanned</span>
-                <span>{qty} required</span>
+                <span>{barcodesLocal.length} {t('repairStepper.scanned')}</span>
+                <span>{qty} {t('repairStepper.required')}</span>
               </div>
             </CardContent>
           </Card>
@@ -877,7 +839,7 @@ export function TransferPrepComponent() {
                   d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'
                 />
               </svg>
-              Collected Data Summary
+              {t('repairStepper.collectedDataSummary')}
             </CardTitle>
           </CardHeader>
 
@@ -895,7 +857,7 @@ export function TransferPrepComponent() {
                     clipRule='evenodd'
                   />
                 </svg>
-                Transfer Data Snapshot
+                {t('repairStepper.transferDataSnapshot')}
               </p>
 
               <div className='space-y-3'>
@@ -903,7 +865,7 @@ export function TransferPrepComponent() {
                   {/* Ticket Code */}
                   <div className='rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-blue-300'>
                     <p className='mb-1 text-xs font-semibold text-gray-500'>
-                      Ticket Code
+                      {t('repairStepper.ticketCode')}
                     </p>
                     <p className='font-mono text-lg font-bold text-blue-600'>
                       {qrData.ticketCode || '—'}
@@ -913,7 +875,7 @@ export function TransferPrepComponent() {
                   {/* Lear PN */}
                   <div className='rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-indigo-300'>
                     <p className='mb-1 text-xs font-semibold text-gray-500'>
-                      Lear PN
+                      {t('repairStepper.learPN')}
                     </p>
                     <p className='font-mono text-lg font-bold text-indigo-600'>
                       {qrData.learPN || '—'}
@@ -923,7 +885,7 @@ export function TransferPrepComponent() {
                   {/* Date */}
                   <div className='rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-purple-300'>
                     <p className='mb-1 text-xs font-semibold text-gray-500'>
-                      Date & Time
+                      {t('repairStepper.dateTime')}
                     </p>
                     <p className='text-sm font-medium text-gray-800'>
                       {qrData.date
@@ -935,7 +897,7 @@ export function TransferPrepComponent() {
                   {/* Quantity */}
                   <div className='rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-green-300'>
                     <p className='mb-1 text-xs font-semibold text-gray-500'>
-                      Quantity Required
+                      {t('repairStepper.quantityRequired')}
                     </p>
                     <p className='text-2xl font-bold text-green-600'>
                       {qrData.qty || 0}
@@ -959,7 +921,7 @@ export function TransferPrepComponent() {
                         d='M4 6h16M4 10h16M4 14h16M4 18h16'
                       />
                     </svg>
-                    Scanned Barcodes ({qrData.barcodes.length})
+                    {t('repairStepper.scannedBarcodes', { count: qrData.barcodes.length })}
                   </p>
                   {qrData.barcodes.length > 0 ? (
                     <div className='custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-2'>
@@ -1007,7 +969,7 @@ export function TransferPrepComponent() {
                           d='M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4'
                         />
                       </svg>
-                      <p className='text-sm font-medium'>No scans yet</p>
+                      <p className='text-sm font-medium'>{t('repairStepper.noScansYet')}</p>
                     </div>
                   )}
                 </div>
@@ -1022,7 +984,7 @@ export function TransferPrepComponent() {
         <div className='animate-in fade-in zoom-in-95 px-3 text-center duration-500'>
           <div className='inline-block max-w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 shadow-xl sm:rounded-2xl sm:p-6'>
             <p className='mb-2 text-xs font-semibold text-blue-100 sm:text-sm'>
-              Generated Ticket Code
+              {t('repairStepper.generatedTicketCode')}
             </p>
             <p className='font-mono text-xl font-bold tracking-wider break-all text-white sm:text-2xl md:text-3xl'>
               {ticketCode}

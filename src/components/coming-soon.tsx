@@ -50,6 +50,7 @@ import jsPDF from 'jspdf'
 import JsBarcode from 'jsbarcode'
 import { useAuthStore } from "@/stores/auth-store"
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 type TicketCode = {
   id: string
@@ -73,6 +74,7 @@ type Ticket = {
 }
 
 export function ComingSoon() {
+  const { t } = useTranslation()
   const [data, setData] = useState<TicketCode[]>([])
   const [selectedOne, setSelectedOne] = useState<TicketCode>()
 
@@ -224,20 +226,20 @@ export function ComingSoon() {
 
         setTickets(allTickets)
         if (allTickets.length > 0) {
-          toast.success(`Loaded ${allTickets.length} ticket(s)`)
+          toast.success(t('ticketManagement.loadedTickets', { count: allTickets.length }))
         }
       } else {
         setTickets(ticketsData)
         if (ticketsData.length > 0) {
-          toast.success(`Loaded ${ticketsData.length} ticket(s)`)
+          toast.success(t('ticketManagement.loadedTickets', { count: ticketsData.length }))
         } else {
-          toast.info("No tickets found for this code")
+          toast.info(t('ticketManagement.noTicketsFoundForCode'))
         }
       }
     } catch (err) {
       console.error("Error fetching tickets:", err)
       setTickets([])
-      const errorMessage = err instanceof Error ? err.message : "Failed to load tickets"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToLoadTickets')
       toast.error(errorMessage)
     } finally {
       setTicketLoading(false)
@@ -255,7 +257,7 @@ export function ComingSoon() {
   // ---------------------
   const handleCreateTicket = async () => {
     if (!ticketForm.barcode || !ticketForm.ticketCode) {
-      toast.error("Please fill in all fields")
+      toast.error(t('ticketManagement.pleaseFillAllFields'))
       return
     }
 
@@ -273,10 +275,10 @@ export function ComingSoon() {
 
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(errorText || "Failed to create ticket")
+        throw new Error(errorText || t('ticketManagement.failedToCreateTicket'))
       }
 
-      toast.success("Ticket created successfully")
+      toast.success(t('ticketManagement.ticketCreatedSuccess'))
       setOpenCreateDialog(false)
       setTicketForm({ barcode: "", ticketCode: "" })
       // Refresh tickets
@@ -284,7 +286,7 @@ export function ComingSoon() {
         await fetchTicketsByCode(selectedCode)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create ticket"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToCreateTicket')
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -293,7 +295,7 @@ export function ComingSoon() {
 
   const handleUpdateTicket = async () => {
     if (!selectedTicket || !ticketForm.barcode) {
-      toast.error("Please fill in all fields")
+      toast.error(t('ticketManagement.pleaseFillAllFields'))
       return
     }
 
@@ -310,10 +312,10 @@ export function ComingSoon() {
 
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(errorText || "Failed to update ticket")
+        throw new Error(errorText || t('ticketManagement.failedToUpdateTicket'))
       }
 
-      toast.success("Ticket updated successfully")
+      toast.success(t('ticketManagement.ticketUpdatedSuccess'))
       setOpenEditDialog(false)
       setSelectedTicket(null)
       setTicketForm({ barcode: "", ticketCode: "" })
@@ -322,7 +324,7 @@ export function ComingSoon() {
         await fetchTicketsByCode(selectedCode)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update ticket"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToUpdateTicket')
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -341,10 +343,10 @@ export function ComingSoon() {
 
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(errorText || "Failed to delete ticket")
+        throw new Error(errorText || t('ticketManagement.failedToDeleteTicket'))
       }
 
-      toast.success("Ticket deleted successfully")
+      toast.success(t('ticketManagement.ticketDeletedSuccess'))
       setOpenDeleteDialog(false)
       setSelectedTicket(null)
       // Refresh tickets
@@ -352,7 +354,7 @@ export function ComingSoon() {
         await fetchTicketsByCode(selectedCode)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete ticket"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToDeleteTicket')
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -380,16 +382,16 @@ export function ComingSoon() {
 
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(errorText || "Failed to update ticket code")
+        throw new Error(errorText || t('ticketManagement.failedToUpdateTicketCode'))
       }
 
-      toast.success("Ticket code updated successfully")
+      toast.success(t('ticketManagement.ticketCodeUpdatedSuccess'))
       setOpenEditTicketCodeDialog(false)
       setSelectedTicketCode(null)
       setTicketCodeForm({ learPN: "", quantity: "", hu: "" })
       await fetchTicketCodes()
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update ticket code"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToUpdateTicketCode')
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -408,15 +410,15 @@ export function ComingSoon() {
 
       if (!res.ok) {
         const errorText = await res.text()
-        throw new Error(errorText || "Failed to delete ticket code")
+        throw new Error(errorText || t('ticketManagement.failedToDeleteTicketCode'))
       }
 
-      toast.success("Ticket code deleted successfully")
+      toast.success(t('ticketManagement.ticketCodeDeletedSuccess'))
       setOpenDeleteTicketCodeDialog(false)
       setSelectedTicketCode(null)
       await fetchTicketCodes()
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete ticket code"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToDeleteTicketCode')
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -428,7 +430,7 @@ export function ComingSoon() {
   // ---------------------
   const handleSearchByBarcode = async () => {
     if (!barcodeSearchInput.trim()) {
-      toast.error("Please enter a barcode")
+      toast.error(t('ticketManagement.pleaseEnterBarcode'))
       return
     }
 
@@ -443,9 +445,9 @@ export function ComingSoon() {
 
       const data = await res.json()
       setBarcodeSearchResult(data)
-      toast.success("Ticket found")
+      toast.success(t('ticketManagement.ticketFoundSuccess'))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to find ticket"
+      const errorMessage = err instanceof Error ? err.message : t('ticketManagement.failedToFindTicket')
       toast.error(errorMessage)
       setBarcodeSearchResult(null)
     } finally {
@@ -731,7 +733,7 @@ export function ComingSoon() {
                 transition={{ delay: 0.3 }}
                 className="text-4xl font-bold text-white mb-2"
               >
-                Ticket Codes
+                {t('ticketManagement.title')}
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, x: -20 }}
@@ -739,7 +741,7 @@ export function ComingSoon() {
                 transition={{ delay: 0.4 }}
                 className="text-white/90 text-lg"
               >
-                Manage and track ticket codes
+                {t('ticketManagement.subtitle')}
               </motion.p>
             </div>
           </div>
@@ -748,14 +750,14 @@ export function ComingSoon() {
               onClick={() => navigate({ to: '/reapirage' })}
               className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg transition-all duration-200 hover:scale-105"
             >
-              <Plus className="mr-2 h-4 w-4" /> New Ticket
+              <Plus className="mr-2 h-4 w-4" /> {t('ticketManagement.newTicket')}
             </Button>
             <Button
               variant="outline"
               onClick={() => setOpenBarcodeSearchDialog(true)}
               className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-200 hover:scale-105"
             >
-              <Search className="mr-2 h-4 w-4" /> Scan Barcode
+              <Search className="mr-2 h-4 w-4" /> {t('ticketManagement.scanBarcode')}
             </Button>
           </div>
         </div>
@@ -772,7 +774,7 @@ export function ComingSoon() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-lg font-bold text-foreground">Filters & Search</CardTitle>
+              <CardTitle className="text-lg font-bold text-foreground">{t('ticketManagement.filtersAndSearch')}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               {activeFiltersCount > 0 && (
@@ -782,7 +784,7 @@ export function ComingSoon() {
                   onClick={resetFilters}
                   className="h-8 text-muted-foreground hover:text-foreground"
                 >
-                  Reset Filters ({activeFiltersCount})
+                  {t('ticketManagement.resetFilters')} ({activeFiltersCount})
                 </Button>
               )}
               <Button
@@ -798,12 +800,12 @@ export function ComingSoon() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="search">Ticket code</Label>
+                <Label htmlFor="search">{t('ticketManagement.ticketCode')}</Label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Search ticket code..."
+                    placeholder={t('ticketManagement.searchTicketCode')}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -813,10 +815,10 @@ export function ComingSoon() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hu">HU Number</Label>
+                <Label htmlFor="hu">{t('ticketManagement.huNumber')}</Label>
                 <Input
                   id="hu"
-                  placeholder="Filter by HU..."
+                  placeholder={t('ticketManagement.filterByHu')}
                   value={hu}
                   onChange={(e) => {
                     setHu(e.target.value)
@@ -826,7 +828,7 @@ export function ComingSoon() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">{t('ticketManagement.date')}</Label>
                 <div className="relative">
                   <Calendar className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -843,17 +845,17 @@ export function ComingSoon() {
               </div>
 
               <div className="space-y-2">
-                <Label>Sort Order</Label>
+                <Label>{t('ticketManagement.sortOrder')}</Label>
                 <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => {
                   setSortOrder(value)
                   setPage(1)
                 }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sort by date" />
+                    <SelectValue placeholder={t('ticketManagement.sortByDate')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="desc">Newest first</SelectItem>
-                    <SelectItem value="asc">Oldest first</SelectItem>
+                    <SelectItem value="desc">{t('ticketManagement.newestFirst')}</SelectItem>
+                    <SelectItem value="asc">{t('ticketManagement.oldestFirst')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -875,27 +877,27 @@ export function ComingSoon() {
               <TableHeader className="bg-purple-50/50">
                 <TableRow>
                   <TableHead className="w-40 text-xs font-bold uppercase tracking-wider text-purple-900">
-                    Ticket Code
+                    {t('ticketManagement.ticketCode')}
                   </TableHead>
                   <TableHead className="w-40 text-xs font-bold uppercase tracking-wider text-purple-900">
-                    Operateur
+                    {t('ticketManagement.operateur')}
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
-                    Lear PN
+                    {t('ticketManagement.learPN')}
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
-                    Quantity
+                    {t('ticketManagement.quantity')}
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
-                    HU
+                    {t('ticketManagement.hu')}
                   </TableHead>
                   <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900">
-                    Created At
+                    {t('ticketManagement.createdAt')}
                   </TableHead>
 
                   {auth.user?.role !== 'operateur' && (
                     <TableHead className="text-xs font-bold uppercase tracking-wider text-purple-900 text-right w-24">
-                      Actions
+                      {t('ticketManagement.actions')}
                     </TableHead>
                   )}
                 </TableRow>
@@ -936,7 +938,7 @@ export function ComingSoon() {
                     <TableCell>
                       {item.quantity ? (
                         <span className="text-sm font-medium">
-                          {item.quantity} units
+                          {item.quantity} {t('ticketManagement.units')}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -970,7 +972,7 @@ export function ComingSoon() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuLabel>{t('ticketManagement.actions')}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={(e) => {
@@ -980,7 +982,7 @@ export function ComingSoon() {
                               className="cursor-pointer"
                             >
                               <Edit className="mr-2 h-4 w-4 text-orange-500" />
-                              Edit details
+                              {t('ticketManagement.editDetails')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={(e) => {
@@ -990,7 +992,7 @@ export function ComingSoon() {
                               className="cursor-pointer text-destructive focus:text-destructive"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete record
+                              {t('ticketManagement.deleteRecord')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1007,9 +1009,9 @@ export function ComingSoon() {
                           <Search className="h-8 w-8 text-purple-300" />
                         </div>
                         <div className="space-y-1">
-                          <h3 className="text-lg font-semibold">No tickets found</h3>
+                          <h3 className="text-lg font-semibold">{t('ticketManagement.noTicketsFound')}</h3>
                           <p className="text-muted-foreground max-w-[400px]">
-                            We couldn't find any ticket codes matching your current filter criteria.
+                            {t('ticketManagement.noTicketsFoundDesc')}
                           </p>
                         </div>
                         <Button
@@ -1017,7 +1019,7 @@ export function ComingSoon() {
                           onClick={resetFilters}
                           className="mt-2"
                         >
-                          Clear all filters
+                          {t('ticketManagement.clearAllFilters')}
                         </Button>
                       </div>
                     </TableCell>
@@ -1032,9 +1034,9 @@ export function ComingSoon() {
                           <div className="h-12 w-12 rounded-full border-4 border-purple-100 border-t-purple-600 animate-spin" />
                         </div>
                         <div className="space-y-1">
-                          <h3 className="text-lg font-semibold">Loading data...</h3>
+                          <h3 className="text-lg font-semibold">{t('ticketManagement.loadingData')}</h3>
                           <p className="text-muted-foreground">
-                            Please wait while we fetch the latest records.
+                            {t('ticketManagement.loadingDataDesc')}
                           </p>
                         </div>
                       </div>
@@ -1047,7 +1049,7 @@ export function ComingSoon() {
 
           <div className="border-t bg-gray-50/50 p-4 flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Showing <span className="font-medium text-foreground">{filteredData.length > 0 ? ((page - 1) * limit) + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(page * limit, data.length)}</span> of <span className="font-medium text-foreground">{data.length || 0}</span> results
+              {t('ticketManagement.showing')} <span className="font-medium text-foreground">{filteredData.length > 0 ? ((page - 1) * limit) + 1 : 0}</span> {t('ticketManagement.to')} <span className="font-medium text-foreground">{Math.min(page * limit, data.length)}</span> {t('ticketManagement.of')} <span className="font-medium text-foreground">{data.length || 0}</span> {t('ticketManagement.results')}
             </div>
 
             <div className="flex items-center gap-2">
@@ -1058,10 +1060,10 @@ export function ComingSoon() {
                 disabled={page === 1}
                 className="shadow-sm bg-white"
               >
-                Previous
+                {t('ticketManagement.previous')}
               </Button>
               <div className="flex items-center gap-1 mx-2">
-                <span className="text-sm font-medium">Page {page} of {totalPages}</span>
+                <span className="text-sm font-medium">{t('ticketManagement.page')} {page} {t('ticketManagement.of')} {totalPages}</span>
               </div>
               <Button
                 variant="outline"
@@ -1070,7 +1072,7 @@ export function ComingSoon() {
                 disabled={page === totalPages}
                 className="shadow-sm bg-white"
               >
-                Next
+                {t('ticketManagement.next')}
               </Button>
             </div>
           </div>
@@ -1086,14 +1088,14 @@ export function ComingSoon() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-                  Tickets for: <span className="font-mono">{selectedCode}</span>
+                  {t('ticketManagement.ticketsFor')}: <span className="font-mono">{selectedCode}</span>
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  <span className="font-semibold">{tickets.length}</span> total records • <span className="font-semibold text-purple-600">{filteredTickets.length}</span> after filters
+                  <span className="font-semibold">{tickets.length}</span> {t('ticketManagement.totalRecords')} • <span className="font-semibold text-purple-600">{filteredTickets.length}</span> {t('ticketManagement.afterFilters')}
                 </p>
               </div>
               <Badge variant="secondary" className="text-sm px-3 py-1 animate-in fade-in duration-500 delay-200">
-                {ticketFiltersCount} {ticketFiltersCount === 1 ? 'filter' : 'filters'} active
+                {ticketFiltersCount} {ticketFiltersCount === 1 ? t('ticketManagement.filter') : t('ticketManagement.filters')} {t('ticketManagement.active')}
               </Badge>
             </div>
           </DialogHeader>
@@ -1102,7 +1104,7 @@ export function ComingSoon() {
             {/* Enhanced Filters Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-muted-foreground">Filter Tickets</Label>
+                <Label className="text-sm font-semibold text-muted-foreground">{t('ticketManagement.filterTickets')}</Label>
                 <div className="flex items-center gap-2">
 
                   {ticketFiltersCount > 0 && (
@@ -1112,7 +1114,7 @@ export function ComingSoon() {
                       className="text-xs h-7 transition-all duration-200 hover:scale-105"
                       onClick={resetTicketFilters}
                     >
-                      Clear all
+                      {t('ticketManagement.clearAll')}
                     </Button>
                   )}
                 </div>
@@ -1120,10 +1122,10 @@ export function ComingSoon() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="ticket-search" className="text-xs text-muted-foreground">Search</Label>
+                  <Label htmlFor="ticket-search" className="text-xs text-muted-foreground">{t('ticketManagement.search')}</Label>
                   <Input
                     id="ticket-search"
-                    placeholder="Barcode or HU…"
+                    placeholder={t('ticketManagement.barcodeOrHu')}
                     value={ticketSearch}
                     onChange={(e) => setTicketSearch(e.target.value)}
                     className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md"
@@ -1131,7 +1133,7 @@ export function ComingSoon() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="ticket-start" className="text-xs text-muted-foreground">From Date</Label>
+                  <Label htmlFor="ticket-start" className="text-xs text-muted-foreground">{t('ticketManagement.fromDate')}</Label>
                   <Input
                     id="ticket-start"
                     type="date"
@@ -1142,7 +1144,7 @@ export function ComingSoon() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="ticket-end" className="text-xs text-muted-foreground">To Date</Label>
+                  <Label htmlFor="ticket-end" className="text-xs text-muted-foreground">{t('ticketManagement.toDate')}</Label>
                   <Input
                     id="ticket-end"
                     type="date"
@@ -1153,7 +1155,7 @@ export function ComingSoon() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="ticket-sort" className="text-xs text-muted-foreground">Sort Order</Label>
+                  <Label htmlFor="ticket-sort" className="text-xs text-muted-foreground">{t('ticketManagement.sortOrder')}</Label>
                   <Select
                     value={ticketSort}
                     onValueChange={(value: "recent" | "oldest") =>
@@ -1161,11 +1163,11 @@ export function ComingSoon() {
                     }
                   >
                     <SelectTrigger id="ticket-sort" className="transition-all duration-200 focus:scale-[1.02] focus:shadow-md">
-                      <SelectValue placeholder="Sort by date" />
+                      <SelectValue placeholder={t('ticketManagement.sortByDate')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="recent">Newest first</SelectItem>
-                      <SelectItem value="oldest">Oldest first</SelectItem>
+                      <SelectItem value="recent">{t('ticketManagement.newestFirst')}</SelectItem>
+                      <SelectItem value="oldest">{t('ticketManagement.oldestFirst')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1178,9 +1180,9 @@ export function ComingSoon() {
                 <Table>
                   <TableHeader className="bg-gradient-to-r from-muted/60 to-muted/40">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-1/4 font-semibold text-xs uppercase tracking-wider">Ticket Barcode</TableHead>
-                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Created Date</TableHead>
-                      <TableHead className="font-semibold text-xs uppercase tracking-wider text-right w-24">Actions</TableHead>
+                      <TableHead className="w-1/4 font-semibold text-xs uppercase tracking-wider">{t('ticketManagement.ticketBarcode')}</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">{t('ticketManagement.createdDate')}</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider text-right w-24">{t('ticketManagement.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
 
@@ -1193,25 +1195,25 @@ export function ComingSoon() {
                               <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                             </div>
                             <p className="text-sm text-muted-foreground animate-pulse">
-                              Loading tickets…
+                              {t('ticketManagement.loadingTickets')}
                             </p>
                           </div>
                         </TableCell>
                       </TableRow>
                     ) : paginatedTickets.length > 0 ? (
-                      paginatedTickets.map((t, index) => (
+                      paginatedTickets.map((ticket, index) => (
                         <TableRow
-                          key={t.id}
+                          key={ticket.id}
                           className={`group transition-all duration-300 hover:bg-primary/10 hover:shadow-md hover:-translate-y-[1px] ${index % 2 === 0 ? "bg-background/50" : "bg-muted/10"} animate-in fade-in slide-in-from-left-4`}
                           style={{ animationDelay: `${index * 30}ms` }}
                         >
                           <TableCell className="py-3">
                             <div className="space-y-1">
                               <p className="font-mono text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
-                                {t.barcode}
+                                {ticket.barcode}
                               </p>
                               <p className="text-xs text-muted-foreground/70">
-                                ID: {String(t.id).substring(0, 8)}...
+                                ID: {String(ticket.id).substring(0, 8)}...
                               </p>
                             </div>
                           </TableCell>
@@ -1219,10 +1221,10 @@ export function ComingSoon() {
                           <TableCell className="py-3">
                             <div className="space-y-1">
                               <div className="text-sm font-medium text-foreground">
-                                {formatDate(t.createdAt)}
+                                {formatDate(ticket.createdAt)}
                               </div>
                               <div className="text-xs text-muted-foreground/70">
-                                {new Date(t.createdAt).toLocaleDateString(undefined, { weekday: "short" })}
+                                {new Date(ticket.createdAt).toLocaleDateString(undefined, { weekday: "short" })}
                               </div>
                             </div>
                           </TableCell>
@@ -1234,7 +1236,7 @@ export function ComingSoon() {
                                   size="sm"
                                   className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
                                 >
-                                  <span className="sr-only">Open menu</span>
+                                  <span className="sr-only">{t('ticketManagement.openMenu')}</span>
                                   <svg
                                     className="h-4 w-4"
                                     fill="none"
@@ -1251,10 +1253,10 @@ export function ComingSoon() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>{t('ticketManagement.actions')}</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => openEditDialogForTicket(t)}
+                                  onClick={() => openEditDialogForTicket(ticket)}
                                   className="cursor-pointer"
                                 >
                                   <svg
@@ -1270,10 +1272,10 @@ export function ComingSoon() {
                                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                     />
                                   </svg>
-                                  Edit
+                                  {t('ticketManagement.editDetails')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => openDeleteDialogForTicket(t)}
+                                  onClick={() => openDeleteDialogForTicket(ticket)}
                                   className="cursor-pointer text-destructive focus:text-destructive"
                                 >
                                   <svg
@@ -1289,7 +1291,7 @@ export function ComingSoon() {
                                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                     />
                                   </svg>
-                                  Delete
+                                  {t('ticketManagement.delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1305,8 +1307,8 @@ export function ComingSoon() {
                           <div className="flex flex-col items-center gap-2">
                             <p className="text-base font-medium">
                               {tickets.length === 0
-                                ? "No tickets found for this batch."
-                                : "No tickets match these filters."}
+                                ? t('ticketManagement.noTicketsForBatch')
+                                : t('ticketManagement.noTicketsMatchFilters')}
                             </p>
                             {tickets.length > 0 && (
                               <Button
@@ -1315,7 +1317,7 @@ export function ComingSoon() {
                                 onClick={resetTicketFilters}
                                 className="text-xs"
                               >
-                                Clear filters to see all tickets
+                                {t('ticketManagement.clearFiltersToSeeAll')}
                               </Button>
                             )}
                           </div>
@@ -1335,22 +1337,22 @@ export function ComingSoon() {
               disabled={ticketDisplayPage === 1 || ticketLoading}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ← Previous
+              ← {t('ticketManagement.previous')}
             </Button>
 
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">
-                Page
+                {t('ticketManagement.page')}
               </p>
               <Badge variant="secondary" className="font-semibold">
                 {ticketDisplayPage}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                of <b>{ticketTotalPages || 1}</b>
+                {t('ticketManagement.of')} <b>{ticketTotalPages || 1}</b>
               </p>
               {filteredTickets.length > 0 && (
                 <p className="text-xs text-muted-foreground/70">
-                  ({filteredTickets.length} total)
+                  ({filteredTickets.length} {t('ticketManagement.results')})
                 </p>
               )}
             </div>
@@ -1361,7 +1363,7 @@ export function ComingSoon() {
               disabled={ticketDisplayPage >= ticketTotalPages || ticketLoading}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next →
+              {t('ticketManagement.next')} →
             </Button>
           </div>
 
@@ -1371,13 +1373,13 @@ export function ComingSoon() {
               onClick={() => generateTicketPDF(selectedCode)}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"
             >
-              🖨️ Print Ticket
+              🖨️ {t('ticketManagement.printTicket')}
             </Button>
             <Button
               onClick={() => setOpenDialog(false)}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"
             >
-              Close
+              {t('ticketManagement.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1387,30 +1389,30 @@ export function ComingSoon() {
       <Dialog open={openCreateDialog} onOpenChange={setOpenCreateDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Create New Ticket</DialogTitle>
+            <DialogTitle>{t('ticketManagement.createNewTicket')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="create-barcode">Barcode *</Label>
+              <Label htmlFor="create-barcode">{t('ticketManagement.barcode')} *</Label>
               <Input
                 id="create-barcode"
                 value={ticketForm.barcode}
                 onChange={(e) =>
                   setTicketForm({ ...ticketForm, barcode: e.target.value })
                 }
-                placeholder="Enter barcode"
+                placeholder={t('ticketManagement.enterBarcode')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-ticketCode">Ticket Code *</Label>
+              <Label htmlFor="create-ticketCode">{t('ticketManagement.ticketCode')} *</Label>
               <Input
                 id="create-ticketCode"
                 value={ticketForm.ticketCode}
                 onChange={(e) =>
                   setTicketForm({ ...ticketForm, ticketCode: e.target.value })
                 }
-                placeholder="Enter ticket code"
+                placeholder={t('ticketManagement.enterTicketCode')}
               />
             </div>
           </div>
@@ -1423,10 +1425,10 @@ export function ComingSoon() {
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('ticketManagement.cancel')}
             </Button>
             <Button onClick={handleCreateTicket} disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Ticket"}
+              {isSubmitting ? t('ticketManagement.creating') : t('ticketManagement.createTicket')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1436,18 +1438,18 @@ export function ComingSoon() {
       <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Ticket</DialogTitle>
+            <DialogTitle>{t('ticketManagement.editTicket')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-barcode">Barcode *</Label>
+              <Label htmlFor="edit-barcode">{t('ticketManagement.barcode')} *</Label>
               <Input
                 id="edit-barcode"
                 value={ticketForm.barcode}
                 onChange={(e) =>
                   setTicketForm({ ...ticketForm, barcode: e.target.value })
                 }
-                placeholder="Enter barcode"
+                placeholder={t('ticketManagement.enterBarcode')}
               />
             </div>
 
@@ -1462,10 +1464,10 @@ export function ComingSoon() {
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('ticketManagement.cancel')}
             </Button>
             <Button onClick={handleUpdateTicket} disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Ticket"}
+              {isSubmitting ? t('ticketManagement.updating') : t('ticketManagement.updateTicket')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1475,10 +1477,9 @@ export function ComingSoon() {
       <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('ticketManagement.areYouSure')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              ticket with barcode{" "}
+              {t('ticketManagement.cannotBeUndone')} {t('ticketManagement.willPermanentlyDelete')} {t('ticketManagement.theTicket')} {t('ticketManagement.withBarcode')}{" "}
               <span className="font-mono font-semibold">
                 {selectedTicket?.barcode}
               </span>
@@ -1493,14 +1494,14 @@ export function ComingSoon() {
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('ticketManagement.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTicket}
               disabled={isSubmitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isSubmitting ? "Deleting..." : "Delete"}
+              {isSubmitting ? t('ticketManagement.deleting') : t('ticketManagement.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1510,22 +1511,22 @@ export function ComingSoon() {
       <Dialog open={openEditTicketCodeDialog} onOpenChange={setOpenEditTicketCodeDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Ticket Code</DialogTitle>
+            <DialogTitle>{t('ticketManagement.editTicketCode')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-tc-learPN">Lear PN</Label>
+              <Label htmlFor="edit-tc-learPN">{t('ticketManagement.learPN')}</Label>
               <Input
                 id="edit-tc-learPN"
                 value={ticketCodeForm.learPN}
                 onChange={(e) =>
                   setTicketCodeForm({ ...ticketCodeForm, learPN: e.target.value })
                 }
-                placeholder="Enter Lear PN"
+                placeholder={t('ticketManagement.enterLearPN')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-tc-quantity">Quantity</Label>
+              <Label htmlFor="edit-tc-quantity">{t('ticketManagement.quantity')}</Label>
               <Input
                 id="edit-tc-quantity"
                 type="number"
@@ -1533,18 +1534,18 @@ export function ComingSoon() {
                 onChange={(e) =>
                   setTicketCodeForm({ ...ticketCodeForm, quantity: e.target.value })
                 }
-                placeholder="Enter quantity"
+                placeholder={t('ticketManagement.enterQuantity')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-tc-hu">HU</Label>
+              <Label htmlFor="edit-tc-hu">{t('ticketManagement.hu')}</Label>
               <Input
                 id="edit-tc-hu"
                 value={ticketCodeForm.hu}
                 onChange={(e) =>
                   setTicketCodeForm({ ...ticketCodeForm, hu: e.target.value })
                 }
-                placeholder="Enter HU"
+                placeholder={t('ticketManagement.enterHu')}
               />
             </div>
           </div>
@@ -1558,10 +1559,10 @@ export function ComingSoon() {
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('ticketManagement.cancel')}
             </Button>
             <Button onClick={handleUpdateTicketCode} disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update"}
+              {isSubmitting ? t('ticketManagement.updating') : t('ticketManagement.update')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1571,10 +1572,9 @@ export function ComingSoon() {
       <AlertDialog open={openDeleteTicketCodeDialog} onOpenChange={setOpenDeleteTicketCodeDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('ticketManagement.areYouSure')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              ticket code{" "}
+              {t('ticketManagement.cannotBeUndone')} {t('ticketManagement.willPermanentlyDelete')} {t('ticketManagement.ticketCode')}{" "}
               <span className="font-mono font-semibold">
                 {selectedTicketCode?.code}
               </span>
@@ -1589,14 +1589,14 @@ export function ComingSoon() {
               }}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('ticketManagement.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTicketCode}
               disabled={isSubmitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isSubmitting ? "Deleting..." : "Delete"}
+              {isSubmitting ? t('ticketManagement.deleting') : t('ticketManagement.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1606,44 +1606,44 @@ export function ComingSoon() {
       <Dialog open={openBarcodeSearchDialog} onOpenChange={setOpenBarcodeSearchDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Get Ticket by Barcode</DialogTitle>
+            <DialogTitle>{t('ticketManagement.getTicketByBarcode')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="barcode-search">Barcode</Label>
+              <Label htmlFor="barcode-search">{t('ticketManagement.barcode')}</Label>
               <div className="flex gap-2">
                 <Input
                   id="barcode-search"
                   value={barcodeSearchInput}
                   onChange={(e) => setBarcodeSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearchByBarcode()}
-                  placeholder="Enter barcode"
+                  placeholder={t('ticketManagement.enterBarcode')}
                 />
                 <Button onClick={handleSearchByBarcode} disabled={barcodeSearchLoading}>
-                  {barcodeSearchLoading ? "Searching..." : "Search"}
+                  {barcodeSearchLoading ? t('ticketManagement.searching') : t('ticketManagement.search')}
                 </Button>
               </div>
             </div>
             {barcodeSearchResult && (
               <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-                <h3 className="font-semibold">Ticket Found:</h3>
+                <h3 className="font-semibold">{t('ticketManagement.ticketFound')}:</h3>
                 <Table>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">Barcode</TableCell>
+                      <TableCell className="font-medium">{t('ticketManagement.barcode')}</TableCell>
                       <TableCell className="font-mono">{barcodeSearchResult.barcode}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">ticket Code</TableCell>
+                      <TableCell className="font-medium">{t('ticketManagement.ticketCode')}</TableCell>
                       <TableCell className="font-mono">{barcodeSearchResult.ticketCode}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Created At</TableCell>
+                      <TableCell className="font-medium">{t('ticketManagement.createdAt')}</TableCell>
                       <TableCell>{formatDate(barcodeSearchResult.createdAt)}</TableCell>
                     </TableRow>
                     {barcodeSearchResult.hu && (
                       <TableRow>
-                        <TableCell className="font-medium">HU</TableCell>
+                        <TableCell className="font-medium">{t('ticketManagement.hu')}</TableCell>
                         <TableCell className="font-mono">{barcodeSearchResult.hu}</TableCell>
                       </TableRow>
                     )}
@@ -1660,7 +1660,7 @@ export function ComingSoon() {
                 setBarcodeSearchResult(null)
               }}
             >
-              Close
+              {t('ticketManagement.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
