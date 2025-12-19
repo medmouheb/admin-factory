@@ -186,8 +186,21 @@
     "title": "Gestion des utilisateurs",
     "subtitle": "Gérez les utilisateurs du système et leurs permissions.",
     "quickSearch": "Recherche rapide",
-    "searchPlaceholder": "Rechercher des utilisateurs par nom, matricule ou email...",
-    "showingResultsFor": "Affichage des résultats pour"
+    "searchPlaceholder": "Rechercher par nom d'utilisateur, matricule ou nom...",
+    "showingResultsFor": "Affichage des résultats pour",
+    "edit": "Modifier",
+    "generateBarcode": "Générer le Code-Barres",
+    "delete": "Supprimer",
+    "openMenu": "Ouvrir le menu",
+    "role": "Rôle",
+    "loadingUsers": "Chargement des utilisateurs...",
+    "noUsersFound": "Aucun utilisateur trouvé correspondant aux critères.",
+    "searchFailed": "Échec de la recherche",
+    "serverError": "Erreur du serveur",
+    "matricule": "Matricule",
+    "name": "Nom",
+    "email": "Email",
+    "phoneNumber": "Numéro de Téléphone"
   },
   "exportImport": {
     "title": "Export / Import",
@@ -420,22 +433,6 @@
     "editDetails": "Modifier les détails",
     "deleteRecord": "Supprimer l'enregistrement",
     "openMenu": "Ouvrir le menu"
-  },
-  "users": {
-    "edit": "Modifier",
-    "generateBarcode": "Générer le Code-Barres",
-    "delete": "Supprimer",
-    "openMenu": "Ouvrir le menu",
-    "searchPlaceholder": "Rechercher par nom d'utilisateur, matricule ou nom...",
-    "role": "Rôle",
-    "loadingUsers": "Chargement des utilisateurs...",
-    "noUsersFound": "Aucun utilisateur trouvé correspondant aux critères.",
-    "searchFailed": "Échec de la recherche",
-    "serverError": "Erreur du serveur",
-    "matricule": "Matricule",
-    "name": "Nom",
-    "email": "Email",
-    "phoneNumber": "Numéro de Téléphone"
   },
   "tasks": {
     "selectAll": "Tout sélectionner",

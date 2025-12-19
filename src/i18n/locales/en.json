@@ -188,8 +188,21 @@
     "title": "User Management",
     "subtitle": "Manage system users and their permissions.",
     "quickSearch": "Quick Search",
-    "searchPlaceholder": "Search users by name, matricule, or email...",
-    "showingResultsFor": "Showing results for"
+    "searchPlaceholder": "Search by username, matricule, or name...",
+    "showingResultsFor": "Showing results for",
+    "edit": "Edit",
+    "generateBarcode": "Generate Barcode",
+    "delete": "Delete",
+    "openMenu": "Open menu",
+    "role": "Role",
+    "loadingUsers": "Loading users...",
+    "noUsersFound": "No users found matching criteria.",
+    "searchFailed": "Search failed",
+    "serverError": "Server error",
+    "matricule": "Matricule",
+    "name": "Name",
+    "email": "Email",
+    "phoneNumber": "Phone Number"
   },
   "exportImport": {
     "title": "Export / Import",
@@ -422,22 +435,6 @@
     "editDetails": "Edit details",
     "deleteRecord": "Delete record",
     "openMenu": "Open menu"
-  },
-  "users": {
-    "edit": "Edit",
-    "generateBarcode": "Generate Barcode",
-    "delete": "Delete",
-    "openMenu": "Open menu",
-    "searchPlaceholder": "Search by username, matricule, or name...",
-    "role": "Role",
-    "loadingUsers": "Loading users...",
-    "noUsersFound": "No users found matching criteria.",
-    "searchFailed": "Search failed",
-    "serverError": "Server error",
-    "matricule": "Matricule",
-    "name": "Name",
-    "email": "Email",
-    "phoneNumber": "Phone Number"
   },
   "tasks": {
     "selectAll": "Select all",

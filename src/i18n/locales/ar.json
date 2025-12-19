@@ -188,8 +188,21 @@
     "title": "إدارة المستخدمين",
     "subtitle": "إدارة مستخدمي النظام وصلاحياتهم.",
     "quickSearch": "بحث سريع",
-    "searchPlaceholder": "البحث عن المستخدمين بالاسم أو المعرف أو البريد الإلكتروني...",
-    "showingResultsFor": "عرض النتائج لـ"
+    "searchPlaceholder": "البحث عن اسم المستخدم أو المعرف أو الاسم...",
+    "showingResultsFor": "عرض النتائج لـ",
+    "edit": "تعديل",
+    "generateBarcode": "إنشاء رمز شريطي",
+    "delete": "حذف",
+    "openMenu": "فتح القائمة",
+    "role": "الدور",
+    "loadingUsers": "جاري تحميل المستخدمين...",
+    "noUsersFound": "لم يتم العثور على مستخدمين يطابقون المعايير.",
+    "searchFailed": "فشل البحث",
+    "serverError": "خطأ في الخادم",
+    "matricule": "المعرف",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phoneNumber": "رقم الهاتف"
   },
   "exportImport": {
     "title": "تصدير / استيراد",
@@ -422,22 +435,6 @@
     "editDetails": "تعديل التفاصيل",
     "deleteRecord": "حذف السجل",
     "openMenu": "فتح القائمة"
-  },
-  "users": {
-    "edit": "تعديل",
-    "generateBarcode": "إنشاء رمز شريطي",
-    "delete": "حذف",
-    "openMenu": "فتح القائمة",
-    "searchPlaceholder": "البحث عن اسم المستخدم أو المعرف أو الاسم...",
-    "role": "الدور",
-    "loadingUsers": "جاري تحميل المستخدمين...",
-    "noUsersFound": "لم يتم العثور على مستخدمين يطابقون المعايير.",
-    "searchFailed": "فشل البحث",
-    "serverError": "خطأ في الخادم",
-    "matricule": "المعرف",
-    "name": "الاسم",
-    "email": "البريد الإلكتروني",
-    "phoneNumber": "رقم الهاتف"
   },
   "tasks": {
     "selectAll": "تحديد الكل",
