@@ -3,9 +3,25 @@
   "private": false,
   "version": "2.2.1",
   "type": "module",
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.shadcn-admin.app",
+    "productName": "ShadcnAdmin",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:electron": "tsc -b && vite build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview",
     "format:check": "prettier --check .",
