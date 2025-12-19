@@ -276,7 +276,7 @@
     "mustStartWithL": "Must start with L",
     "traceabilityCode": "Traceability Code",
     "traceabilityHint": "(13 chars)",
-    "traceabilityPlaceholder": "Start with {prefix} (13 chars)",
+    "traceabilityPlaceholder": "Start with {{prefix}} (13 chars)",
     "awaitingLearPN": "Awaiting Lear PN...",
     "mustStartWith": "Must start with {prefix}",
     "allItemsScanned": "All Items Scanned!",
