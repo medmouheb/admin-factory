@@ -118,34 +118,8 @@
     "cannotBeUndone": "This action cannot be undone.",
     "openMenu": "Open menu"
   },
-  "references": {
-    "title": "References",
-    "subtitle": "Manage your parts catalogue, including Lear and Tesca part numbers.",
-    "addReference": "Add Reference",
-    "searchReferences": "Search References",
-    "searchPlaceholder": "Search by Lear PN, Tesca PN, or description...",
-    "learPN": "Lear PN",
-    "tescaPN": "Tesca PN",
-    "description": "Description",
-    "qtyPerBox": "Qty/Box",
-    "loadingReferences": "Loading references...",
-    "noReferencesFound": "No references found matching criteria.",
-    "deleteConfirm": "This will permanently delete the reference",
-    "andRemove": "and remove it from our servers.",
-    "referenceForm": "Reference Form"
-  },
-  "materials": {
-    "title": "Materials",
-    "subtitle": "Manage your materials inventory.",
-    "addMaterial": "Add Material",
-    "searchMaterials": "Search materials...",
-    "material": "Material",
-    "description": "Description",
-    "storage": "Storage",
-    "availStock": "Avail Stock",
-    "deleteConfirm": "This will permanently delete the material",
-    "materialForm": "Material Form"
-  },
+
+
   "logs": {
     "title": "System Logs",
     "subtitle": "Audit trail of system activities and data changes",
@@ -453,6 +427,16 @@
     "noResults": "No results."
   },
   "references": {
+    "title": "References",
+    "subtitle": "Manage your parts catalogue, including Lear and Tesca part numbers.",
+    "searchReferences": "Search References",
+    "searchPlaceholder": "Search by Lear PN, Tesca PN, or description...",
+    "qtyPerBox": "Qty/Box",
+    "loadingReferences": "Loading references...",
+    "noReferencesFound": "No references found matching criteria.",
+    "deleteConfirm": "This will permanently delete the reference",
+    "andRemove": "and remove it from our servers.",
+    "referenceForm": "Reference Form",
     "editReference": "Edit Reference",
     "newReference": "New Reference",
     "updateReferenceDetails": "Update the reference details.",
@@ -487,6 +471,13 @@
     "quantityRequired": "quantity is required"
   },
   "materials": {
+    "title": "Materials",
+    "subtitle": "Manage your materials inventory.",
+    "searchMaterials": "Search materials...",
+    "storage": "Storage",
+    "availStock": "Avail Stock",
+    "deleteConfirm": "This will permanently delete the material",
+    "materialForm": "Material Form",
     "editMaterial": "Edit Material",
     "newMaterial": "New Material",
     "updateMaterialDetails": "Update the material details.",

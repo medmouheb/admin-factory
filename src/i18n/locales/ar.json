@@ -118,34 +118,8 @@
     "cannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
     "openMenu": "فتح القائمة"
   },
-  "references": {
-    "title": "المراجع",
-    "subtitle": "إدارة كتالوج القطع الخاص بك، بما في ذلك أرقام قطع Lear و Tesca.",
-    "addReference": "إضافة مرجع",
-    "searchReferences": "البحث في المراجع",
-    "searchPlaceholder": "البحث بواسطة Lear PN أو Tesca PN أو الوصف...",
-    "learPN": "Lear PN",
-    "tescaPN": "Tesca PN",
-    "description": "الوصف",
-    "qtyPerBox": "الكمية/صندوق",
-    "loadingReferences": "جاري تحميل المراجع...",
-    "noReferencesFound": "لم يتم العثور على مراجع تطابق المعايير.",
-    "deleteConfirm": "سيؤدي هذا إلى حذف المرجع نهائياً",
-    "andRemove": "وإزالته من خوادمنا.",
-    "referenceForm": "نموذج المرجع"
-  },
-  "materials": {
-    "title": "المواد",
-    "subtitle": "إدارة مخزون المواد الخاص بك.",
-    "addMaterial": "إضافة مادة",
-    "searchMaterials": "البحث في المواد...",
-    "material": "المادة",
-    "description": "الوصف",
-    "storage": "التخزين",
-    "availStock": "المخزون المتاح",
-    "deleteConfirm": "سيؤدي هذا إلى حذف المادة نهائياً",
-    "materialForm": "نموذج المادة"
-  },
+
+
   "logs": {
     "title": "سجلات النظام",
     "subtitle": "مسار تدقيق أنشطة النظام وتغييرات البيانات",
@@ -453,6 +427,16 @@
     "noResults": "لا توجد نتائج."
   },
   "references": {
+    "title": "المراجع",
+    "subtitle": "إدارة كتالوج القطع الخاص بك، بما في ذلك أرقام قطع Lear و Tesca.",
+    "searchReferences": "البحث في المراجع",
+    "searchPlaceholder": "البحث بواسطة Lear PN أو Tesca PN أو الوصف...",
+    "qtyPerBox": "الكمية/صندوق",
+    "loadingReferences": "جاري تحميل المراجع...",
+    "noReferencesFound": "لم يتم العثور على مراجع تطابق المعايير.",
+    "deleteConfirm": "سيؤدي هذا إلى حذف المرجع نهائياً",
+    "andRemove": "وإزالته من خوادمنا.",
+    "referenceForm": "نموذج المرجع",
     "editReference": "تعديل المرجع",
     "newReference": "مرجع جديد",
     "updateReferenceDetails": "تحديث تفاصيل المرجع.",
@@ -484,9 +468,16 @@
     "learPNRequired": "Lear PN مطلوب",
     "tescaPNRequired": "Tesca PN مطلوب",
     "descriptionRequired": "الوصف مطلوب",
-    "quantityRequired": "الكمية مطلوبة"
+    "quantityRequired": "الكمية مطكوبة"
   },
   "materials": {
+    "title": "المواد",
+    "subtitle": "إدارة مخزون المواد الخاص بك.",
+    "searchMaterials": "البحث في المواد...",
+    "storage": "التخزين",
+    "availStock": "المخزون المتاح",
+    "deleteConfirm": "سيؤدي هذا إلى حذف المادة نهائياً",
+    "materialForm": "نموذج المادة",
     "editMaterial": "تعديل المادة",
     "newMaterial": "مادة جديدة",
     "updateMaterialDetails": "تحديث تفاصيل المادة.",
