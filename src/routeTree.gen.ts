@@ -21,9 +21,11 @@ import { Route as AuthenticatedReferencesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedReapirageRouteImport } from './routes/_authenticated/reapirage'
 import { Route as AuthenticatedQualityCheckRouteImport } from './routes/_authenticated/quality-check'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedParentBoxesRouteImport } from './routes/_authenticated/parent-boxes'
 import { Route as AuthenticatedMaterialsRouteImport } from './routes/_authenticated/materials'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedExportImportRouteImport } from './routes/_authenticated/export-import'
+import { Route as AuthenticatedBoxMovementsRouteImport } from './routes/_authenticated/box-movements'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -115,6 +117,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedParentBoxesRoute =
+  AuthenticatedParentBoxesRouteImport.update({
+    id: '/parent-boxes',
+    path: '/parent-boxes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMaterialsRoute = AuthenticatedMaterialsRouteImport.update({
   id: '/materials',
   path: '/materials',
@@ -129,6 +137,12 @@ const AuthenticatedExportImportRoute =
   AuthenticatedExportImportRouteImport.update({
     id: '/export-import',
     path: '/export-import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBoxMovementsRoute =
+  AuthenticatedBoxMovementsRouteImport.update({
+    id: '/box-movements',
+    path: '/box-movements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const errors503Route = errors503RouteImport.update({
@@ -294,9 +308,11 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/box-movements': typeof AuthenticatedBoxMovementsRoute
   '/export-import': typeof AuthenticatedExportImportRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/materials': typeof AuthenticatedMaterialsRoute
+  '/parent-boxes': typeof AuthenticatedParentBoxesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -335,9 +351,11 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/box-movements': typeof AuthenticatedBoxMovementsRoute
   '/export-import': typeof AuthenticatedExportImportRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/materials': typeof AuthenticatedMaterialsRoute
+  '/parent-boxes': typeof AuthenticatedParentBoxesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quality-check': typeof AuthenticatedQualityCheckRoute
   '/reapirage': typeof AuthenticatedReapirageRoute
@@ -380,9 +398,11 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/box-movements': typeof AuthenticatedBoxMovementsRoute
   '/_authenticated/export-import': typeof AuthenticatedExportImportRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
   '/_authenticated/materials': typeof AuthenticatedMaterialsRoute
+  '/_authenticated/parent-boxes': typeof AuthenticatedParentBoxesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quality-check': typeof AuthenticatedQualityCheckRoute
   '/_authenticated/reapirage': typeof AuthenticatedReapirageRoute
@@ -424,9 +444,11 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/box-movements'
     | '/export-import'
     | '/logs'
     | '/materials'
+    | '/parent-boxes'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -465,9 +487,11 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/box-movements'
     | '/export-import'
     | '/logs'
     | '/materials'
+    | '/parent-boxes'
     | '/profile'
     | '/quality-check'
     | '/reapirage'
@@ -509,9 +533,11 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/box-movements'
     | '/_authenticated/export-import'
     | '/_authenticated/logs'
     | '/_authenticated/materials'
+    | '/_authenticated/parent-boxes'
     | '/_authenticated/profile'
     | '/_authenticated/quality-check'
     | '/_authenticated/reapirage'
@@ -640,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/parent-boxes': {
+      id: '/_authenticated/parent-boxes'
+      path: '/parent-boxes'
+      fullPath: '/parent-boxes'
+      preLoaderRoute: typeof AuthenticatedParentBoxesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/materials': {
       id: '/_authenticated/materials'
       path: '/materials'
@@ -659,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/export-import'
       fullPath: '/export-import'
       preLoaderRoute: typeof AuthenticatedExportImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/box-movements': {
+      id: '/_authenticated/box-movements'
+      path: '/box-movements'
+      fullPath: '/box-movements'
+      preLoaderRoute: typeof AuthenticatedBoxMovementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/(errors)/503': {
@@ -885,9 +925,11 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
+  AuthenticatedBoxMovementsRoute: typeof AuthenticatedBoxMovementsRoute
   AuthenticatedExportImportRoute: typeof AuthenticatedExportImportRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
   AuthenticatedMaterialsRoute: typeof AuthenticatedMaterialsRoute
+  AuthenticatedParentBoxesRoute: typeof AuthenticatedParentBoxesRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQualityCheckRoute: typeof AuthenticatedQualityCheckRoute
   AuthenticatedReapirageRoute: typeof AuthenticatedReapirageRoute
@@ -908,9 +950,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
+  AuthenticatedBoxMovementsRoute: AuthenticatedBoxMovementsRoute,
   AuthenticatedExportImportRoute: AuthenticatedExportImportRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
   AuthenticatedMaterialsRoute: AuthenticatedMaterialsRoute,
+  AuthenticatedParentBoxesRoute: AuthenticatedParentBoxesRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQualityCheckRoute: AuthenticatedQualityCheckRoute,
   AuthenticatedReapirageRoute: AuthenticatedReapirageRoute,

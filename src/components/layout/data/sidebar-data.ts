@@ -11,6 +11,7 @@ import {
   ArrowRightLeft,
   FileText,
   Box,
+  Package2,
   ScrollText,
 } from 'lucide-react'
 
@@ -91,6 +92,18 @@ export const sidebarData: SidebarData = {
           title: 'sidebar.materials',
           url: '/materials',
           icon: Box,
+          roles: ['admin', 'manager', 'superviseur'],
+        },
+        {
+          title: 'sidebar.parentBoxes',
+          url: '/parent-boxes',
+          icon: Package2,
+          roles: ['admin', 'manager', 'superviseur'],
+        },
+        {
+          title: 'sidebar.boxMovements',
+          url: '/box-movements',
+          icon: ArrowRightLeft,
           roles: ['admin', 'manager', 'superviseur'],
         },
         {
