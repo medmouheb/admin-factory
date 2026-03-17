@@ -116,34 +116,8 @@
     "cannotBeUndone": "Cette action ne peut pas être annulée.",
     "openMenu": "Ouvrir le menu"
   },
-  "references": {
-    "title": "Références",
-    "subtitle": "Gérez votre catalogue de pièces, y compris les numéros de pièces Lear et Tesca.",
-    "addReference": "Ajouter une référence",
-    "searchReferences": "Rechercher des références",
-    "searchPlaceholder": "Rechercher par Lear PN, Tesca PN ou description...",
-    "learPN": "Lear PN",
-    "tescaPN": "Tesca PN",
-    "description": "Description",
-    "qtyPerBox": "Qté/Boîte",
-    "loadingReferences": "Chargement des références...",
-    "noReferencesFound": "Aucune référence trouvée correspondant aux critères.",
-    "deleteConfirm": "Cela supprimera définitivement la référence",
-    "andRemove": "et la supprimera de nos serveurs.",
-    "referenceForm": "Formulaire de référence"
-  },
-  "materials": {
-    "title": "Matériaux",
-    "subtitle": "Gérez votre inventaire de matériaux.",
-    "addMaterial": "Ajouter un matériau",
-    "searchMaterials": "Rechercher des matériaux...",
-    "material": "Matériau",
-    "description": "Description",
-    "storage": "Stockage",
-    "availStock": "Stock disponible",
-    "deleteConfirm": "Cela supprimera définitivement le matériau",
-    "materialForm": "Formulaire de matériau"
-  },
+
+
   "logs": {
     "title": "Journaux système",
     "subtitle": "Piste d'audit des activités système et des modifications de données",
@@ -451,6 +425,16 @@
     "noResults": "Aucun résultat."
   },
   "references": {
+    "title": "Références",
+    "subtitle": "Gérez votre catalogue de pièces, y compris les numéros de pièces Lear et Tesca.",
+    "searchReferences": "Rechercher des références",
+    "searchPlaceholder": "Rechercher par Lear PN, Tesca PN ou description...",
+    "qtyPerBox": "Qté/Boîte",
+    "loadingReferences": "Chargement des références...",
+    "noReferencesFound": "Aucune référence trouvée correspondant aux critères.",
+    "deleteConfirm": "Cela supprimera définitivement la référence",
+    "andRemove": "et la supprimera de nos serveurs.",
+    "referenceForm": "Formulaire de référence",
     "editReference": "Modifier la Référence",
     "newReference": "Nouvelle Référence",
     "updateReferenceDetails": "Mettre à jour les détails de la référence.",
@@ -485,6 +469,13 @@
     "quantityRequired": "la quantité est requise"
   },
   "materials": {
+    "title": "Matériaux",
+    "subtitle": "Gérez votre inventaire de matériaux.",
+    "searchMaterials": "Rechercher des matériaux...",
+    "storage": "Stockage",
+    "availStock": "Stock disponible",
+    "deleteConfirm": "Cela supprimera définitivement le matériau",
+    "materialForm": "Formulaire de matériau",
     "editMaterial": "Modifier le Matériau",
     "newMaterial": "Nouveau Matériau",
     "updateMaterialDetails": "Mettre à jour les détails du matériau.",
