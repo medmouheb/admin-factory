@@ -39,13 +39,11 @@ const roleOptions = [
 
 const formSchema = z
   .object({
-    firstName: z.string().min(1, 'First Name is required.'),
-    lastName: z.string().min(1, 'Last Name is required.'),
-    matricule: z.string().min(1, 'Matricule is required.'),
-    phone: z.string().min(1, 'Phone number is required.'),
-    email: z.email({
-      error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
-    }),
+    firstName: z.string().min(1, 'Le prénom est requis.'),
+    lastName: z.string().min(1, 'Le nom est requis.'),
+    matricule: z.string().min(1, 'Le matricule est requis.'),
+    phone: z.string().min(1, 'Le numéro de téléphone est requis.'),
+    email: z.string().email('Format d\'email invalide.').optional().or(z.literal('')),
     password: z.string().transform((pwd) => pwd.trim()),
     role: z.enum(['superadmin', 'admin', 'operateur', 'manager', 'superviseur']),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
@@ -57,7 +55,7 @@ const formSchema = z
       return data.password.length > 0
     },
     {
-      message: 'Password is required.',
+      message: 'Le mot de passe est requis.',
       path: ['password'],
     }
   )
@@ -67,7 +65,7 @@ const formSchema = z
       return password.length >= 8
     },
     {
-      message: 'Password must be at least 8 characters long.',
+      message: 'Le mot de passe doit contenir au moins 8 caractères.',
       path: ['password'],
     }
   )
@@ -77,7 +75,7 @@ const formSchema = z
       return /[a-z]/.test(password)
     },
     {
-      message: 'Password must contain at least one lowercase letter.',
+      message: 'Le mot de passe doit contenir au moins une lettre minuscule.',
       path: ['password'],
     }
   )
@@ -87,7 +85,7 @@ const formSchema = z
       return /\d/.test(password)
     },
     {
-      message: 'Password must contain at least one number.',
+      message: 'Le mot de passe doit contenir au moins un chiffre.',
       path: ['password'],
     }
   )
@@ -97,7 +95,7 @@ const formSchema = z
       return password === confirmPassword
     },
     {
-      message: "Passwords don't match.",
+      message: "Les mots de passe ne correspondent pas.",
       path: ['confirmPassword'],
     }
   )
@@ -222,10 +220,10 @@ export function UsersActionDialog({
         iframe.contentWindow?.print()
       }
 
-      toast.success('Printing ticket...')
+      toast.success('Impression du ticket...')
     } catch (e) {
       console.error('PDF generation error', e)
-      toast.error('Failed to generate ticket')
+      toast.error('Échec de la génération du ticket')
     }
   }
 
@@ -251,10 +249,10 @@ export function UsersActionDialog({
         })
         if (!res.ok) {
           const err = await res.json().catch(() => null)
-          toast.error(err?.message || 'Update failed')
+          toast.error(err?.message || 'Échec de la mise à jour')
           return
         }
-        toast.success('User updated')
+        toast.success('Utilisateur mis à jour')
 
         if (values.password) {
           generatePDF(values, values.password)
@@ -268,10 +266,10 @@ export function UsersActionDialog({
         })
         if (!res.ok) {
           const err = await res.json().catch(() => null)
-          toast.error(err?.message || 'Sign up failed')
+          toast.error(err?.message || "Échec de l'inscription")
           return
         }
-        toast.success('User created')
+        toast.success('Utilisateur créé')
 
         if (values.password) {
           generatePDF(values, values.password)
@@ -282,7 +280,7 @@ export function UsersActionDialog({
       onOpenChange(false)
       refreshUsers() // Refresh the user list
     } catch (error) {
-      toast.error('Server error')
+      toast.error('Erreur serveur')
     } finally {
       setIsLoading(false)
     }
@@ -301,10 +299,10 @@ export function UsersActionDialog({
       <DialogContent className='sm:max-w-xl'>
         <DialogHeader className='text-start border-b pb-4'>
           <DialogTitle className="text-2xl font-semibold">
-            {isEdit ? '✏️ Edit User' : '➕ Add New User'}
+            {isEdit ? '✏️ Modifier l\'utilisateur' : '➕ Ajouter un utilisateur'}
           </DialogTitle>
           <DialogDescription className="text-base mt-1">
-            {isEdit ? 'Update user information and credentials.' : 'Create a new user account with role and permissions.'}
+            {isEdit ? 'Mettre à jour les informations et identifiants.' : 'Créer un nouveau compte utilisateur avec rôle et permissions.'}
           </DialogDescription>
         </DialogHeader>
         <div className='max-h-[28rem] overflow-y-auto py-2 px-1'>
@@ -320,7 +318,7 @@ export function UsersActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end font-medium'>
-                      First Name
+                      Prénom
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -340,7 +338,7 @@ export function UsersActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end font-medium'>
-                      Last Name
+                      Nom
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -396,7 +394,7 @@ export function UsersActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end font-medium'>
-                      Phone Number
+                      Numéro de téléphone
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -414,7 +412,7 @@ export function UsersActionDialog({
                 name='role'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end font-medium'>Role</FormLabel>
+                    <FormLabel className='col-span-2 text-end font-medium'>Rôle</FormLabel>
                     <div className='col-span-4'>
                       <select
                         className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
@@ -435,7 +433,7 @@ export function UsersActionDialog({
 
               <div className="border-t pt-4 mt-2">
                 <p className="text-sm font-medium text-muted-foreground mb-3">
-                  🔐 Security Credentials
+                  🔐 Identifiants de sécurité
                 </p>
 
                 <div className="space-y-4">
@@ -445,7 +443,7 @@ export function UsersActionDialog({
                     render={({ field }) => (
                       <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                         <FormLabel className='col-span-2 text-end font-medium'>
-                          Password
+                          Mot de passe
                         </FormLabel>
                         <FormControl>
                           <PasswordInput
@@ -464,12 +462,12 @@ export function UsersActionDialog({
                     render={({ field }) => (
                       <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                         <FormLabel className='col-span-2 text-end font-medium'>
-                          Confirm Password
+                          Confirmer le mot de passe
                         </FormLabel>
                         <FormControl>
                           <PasswordInput
                             disabled={!isPasswordTouched}
-                            placeholder='Re-enter password'
+                            placeholder='Confirmer le mot de passe'
                             className='col-span-4 transition-all focus:ring-2 focus:ring-primary/20'
                             {...field}
                           />
@@ -493,11 +491,11 @@ export function UsersActionDialog({
             {isLoading ? (
               <>
                 <span className="mr-2 inline-block animate-spin">⏳</span>
-                Saving...
+                Enregistrement...
               </>
             ) : (
               <>
-                💾 Save Changes
+                💾 Enregistrer
               </>
             )}
           </Button>

@@ -3,13 +3,14 @@ import { CurrentData, CurrentDataContextType } from './types'
 
 const CurrentDataContext = createContext<CurrentDataContextType | null>(null)
 
-export function CurrentDataProvider({ children }: { children: React.ReactNode }) {
+export function CurrentDataProvider({ children, initialClient = null }: { children: React.ReactNode, initialClient?: 'lear' | 'serbia' | null }) {
   const [currentData, setCurrentData] = useState<CurrentData>({
-    part: { learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
+    part: { sarbiaPN: '', learPN: '', tescaPN: '', desc: '', qtyPerBox: '' },
     materile: { storageUn: '', availStock: '', barcodes: [] },
     repair: { codePiece: '', checklist: [] },
     ticketCode: null,
     hasCompletedStep1: false,
+    client: initialClient,
   })
 
   return (

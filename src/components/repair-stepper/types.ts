@@ -7,11 +7,12 @@ export interface BarcodeEntry {
 }
 
 export interface CurrentData {
-    part: { learPN: string; tescaPN: string; desc: string; qtyPerBox: string };
+    part: { sarbiaPN?: string; learPN: string; tescaPN: string; desc: string; qtyPerBox: string };
     materile: { storageUn: string; availStock: string; barcodes: BarcodeEntry[] };
     repair?: { codePiece: string; checklist: any[] };
     ticketCode: string | null;
     hasCompletedStep1: boolean;
+    client: 'lear' | 'serbia' | null;
 }
 
 export interface CurrentDataContextType {

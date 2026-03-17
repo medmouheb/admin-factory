@@ -55,43 +55,16 @@ export function UserAuthForm({
     },
   })
 
-  // function onSubmit(data: z.infer<typeof formSchema>) {
-  //   setIsLoading(true)
 
-  //   toast.promise(sleep(2000), {
-  //     loading: 'Signing in...',
-  //     success: () => {
-  //       setIsLoading(false)
-
-  //       // Mock successful authentication with expiry computed at success time
-  //       const mockUser = {
-  //         accountNo: 'ACC001',
-  //         email: data.email,
-  //         role: ['user'],
-  //         exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
-  //       }
-
-  //       // Set user and access token
-  //       auth.setUser(mockUser)
-  //       auth.setAccessToken('mock-access-token')
-
-  //       // Redirect to the stored location or default to dashboard
-  //       const targetPath = redirectTo || '/'
-  //       navigate({ to: targetPath, replace: true })
-
-  //       return `Welcome back, ${data.email}!`
-  //     },
-  //     error: 'Error',
-  //   })
-  // }
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
 
     try {
+      // TODO: change the url to the production url http://localhost:8080/api/auth/signin
       const res = await fetch('http://localhost:8080/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // 🔥 crucial for HttpOnly cookies
+        credentials: 'include', // crucial for HttpOnly cookies
         body: JSON.stringify({
           matricule: data.matricule,
           password: data.password,

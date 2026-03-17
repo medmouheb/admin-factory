@@ -14,6 +14,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   const { currentData, setCurrentData } = useCurrentData()
 
   const [learPN, setLearPN] = useState('')
+  const [sarbiaPN, setSarbiaPN] = useState('')
   const [storageUnit, setStorageUnit] = useState('')
   const [part, setPart] = useState({ tescaPN: '', desc: '', qtyPerBox: '' })
   const [loading, setLoading] = useState(false)
@@ -43,6 +44,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   /** Restore on mount */
   useEffect(() => {
     setLearPN(currentData.part.learPN || '')
+    setSarbiaPN(currentData.part.sarbiaPN || '')
     setStorageUnit(currentData.materile.storageUn || '')
     setPart({
       tescaPN: currentData.part.tescaPN || '',
@@ -60,8 +62,8 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
   /** Sync each local → global (optimized) */
   useEffect(() => {
-    setCurrentData((p) => ({ ...p, part: { ...p.part, learPN } }))
-  }, [learPN])
+    setCurrentData((p) => ({ ...p, part: { ...p.part, learPN, sarbiaPN } }))
+  }, [learPN, sarbiaPN])
 
   useEffect(() => {
     setCurrentData((p) => ({
@@ -78,65 +80,117 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   }, [part.qtyPerBox])
 
   /** Validators (shorter) */
-  const isLearPNValid = () => /^p.{15}$/i.test(learPN.trim())
-  const isStorageValid = () => /^s.{9}$/i.test(storageUnit.trim())
+  const isLearPNValid = (val = learPN) => /^p.{15}$/i.test(val.trim())
+  const isSarbiaPNValid = (val = sarbiaPN) => /^(p)?\d{10}$/i.test(val.trim())
+  const isStorageValid = (val = storageUnit) => /^s.{9}$/i.test(val.trim())
   const isPartLoaded = () => part.tescaPN.trim() && part.desc.trim()
-  const isQtyValid = () => /^Q\d{1,3}$/.test(part.qtyPerBox.trim())
+  const isQtyValid = (val = part.qtyPerBox) => /^Q\d{1,3}$/.test(val.trim())
 
-  /** Fetch part by Lear PN */
-  const handleFetchPart = async () => {
-    if (!isLearPNValid()) {
-      setLearPN('')
-      return showError(t('repairStepper.learPNInvalid'), 'learPN')
-    }
+  /** Fetch part by Lear or Sarbia PN */
+  const handleFetchPart = async (inputValue?: string) => {
+    if (currentData.client === 'serbia') {
+      const val = inputValue !== undefined ? inputValue : sarbiaPN;
+      if (!isSarbiaPNValid(val)) {
+        setSarbiaPN('')
+        return showError("Sarbia PN Invalid! (e.g. P7358033260)", 'sarbiaPN')
+      }
+      setSarbiaPN(val)
 
-    setLoading(true)
-    try {
-      const res = await fetch(
-        `http://localhost:8080/api/parts/lear?learPN=${learPN.substring(1)}`,
-        { credentials: 'include' }
-      )
-      if (!res.ok) throw new Error('Not found')
+      setLoading(true)
+      try {
+        const cleanPN = val.trim().replace(/^p/i, '');
+        const res = await fetch(
+          `http://localhost:8080/api/parts/serbia?sarbiaPN=${cleanPN}`,
+          { credentials: 'include' }
+        )
+        if (!res.ok) throw new Error('Not found')
 
-      const data = await res.json()
-      setPart((prev) => ({
-        ...prev,
-        tescaPN: data.tescaPN || '',
-        desc: data.desc || '',
-      }))
-
-      setCurrentData((prev) => ({
-        ...prev,
-        part: {
-          ...prev.part,
+        const data = await res.json()
+        setPart((prev) => ({
+          ...prev,
           tescaPN: data.tescaPN || '',
           desc: data.desc || '',
-        },
-      }))
+        }))
+        setLearPN(data.learPN ? `P${data.learPN}` : '') 
 
-      toast.success(t('repairStepper.partLoaded'))
-      setTimeout(() => storageRef.current?.focus(), 200)
-    } catch {
-      showError(t('repairStepper.partNotFound'), 'learPN')
-      setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
-      setLearPN('')
-    } finally {
-      setLoading(false)
+        setCurrentData((prev) => ({
+          ...prev,
+          part: {
+            ...prev.part,
+            tescaPN: data.tescaPN || '',
+            desc: data.desc || '',
+            learPN: data.learPN ? `P${data.learPN}` : '',
+          },
+        }))
+
+        toast.success(t('repairStepper.partLoaded'))
+        setTimeout(() => storageRef.current?.focus(), 200)
+      } catch {
+        showError(t('repairStepper.partNotFound'), 'sarbiaPN')
+        setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
+        setSarbiaPN('')
+        setLearPN('')
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      const val = inputValue !== undefined ? inputValue : learPN;
+      if (!isLearPNValid(val)) {
+        setLearPN('')
+        return showError(t('repairStepper.learPNInvalid'), 'learPN')
+      }
+      setLearPN(val)
+
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `http://localhost:8080/api/parts/lear?learPN=${val.trim().substring(1)}`,
+          { credentials: 'include' }
+        )
+        if (!res.ok) throw new Error('Not found')
+
+        const data = await res.json()
+        setPart((prev) => ({
+          ...prev,
+          tescaPN: data.tescaPN || '',
+          desc: data.desc || '',
+        }))
+
+        setCurrentData((prev) => ({
+          ...prev,
+          part: {
+            ...prev.part,
+            tescaPN: data.tescaPN || '',
+            desc: data.desc || '',
+          },
+        }))
+
+        toast.success(t('repairStepper.partLoaded'))
+        setTimeout(() => storageRef.current?.focus(), 200)
+      } catch {
+        showError(t('repairStepper.partNotFound'), 'learPN')
+        setPart((prev) => ({ ...prev, tescaPN: '', desc: '' }))
+        setLearPN('')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
   /** Validate HU */
-  const handleStorageDone = async () => {
-    if (!isStorageValid()) {
+  const handleStorageDone = async (inputValue?: string) => {
+    const val = inputValue !== undefined ? inputValue : storageUnit;
+    if (!isStorageValid(val)) {
       setStorageUnit('')
       return showError(t('repairStepper.huInvalid'), 'storage')
     }
+    setStorageUnit(val)
 
     // Check if HU is unique
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${storageUnit}`, {
+        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${val.trim()}`, {
         credentials: 'include',   // ⬅️ VERY IMPORTANT
       }
       )
@@ -160,15 +214,22 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
   }
 
   /** Final step: ENTER on quantity */
-  const handleQuantityNext = () => {
-    if (!isLearPNValid()) return showError(t('repairStepper.learPNInvalidError'), 'learPN')
+  const handleQuantityNext = (inputValue?: string) => {
+    const val = inputValue !== undefined ? inputValue : part.qtyPerBox;
+    
+    if (currentData.client === 'serbia') {
+      if (!isSarbiaPNValid()) return showError("Sarbia PN Invalid! (e.g. P7358033260)", 'sarbiaPN')
+    } else {
+      if (!isLearPNValid()) return showError(t('repairStepper.learPNInvalidError'), 'learPN')
+    }
     if (!isPartLoaded()) return showError(t('repairStepper.partNotLoadedError'), 'learPN')
     if (!isStorageValid()) return showError(t('repairStepper.huInvalid'), 'storage')
-    if (!isQtyValid()) {
-      part.qtyPerBox = ""
+    if (!isQtyValid(val)) {
+      setPart((p) => ({ ...p, qtyPerBox: "" }))
       return showError(t('repairStepper.quantityInvalid'), 'quantity')
-
     }
+    
+    setPart((p) => ({ ...p, qtyPerBox: val }))
 
     setCurrentData((p) => ({ ...p, hasCompletedStep1: true }))
     nextFunction()
@@ -176,7 +237,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
 
   /** Shared ENTER handler */
   const enter = (e: any, callback: Function) => {
-    if (e.key === 'Enter' && !loading) callback()
+    if (e.key === 'Enter' && !loading) callback(e.currentTarget.value)
   }
 
   return (
@@ -223,26 +284,26 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <h3 className='text-xl font-bold text-gray-800'>{t('repairStepper.partInformation')}</h3>
               </div>
 
-              {/* Lear PN */}
+              {/* Lear PN / Sarbia PN */}
               <div className='space-y-3 group'>
                 <Label className='text-sm font-semibold text-gray-700 flex items-center gap-2'>
                   <svg className='w-4 h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
                   </svg>
-                  {t('repairStepper.learPN')}
+                  {currentData.client === 'serbia' ? 'Sarbia PN' : t('repairStepper.learPN')}
                   <span className='text-xs text-gray-500 font-normal'>{t('repairStepper.pressEnterToFetch')}</span>
                 </Label>
                 <Input
                   className={cn(
                     'h-14 px-4 text-base font-mono border-2 rounded-xl transition-all duration-300 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-indigo-300',
-                    error.field === 'learPN' && 'animate-shake border-red-500 ring-4 ring-red-500/20'
+                    error.field === (currentData.client === 'serbia' ? 'sarbiaPN' : 'learPN') && 'animate-shake border-red-500 ring-4 ring-red-500/20'
                   )}
                   ref={learPNRef}
-                  value={learPN}
-                  onChange={(e) => setLearPN(e.target.value)}
+                  value={currentData.client === 'serbia' ? sarbiaPN : learPN}
+                  onChange={(e) => currentData.client === 'serbia' ? setSarbiaPN(e.target.value) : setLearPN(e.target.value)}
                   onKeyDown={(e) => enter(e, handleFetchPart)}
                   maxLength={16}
-                  placeholder={t('repairStepper.learPNPlaceholder')}
+                  placeholder={currentData.client === 'serbia' ? 'P7358033260' : t('repairStepper.learPNPlaceholder')}
                   autoComplete='off'
                   disabled={loading}
                 />
@@ -250,7 +311,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
                     <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
                   </svg>
-                  {t('repairStepper.learPNHint')}
+                  {currentData.client === 'serbia' ? 'Ex: P7358033260' : t('repairStepper.learPNHint')}
                 </p>
               </div>
 
@@ -309,6 +370,36 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                   )}
                 </div>
               </div>
+
+              {/* Autofilled Lear PN for Serbia */}
+              {currentData.client === 'serbia' && (
+              <div className='space-y-3'>
+                <Label className='text-sm font-semibold text-gray-700 flex items-center gap-2'>
+                  <svg className='w-4 h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
+                  </svg>
+                  Lear PN
+                  <span className='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>
+                    {t('repairStepper.autoFilled')}
+                  </span>
+                </Label>
+                <div className='relative'>
+                  <Input
+                    className='h-14 px-4 text-base bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl cursor-not-allowed'
+                    readOnly
+                    value={learPN}
+                    placeholder={t('repairStepper.willBeFilledAuto')}
+                  />
+                  {learPN && (
+                    <div className='absolute right-3 top-1/2 -translate-y-1/2'>
+                      <svg className='w-5 h-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+              )}
             </div>
 
             {/* MATERIAL SECTION */}
@@ -408,9 +499,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
                   <div className={cn(
                     'w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center',
-                    isLearPNValid() && isPartLoaded() ? 'bg-green-100' : 'bg-gray-100'
+                    (currentData.client === 'serbia' ? isSarbiaPNValid() : isLearPNValid()) && isPartLoaded() ? 'bg-green-100' : 'bg-gray-100'
                   )}>
-                    {isLearPNValid() && isPartLoaded() ? (
+                    {(currentData.client === 'serbia' ? isSarbiaPNValid() : isLearPNValid()) && isPartLoaded() ? (
                       <svg className='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                       </svg>
@@ -459,9 +550,9 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
                 <div className='text-center p-3 rounded-lg bg-white border border-gray-200'>
                   <div className={cn(
                     'w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center',
-                    isLearPNValid() && isPartLoaded() && isStorageValid() && isQtyValid() ? 'bg-green-100' : 'bg-gray-100'
+                    (currentData.client === 'serbia' ? isSarbiaPNValid() : isLearPNValid()) && isPartLoaded() && isStorageValid() && isQtyValid() ? 'bg-green-100' : 'bg-gray-100'
                   )}>
-                    {isLearPNValid() && isPartLoaded() && isStorageValid() && isQtyValid() ? (
+                    {(currentData.client === 'serbia' ? isSarbiaPNValid() : isLearPNValid()) && isPartLoaded() && isStorageValid() && isQtyValid() ? (
                       <svg className='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                       </svg>

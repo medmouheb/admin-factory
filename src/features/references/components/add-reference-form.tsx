@@ -28,6 +28,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
 
   const formSchema = z.object({
     learPN: z.string().min(1, t('references.learPNRequired')),
+    sarbiaPN: z.string().optional(),
     tescaPN: z.string().min(1, t('references.tescaPNRequired')),
     desc: z.string().min(1, t('references.descriptionRequired')),
     qtyPerBox: z.string().min(1, t('references.quantityRequired')),
@@ -38,6 +39,7 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
     resolver: zodResolver(formSchema),
     defaultValues: {
       learPN: initialData?.learPN || '',
+      sarbiaPN: initialData?.sarbiaPN || '',
       tescaPN: initialData?.tescaPN || '',
       desc: initialData?.desc || '',
       qtyPerBox: initialData?.qtyPerBox ? String(initialData.qtyPerBox) : '',
@@ -162,6 +164,39 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
                       </FormControl>
                       <FormDescription className="text-xs text-gray-600">
                         {t('references.tescaPNDescription')}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="sarbiaPN"
+                  render={({ field }) => (
+                    <FormItem className="animate-in fade-in slide-in-from-left-4 duration-500 delay-300 fill-mode-backwards">
+                      <FormLabel className="flex items-center gap-2 text-gray-800 font-semibold">
+                        <svg className="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        Sarbia PN
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative group">
+                          <Input
+                            placeholder="Ex: 7358033260"
+                            className="pl-10 h-11 border-2 transition-all duration-200 focus:ring-4 focus:ring-purple-500/20 group-hover:border-purple-400 bg-white"
+                            {...field}
+                          />
+                          <svg className="text-gray-400 absolute left-3 top-3 h-5 w-5 transition-colors group-hover:text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </div>
+                      </FormControl>
+                      <FormDescription className="text-xs text-gray-600">
+                        Optionnel: Numéro de pièce pour le client Serbia
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

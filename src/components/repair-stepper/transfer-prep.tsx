@@ -700,13 +700,13 @@ export function TransferPrepComponent() {
                     'border-green-500 ring-2 ring-green-500/20'
                   )}
                   placeholder={
-                    prefix6
-                      ? t('repairStepper.traceabilityPlaceholder', { prefix: prefix6 })
-                      : t('repairStepper.awaitingLearPN')
+                    !prefix6 || barcode1 !== learPN
+                      ? t('repairStepper.awaitingLearPN')
+                      : t('repairStepper.traceabilityPlaceholder', { prefix: prefix6 })
                   }
                   autoComplete='off'
                   maxLength={13}
-                  disabled={!prefix6}
+                  disabled={!prefix6 || barcode1 !== learPN}
                 />
                 <div className='flex justify-between text-xs'>
                   <span
