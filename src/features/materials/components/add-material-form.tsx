@@ -52,10 +52,10 @@ export function AddMaterialForm({ initialData, onSuccess }: MaterialFormProps) {
         setLoading(true)
         try {
             if (isEditing) {
-                await axios.put(`http://localhost:8080/api/materials/${initialData.id}`, values, { withCredentials: true })
+                await axios.put(`/api/materials/${initialData.id}`, values, { withCredentials: true })
                 toast.success(t('materials.materialUpdatedSuccess'))
             } else {
-                await axios.post('http://localhost:8080/api/materials', values, { withCredentials: true })
+                await axios.post('/api/materials', values, { withCredentials: true })
                 toast.success(t('materials.materialAddedSuccess'))
             }
 

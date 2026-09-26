@@ -22,6 +22,7 @@ export function TransferPrepComponent() {
     Number(String(currentData.part.qtyPerBox ?? '0').replace(/\D/g, '')) || 0
   const learPNFull = String(currentData.part.learPN || '')
   const learPN = learPNFull.substring(1, 16) || ''
+  const sarbiaPN = String(currentData.part.sarbiaPN || '').replace(/^p/i, '')
   const prefix6 = learPN.slice(4, 10)
 
   const [barcode1, setBarcode1] = useState('')
@@ -120,7 +121,7 @@ export function TransferPrepComponent() {
     // Check if barcode already exists in database
     try {
       const res = await fetch(
-        `http://localhost:8080/api/tickets/check/${value}`,
+        `/api/tickets/check/${value}`,
         { credentials: 'include' }
       )
       const data = await res.json()
@@ -172,7 +173,7 @@ export function TransferPrepComponent() {
   const generateTicketCode = async () => {
     try {
       setProcessing(true)
-      const res = await fetch('http://localhost:8080/api/ticketscode/create', {
+      const res = await fetch('/api/ticketscode/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // ⬅️ VERY IMPORTANT
@@ -201,7 +202,7 @@ export function TransferPrepComponent() {
   const bulkValidate = async (code = ticketCode) => {
     try {
       setProcessing(true)
-      await fetch('http://localhost:8080/api/tickets/bulk', {
+      await fetch('/api/tickets/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -347,8 +348,12 @@ export function TransferPrepComponent() {
                 </div>
 
                 {/* 2. Lear PN Section */}
-                <div className='h-[15%] border-b border-black flex items-center justify-center'>
-                  <span className='text-lg font-bold'>{learPN}</span>
+                <div className='h-[15%] border-b border-black flex flex-col items-center justify-center'>
+                  {currentData.client === 'serbia' && sarbiaPN ? (
+                    <span className='text-lg font-bold'>{sarbiaPN}</span>
+                  ) : (
+                    <span className='text-lg font-bold'>{learPN}</span>
+                  )}
                 </div>
 
                 {/* 3. Barcode Section */}
@@ -431,8 +436,13 @@ export function TransferPrepComponent() {
     doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
 
     // Lear PN
-    doc.setFontSize(11)
-    doc.text(learPN, 2.5, 1.35, { align: 'center' })
+    if (currentData.client === 'serbia' && sarbiaPN) {
+      doc.setFontSize(11)
+      doc.text(sarbiaPN, 2.5, 1.35, { align: 'center' })
+    } else {
+      doc.setFontSize(11)
+      doc.text(learPN, 2.5, 1.35, { align: 'center' })
+    }
 
     // Barcode
     const canvas = document.createElement('canvas')

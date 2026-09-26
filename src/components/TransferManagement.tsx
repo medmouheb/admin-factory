@@ -74,7 +74,7 @@ export default function TransferManagement() {
     const fetchPackets = async () => {
         try {
             setLoading(true)
-            const res = await fetch('http://localhost:8080/api/packets', { credentials: 'include' })
+            const res = await fetch('/api/packets', { credentials: 'include' })
             if (!res.ok) throw new Error('Failed to fetch packets')
             const data = await res.json()
             setPackets(data)
@@ -98,7 +98,7 @@ export default function TransferManagement() {
     const handleSaveDetails = async () => {
         if (!selectedPacket) return
         try {
-            const res = await fetch(`http://localhost:8080/api/packets/${selectedPacket.id}`, {
+            const res = await fetch(`/api/packets/${selectedPacket.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -151,7 +151,7 @@ export default function TransferManagement() {
 
     const handleTransfer = async (id: string, target: '353A' | 'Stock') => {
         try {
-            const res = await fetch('http://localhost:8080/api/packets/transfer', {
+            const res = await fetch('/api/packets/transfer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -174,7 +174,7 @@ export default function TransferManagement() {
 
     const handleReceive = async (id: string) => {
         try {
-            const res = await fetch('http://localhost:8080/api/packets/receive', {
+            const res = await fetch('/api/packets/receive', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -196,7 +196,7 @@ export default function TransferManagement() {
 
     const handleReturn = async (id: string) => {
         try {
-            const res = await fetch('http://localhost:8080/api/packets/return', {
+            const res = await fetch('/api/packets/return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -218,7 +218,7 @@ export default function TransferManagement() {
 
     const handleAcceptReturn = async (id: string) => {
         try {
-            const res = await fetch('http://localhost:8080/api/packets/accept-return', {
+            const res = await fetch('/api/packets/accept-return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

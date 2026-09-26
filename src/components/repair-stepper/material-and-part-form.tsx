@@ -100,7 +100,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
       try {
         const cleanPN = val.trim().replace(/^p/i, '');
         const res = await fetch(
-          `http://localhost:8080/api/parts/serbia?sarbiaPN=${cleanPN}`,
+          `/api/parts/serbia?sarbiaPN=${cleanPN}`,
           { credentials: 'include' }
         )
         if (!res.ok) throw new Error('Not found')
@@ -144,7 +144,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
       setLoading(true)
       try {
         const res = await fetch(
-          `http://localhost:8080/api/parts/lear?learPN=${val.trim().substring(1)}`,
+          `/api/parts/lear?learPN=${val.trim().substring(1)}`,
           { credentials: 'include' }
         )
         if (!res.ok) throw new Error('Not found')
@@ -190,7 +190,7 @@ export function MaterialAndPartForm({ nextFunction }: { nextFunction: () => void
     setLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8080/api/ticketscode/check-hu-unique?hu=${val.trim()}`, {
+        `/api/ticketscode/check-hu-unique?hu=${val.trim()}`, {
         credentials: 'include',   // ⬅️ VERY IMPORTANT
       }
       )

@@ -43,7 +43,17 @@ import {
   Trash2,
   Edit,
   Printer,
-  X
+  X,
+  ClipboardList,
+  FileSpreadsheet,
+  Users,
+  Package,
+  Clock,
+  Sparkles,
+  Tag,
+  Sunrise,
+  Sun,
+  Moon
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import jsPDF from 'jspdf'
@@ -86,6 +96,8 @@ export function ComingSoon() {
   const [loading, setLoading] = useState(false)
   const [date, setDate] = useState("") // single date param for backend
   const [hu, setHu] = useState("")
+  const [operatorFilter, setOperatorFilter] = useState("")
+  const [learPNFilter, setLearPNFilter] = useState("")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [minTickets, setMinTickets] = useState("")
   const [maxTickets, setMaxTickets] = useState("")
@@ -126,6 +138,83 @@ export function ComingSoon() {
     hu: "",
   })
 
+  // Shift Report states
+  const [openShiftReport, setOpenShiftReport] = useState(false)
+  const [shiftReportDate, setShiftReportDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [shiftReportSearch, setShiftReportSearch] = useState("")
+  const [shiftReportFilter, setShiftReportFilter] = useState<"all" | "morning" | "afternoon" | "night">("all")
+  const [shiftReportSummary, setShiftReportSummary] = useState<{
+    totalOps: number
+    totalCodes: number
+    totalHU: number
+    totalQty: number
+    shifts: {
+      morning: { name: string; hours: string; tcodes: number; hu: number; qty: number; opsCount: number; percentage: number }
+      afternoon: { name: string; hours: string; tcodes: number; hu: number; qty: number; opsCount: number; percentage: number }
+      night: { name: string; hours: string; tcodes: number; hu: number; qty: number; opsCount: number; percentage: number }
+    }
+  } | null>(null)
+  const [shiftReportData, setShiftReportData] = useState<{
+    matricule: string
+    name?: string
+    totalHU: number
+    totalCodes: number
+    totalQty?: number
+    sharePercentage?: number
+    shifts?: {
+      morning: { tcodes: number; hu: number; qty?: number }
+      afternoon: { tcodes: number; hu: number; qty?: number }
+      night: { tcodes: number; hu: number; qty?: number }
+    }
+    codes: { code: string; hu: string; learPN: string; quantity: number; createdAt: string; shift?: string }[]
+  }[]>([])
+  const [shiftReportLoading, setShiftReportLoading] = useState(false)
+
+  const shiftReportStats = useMemo(() => {
+    if (shiftReportSummary) {
+      return shiftReportSummary
+    }
+    const totalOps = shiftReportData.length
+    const totalHU = shiftReportData.reduce((acc, curr) => acc + (curr.totalHU || 0), 0)
+    const totalCodes = shiftReportData.reduce((acc, curr) => acc + (curr.totalCodes || 0), 0)
+    const totalQty = shiftReportData.reduce((acc, curr) => acc + (curr.totalQty || 0), 0)
+    return {
+      totalOps,
+      totalHU,
+      totalCodes,
+      totalQty,
+      shifts: {
+        morning: { name: "Shift Matin", hours: "06h00 - 14h00", tcodes: 0, hu: 0, qty: 0, opsCount: 0, percentage: 0 },
+        afternoon: { name: "Shift Après-midi", hours: "14h00 - 22h00", tcodes: 0, hu: 0, qty: 0, opsCount: 0, percentage: 0 },
+        night: { name: "Shift Nuit", hours: "22h00 - 06h00", tcodes: 0, hu: 0, qty: 0, opsCount: 0, percentage: 0 },
+      }
+    }
+  }, [shiftReportData, shiftReportSummary])
+
+  const filteredShiftReportData = useMemo(() => {
+    let list = shiftReportData
+
+    // Shift filter (morning / afternoon / night)
+    if (shiftReportFilter !== "all") {
+      list = list.filter((op) => {
+        const s = op.shifts?.[shiftReportFilter]
+        return s && s.tcodes > 0
+      })
+    }
+
+    if (!shiftReportSearch.trim()) return list
+    const q = shiftReportSearch.toLowerCase().trim()
+    return list.filter((op) => {
+      const matchOp = op.matricule.toLowerCase().includes(q) || (op.name && op.name.toLowerCase().includes(q))
+      const matchCode = op.codes.some(
+        c => c.code.toLowerCase().includes(q) ||
+             (c.hu && c.hu.toLowerCase().includes(q)) ||
+             (c.learPN && c.learPN.toLowerCase().includes(q))
+      )
+      return matchOp || matchCode
+    })
+  }, [shiftReportData, shiftReportSearch, shiftReportFilter])
+
   // Get Ticket by Barcode states
   const [openBarcodeSearchDialog, setOpenBarcodeSearchDialog] = useState(false)
   const [barcodeSearchInput, setBarcodeSearchInput] = useState("")
@@ -148,12 +237,14 @@ export function ComingSoon() {
       })
 
       if (hu) params.append("hu", hu)
+      if (operatorFilter) params.append("matricule", operatorFilter)
+      if (learPNFilter) params.append("learPN", learPNFilter)
       if (date) params.append("date", date)
       if (timePreset && timePreset !== "all") params.append("time", timePreset)
 
 
       const res = await fetch(
-        `http://localhost:8080/api/ticketscode/ticket-code?${params.toString()}`, {
+        `/api/ticketscode/ticket-code?${params.toString()}`, {
         credentials: 'include',   // ⬅️ VERY IMPORTANT
 
       }
@@ -166,7 +257,7 @@ export function ComingSoon() {
       console.error("Error fetching ticket codes:", err)
     }
     setLoading(false)
-  }, [page, limit, searchQuery, sortOrder, hu, date, timePreset])
+  }, [page, limit, searchQuery, sortOrder, hu, operatorFilter, learPNFilter, date, timePreset])
 
   useEffect(() => {
     fetchTicketCodes()
@@ -180,7 +271,7 @@ export function ComingSoon() {
     try {
       // First, try to fetch with a reasonable limit
       const res = await fetch(
-        `http://localhost:8080/api/tickets/search?page=1&limit=100&search=${encodeURIComponent(code)}`,
+        `/api/tickets/search?page=1&limit=100&search=${encodeURIComponent(code)}`,
         { credentials: 'include' }
       )
 
@@ -211,7 +302,7 @@ export function ComingSoon() {
         for (let page = 2; page <= Math.min(totalPages, 10); page++) {
           try {
             const nextRes = await fetch(
-              `http://localhost:8080/api/tickets/search?page=${page}&limit=100&search=${encodeURIComponent(code)}`,
+              `/api/tickets/search?page=${page}&limit=100&search=${encodeURIComponent(code)}`,
               { credentials: 'include' }
             )
             if (nextRes.ok) {
@@ -263,7 +354,7 @@ export function ComingSoon() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch("http://localhost:8080/api/tickets", {
+      const res = await fetch("/api/tickets", {
         method: "POST",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
@@ -301,7 +392,7 @@ export function ComingSoon() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/tickets/${selectedTicket.id}`, {
+      const res = await fetch(`/api/tickets/${selectedTicket.id}`, {
         method: "PUT",
         credentials: 'include',
         headers: { "Content-Type": "application/json" },
@@ -336,7 +427,7 @@ export function ComingSoon() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/tickets/${selectedTicket.id}`, {
+      const res = await fetch(`/api/tickets/${selectedTicket.id}`, {
         method: "DELETE",
         credentials: 'include',
       })
@@ -369,7 +460,7 @@ export function ComingSoon() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/ticketscode/${selectedTicketCode.id}`, {
+      const res = await fetch(`/api/ticketscode/${selectedTicketCode.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
@@ -403,7 +494,7 @@ export function ComingSoon() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/ticketscode/${selectedTicketCode.id}`, {
+      const res = await fetch(`/api/ticketscode/${selectedTicketCode.id}`, {
         method: "DELETE",
         credentials: 'include'
       })
@@ -436,7 +527,7 @@ export function ComingSoon() {
 
     setBarcodeSearchLoading(true)
     try {
-      const res = await fetch(`http://localhost:8080/api/tickets/barcode/${encodeURIComponent(barcodeSearchInput)}`, { credentials: 'include' })
+      const res = await fetch(`/api/tickets/barcode/${encodeURIComponent(barcodeSearchInput)}`, { credentials: 'include' })
 
       if (!res.ok) {
         const errorText = await res.text()
@@ -456,80 +547,228 @@ export function ComingSoon() {
   }
   const { auth } = useAuthStore()
 
+  // ─── Generate label PDF for a ticket code (TicketCode record) ───
   const generateTicketPDF = (ticketCode: string) => {
-    console.log(selectedOne)
+    // MUST always use the exact T-code passed or currently selected
+    const codeToPrint = ticketCode || selectedCode || selectedOne?.code
+    if (!codeToPrint) {
+      toast.error('Aucun code T-Code sélectionné')
+      return
+    }
+
+    // Find the exact TicketCode record matching this code
+    const target = data.find(d => d.code === codeToPrint) || (selectedOne?.code === codeToPrint ? selectedOne : null)
+
     const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
-    const m = 0.2
-    const w = 4.6
-    const h = 4.6
-
-    doc.setLineWidth(0.02)
-    doc.setDrawColor(0)
-
-    // Border & Grid
+    const m = 0.2; const w = 4.6; const h = 4.6
+    doc.setLineWidth(0.02); doc.setDrawColor(0)
     doc.rect(m, m, w, h)
     doc.line(m, 0.9, m + w, 0.9)
     doc.line(m, 1.5, m + w, 1.5)
     doc.line(m, 3.9, m + w, 3.9)
 
-    // Header
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12)
     doc.text('TESCA', m + 0.2, 0.7)
     doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
 
-    // Ref (LearPN)
-    const ref = selectedOne?.learPN || ""
+    const ref = target?.learPN || selectedOne?.learPN || ""
     doc.setFontSize(11)
     doc.text(ref, 2.5, 1.35, { align: 'center' })
 
-    // Barcode
+    // Barcode: MUST ALWAYS BE THE EXACT SAME T-CODE (e.g. FLY60NCPAF)
     const canvas1 = document.createElement('canvas');
-    if (selectedOne?.code) {
-      JsBarcode(canvas1, selectedOne?.code, {
-        format: 'CODE128',
-        width: 4,
-        height: 80,
-        displayValue: false,
-        margin: 0
-      });
-      doc.addImage(canvas1.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8);
+    JsBarcode(canvas1, codeToPrint, {
+      format: 'CODE128',
+      width: 4,
+      height: 80,
+      displayValue: false,
+      margin: 0
+    });
+    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8);
+
+    doc.setFontSize(10)
+    doc.text(codeToPrint, 2.5, 3.75, { align: 'center' })
+
+    doc.setFontSize(9)
+    const opMat = target?.matricule || selectedOne?.matricule || auth.user?.matricule || ''
+    const opQty = target?.quantity != null ? target.quantity : (selectedOne?.quantity != null ? selectedOne.quantity : tickets.length)
+    doc.text(`Op: ${opMat}`, m + 0.1, 4.3)
+    doc.text(`Qty: ${opQty}`, m + w - 0.1, 4.3, { align: 'right' })
+
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal')
+    const dateVal = target?.createdAt || selectedOne?.createdAt || ''
+    const now = dateVal ? new Date(dateVal) : new Date()
+    doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 2.5, 4.7, { align: 'center' })
+    printPDF(doc)
+    toast.success(`Étiquette imprimée pour le T-Code ${codeToPrint}`)
+  };
+
+  // ─── Reprint label for the same ticket code (T-Code) ───
+  const reprintTicketLabel = (ticket: Ticket) => {
+    // Print the EXACT SAME T-code for this ticket
+    const codeToPrint = ticket.ticketCode || selectedCode || selectedOne?.code
+    if (!codeToPrint) {
+      toast.error('Code T-Code introuvable')
+      return
     }
 
-    // Ticket Code Text
+    const target = data.find(d => d.code === codeToPrint) || (selectedOne?.code === codeToPrint ? selectedOne : null)
+
+    const doc = new jsPDF({ unit: 'cm', format: [5, 5] });
+    const m = 0.2; const w = 4.6; const h = 4.6
+    doc.setLineWidth(0.02); doc.setDrawColor(0)
+    doc.rect(m, m, w, h)
+    doc.line(m, 0.9, m + w, 0.9)
+    doc.line(m, 1.5, m + w, 1.5)
+    doc.line(m, 3.9, m + w, 3.9)
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12)
+    doc.text('TESCA', m + 0.2, 0.7)
+    doc.text('SK', m + w - 0.2, 0.7, { align: 'right' })
+
+    const ref = target?.learPN || selectedOne?.learPN || ""
+    doc.setFontSize(11)
+    doc.text(ref, 2.5, 1.35, { align: 'center' })
+
+    // Barcode: MUST ALWAYS BE THE EXACT SAME T-CODE
+    const canvas1 = document.createElement('canvas');
+    JsBarcode(canvas1, codeToPrint, {
+      format: 'CODE128',
+      width: 4,
+      height: 80,
+      displayValue: false,
+      margin: 0
+    });
+    doc.addImage(canvas1.toDataURL('image/png'), 'PNG', m + 0.1, 1.6, w - 0.2, 1.8);
+
     doc.setFontSize(10)
-    doc.text(selectedOne?.code || '', 2.5, 3.75, { align: 'center' })
+    doc.text(codeToPrint, 2.5, 3.75, { align: 'center' })
 
-    // Footer
     doc.setFontSize(9)
-    doc.text(`Op: ${selectedOne?.matricule || ''}`, m + 0.1, 4.3)
-    const qty = selectedOne?.quantity || '' // Use selectedTicketCode quantity
-    doc.text(`Qty: ${qty}`, m + w - 0.1, 4.3, { align: 'right' })
+    const opMat = target?.matricule || selectedOne?.matricule || auth.user?.matricule || ''
+    const opQty = target?.quantity != null ? target.quantity : (selectedOne?.quantity != null ? selectedOne.quantity : tickets.length)
+    doc.text(`Op: ${opMat}`, m + 0.1, 4.3)
+    doc.text(`Qty: ${opQty}`, m + w - 0.1, 4.3, { align: 'right' })
 
-    // Date
-    doc.setFontSize(7)
-    doc.setFont('helvetica', 'normal')
-    const now = new Date(selectedOne?.createdAt || '')
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal')
+    const dateVal = target?.createdAt || ticket.createdAt || selectedOne?.createdAt || ''
+    const now = dateVal ? new Date(dateVal) : new Date()
     doc.text(now.toLocaleDateString() + ' ' + now.toLocaleTimeString(), 2.5, 4.7, { align: 'center' })
+    printPDF(doc)
+    toast.success(`Étiquette réimprimée : ${codeToPrint}`)
+  };
 
-    // Print
+  // ─── Shared PDF print helper ───
+  const printPDF = (doc: jsPDF) => {
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     iframe.src = url;
     document.body.appendChild(iframe);
-
     iframe.onload = () => {
       setTimeout(() => {
         iframe.contentWindow?.print();
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 10000);
+        setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 10000);
       }, 100);
     };
   };
+
+  // ─── Shift report ───
+  const fetchShiftReport = async (dateStr: string) => {
+    setShiftReportLoading(true)
+    try {
+      const res = await fetch(`/api/ticketscode/shift-report?date=${dateStr}`, { credentials: 'include' })
+      if (!res.ok) throw new Error('Erreur serveur')
+      const json = await res.json()
+      setShiftReportData(json.data || [])
+      setShiftReportSummary(json.summary || null)
+    } catch (e) {
+      toast.error('Erreur chargement rapport de shift')
+      setShiftReportData([])
+      setShiftReportSummary(null)
+    } finally {
+      setShiftReportLoading(false)
+    }
+  }
+
+  const generateShiftReportPDF = () => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const pageW = 210; const margin = 14
+    const date = new Date(shiftReportDate).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
+    // Header
+    doc.setFillColor(88, 28, 135); doc.rect(0, 0, pageW, 28, 'F')
+    doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(16)
+    doc.text('TESCA — ÉTAT JOURNALISÉ DE SHIFT', pageW / 2, 12, { align: 'center' })
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal')
+    doc.text(`Date : ${date}`, pageW / 2, 22, { align: 'center' })
+    doc.setTextColor(0, 0, 0)
+
+    let y = 36
+    shiftReportData.forEach((op, i) => {
+      // Operator header
+      doc.setFillColor(237, 233, 254)
+      doc.rect(margin, y, pageW - margin * 2, 8, 'F')
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10)
+      doc.text(`Opérateur : ${op.name ? `${op.matricule} - ${op.name}` : op.matricule}`, margin + 2, y + 5.5)
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5)
+      doc.text(`HU : ${op.totalHU}  |  T-Codes : ${op.totalCodes}${op.totalQty ? `  |  Pièces : ${op.totalQty}` : ''}`, pageW - margin - 2, y + 5.5, { align: 'right' })
+      y += 10
+
+      // Table header
+      doc.setFillColor(109, 40, 217)
+      doc.rect(margin, y, pageW - margin * 2, 6, 'F')
+      doc.setTextColor(255, 255, 255); doc.setFontSize(8)
+      doc.text('T-CODE', margin + 2, y + 4)
+      doc.text('HU', margin + 50, y + 4)
+      doc.text('REF LEAR', margin + 90, y + 4)
+      doc.text('QTÉ', margin + 130, y + 4)
+      doc.text('HEURE', margin + 150, y + 4)
+      doc.setTextColor(0, 0, 0)
+      y += 8
+
+      op.codes.forEach((c, ci) => {
+        if (y > 270) { doc.addPage(); y = 20 }
+        doc.setFillColor(ci % 2 === 0 ? 250 : 245, ci % 2 === 0 ? 248 : 243, 255)
+        doc.rect(margin, y, pageW - margin * 2, 5.5, 'F')
+        doc.setFontSize(7.5)
+        doc.text(c.code, margin + 2, y + 4)
+        doc.text(c.hu || '—', margin + 50, y + 4)
+        doc.text(c.learPN || '—', margin + 90, y + 4)
+        doc.text(String(c.quantity || 0), margin + 130, y + 4)
+        doc.text(new Date(c.createdAt).toLocaleTimeString(), margin + 150, y + 4)
+        y += 6
+      })
+      y += 8
+    })
+
+    // Footer
+    doc.setFontSize(7); doc.setTextColor(120)
+    doc.text(`Généré le ${new Date().toLocaleString()}`, pageW / 2, 290, { align: 'center' })
+    printPDF(doc)
+  }
+
+  const downloadShiftReportExcel = async () => {
+    try {
+      const res = await fetch(`/api/ticketscode/shift-report/excel?date=${shiftReportDate}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error("Erreur serveur lors de l'export Excel")
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `etat_shift_${shiftReportDate}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast.success('Rapport Excel téléchargé avec succès')
+    } catch (e) {
+      toast.error("Impossible de télécharger le fichier Excel")
+    }
+  }
 
   const openEditDialogForTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket)
@@ -571,6 +810,11 @@ export function ComingSoon() {
   // Open popup
   const handleOpenTickets = (code: string) => {
     setSelectedCode(code)
+    // Synchronize selectedOne with the exact item clicked
+    const found = data.find((d) => d.code === code)
+    if (found) {
+      setSelectedOne(found)
+    }
     setOpenDialog(true)
     setTicketDisplayPage(1)
     setTicketSearch("")
@@ -656,6 +900,8 @@ export function ComingSoon() {
   const resetFilters = () => {
     setDate("")
     setHu("")
+    setOperatorFilter("")
+    setLearPNFilter("")
     setSortOrder("desc")
     setSearchInput("")
     setSearchQuery("")
@@ -668,14 +914,16 @@ export function ComingSoon() {
   const activeFiltersCount = useMemo(() => {
     let count = 0
     if (searchQuery) count += 1
+    if (operatorFilter) count += 1
+    if (learPNFilter) count += 1
+    if (hu) count += 1
     if (date) count += 1
     if (sortOrder === "asc") count += 1
     if (minTickets) count += 1
     if (maxTickets) count += 1
     if (timePreset !== "all") count += 1
-    if (hu) count += 1
     return count
-  }, [searchQuery, date, sortOrder, minTickets, maxTickets, timePreset, hu])
+  }, [searchQuery, operatorFilter, learPNFilter, hu, date, sortOrder, minTickets, maxTickets, timePreset])
 
   const filteredData = useMemo(() => {
     const min = Number(minTickets)
@@ -759,6 +1007,15 @@ export function ComingSoon() {
             >
               <Search className="mr-2 h-4 w-4" /> {t('ticketManagement.scanBarcode')}
             </Button>
+            {auth.user?.role !== 'operateur' && (
+              <Button
+                variant="outline"
+                onClick={() => { setOpenShiftReport(true); fetchShiftReport(shiftReportDate) }}
+                className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-sm transition-all duration-200 hover:scale-105"
+              >
+                <ClipboardList className="mr-2 h-4 w-4" /> État de Shift
+              </Button>
+            )}
           </div>
         </div>
       </motion.div>
@@ -798,7 +1055,7 @@ export function ComingSoon() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <div className="space-y-2">
                 <Label htmlFor="search">{t('ticketManagement.ticketCode')}</Label>
                 <div className="relative">
@@ -815,16 +1072,54 @@ export function ComingSoon() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="filter-operator">{t('ticketManagement.operateur')}</Label>
+                <div className="relative">
+                  <Users className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="filter-operator"
+                    placeholder={t('ticketManagement.filterByOperator', 'Filtrer par opérateur...')}
+                    value={operatorFilter}
+                    onChange={(e) => {
+                      setOperatorFilter(e.target.value)
+                      setPage(1)
+                    }}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="filter-learPN">{t('ticketManagement.learPN')}</Label>
+                <div className="relative">
+                  <Tag className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="filter-learPN"
+                    placeholder={t('ticketManagement.filterByLearPN', 'Filtrer par Lear PN...')}
+                    value={learPNFilter}
+                    onChange={(e) => {
+                      setLearPNFilter(e.target.value)
+                      setPage(1)
+                    }}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="hu">{t('ticketManagement.huNumber')}</Label>
-                <Input
-                  id="hu"
-                  placeholder={t('ticketManagement.filterByHu')}
-                  value={hu}
-                  onChange={(e) => {
-                    setHu(e.target.value)
-                    setPage(1)
-                  }}
-                />
+                <div className="relative">
+                  <Package className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="hu"
+                    placeholder={t('ticketManagement.filterByHu')}
+                    value={hu}
+                    onChange={(e) => {
+                      setHu(e.target.value)
+                      setPage(1)
+                    }}
+                    className="pl-8"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -1254,45 +1549,33 @@ export function ComingSoon() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
                                 <DropdownMenuLabel>{t('ticketManagement.actions')}</DropdownMenuLabel>
+                                // ✅ Réimprimer — visible à tous les rôles
+                                <DropdownMenuItem
+                                  onClick={() => reprintTicketLabel(ticket)}
+                                  className="cursor-pointer text-purple-700 focus:text-purple-700"
+                                >
+                                  <Printer className="mr-2 h-4 w-4" />
+                                  Réimprimer l'étiquette
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => openEditDialogForTicket(ticket)}
-                                  className="cursor-pointer"
-                                >
-                                  <svg
-                                    className="mr-2 h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                    />
-                                  </svg>
-                                  {t('ticketManagement.editDetails')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => openDeleteDialogForTicket(ticket)}
-                                  className="cursor-pointer text-destructive focus:text-destructive"
-                                >
-                                  <svg
-                                    className="mr-2 h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                  {t('ticketManagement.delete')}
-                                </DropdownMenuItem>
+                                {auth.user?.role !== 'operateur' && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() => openEditDialogForTicket(ticket)}
+                                      className="cursor-pointer"
+                                    >
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      {t('ticketManagement.editDetails')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => openDeleteDialogForTicket(ticket)}
+                                      className="cursor-pointer text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      {t('ticketManagement.delete')}
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -1373,7 +1656,8 @@ export function ComingSoon() {
               onClick={() => generateTicketPDF(selectedCode)}
               className="transition-all duration-200 hover:scale-105 hover:shadow-md"
             >
-              🖨️ {t('ticketManagement.printTicket')}
+              <Printer className="mr-2 h-4 w-4" />
+              {t('ticketManagement.printTicket')}
             </Button>
             <Button
               onClick={() => setOpenDialog(false)}
@@ -1665,6 +1949,577 @@ export function ComingSoon() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ─────────────────────────────── */}
+      {/* SHIFT REPORT DIALOG (PREMIUM)   */}
+      {/* ─────────────────────────────── */}
+      <Dialog open={openShiftReport} onOpenChange={setOpenShiftReport}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-5xl max-h-[92vh] p-0 overflow-hidden flex flex-col gap-0 rounded-2xl border border-purple-200/80 dark:border-purple-900/60 shadow-2xl bg-background"
+        >
+          {/* Hero Header */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white p-5 md:p-6 pr-14 select-none">
+            {/* Ambient decorative glow */}
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-8 left-1/3 w-36 h-36 bg-pink-500/15 rounded-full blur-xl pointer-events-none" />
+
+            {/* Custom Close Button */}
+            <button
+              onClick={() => setOpenShiftReport(false)}
+              className="absolute top-5 right-5 h-8 w-8 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all text-white flex items-center justify-center backdrop-blur-md border border-white/20 shadow-xs"
+              title="Fermer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 shadow-inner flex items-center justify-center shrink-0">
+                  <ClipboardList className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+                      État Journalisé de Shift
+                    </h2>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Journal de production
+                    </span>
+                  </div>
+                  <p className="text-xs md:text-sm text-purple-200/90 mt-1">
+                    Supervision complète des Unités de Manutention (HU) et T-Codes préparés par opérateur
+                  </p>
+                </div>
+              </div>
+
+              {/* Formatted Date Pill */}
+              <div className="flex items-center gap-2 self-start md:self-auto bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white shadow-xs">
+                <Calendar className="h-3.5 w-3.5 text-purple-200" />
+                <span>
+                  {new Date(shiftReportDate + 'T00:00:00').toLocaleDateString('fr-FR', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 md:px-6 md:py-3.5 bg-gradient-to-b from-purple-50/60 dark:from-purple-950/20 to-background border-b border-border/60">
+            {/* KPI 1 */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/80 shadow-xs hover:border-purple-300 dark:hover:border-purple-800 transition-all">
+              <div className="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Opérateurs</p>
+                <p className="text-xl md:text-2xl font-extrabold text-foreground tracking-tight leading-none mt-0.5">
+                  {shiftReportStats.totalOps}
+                </p>
+              </div>
+            </div>
+
+            {/* KPI 2 */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/80 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-800 transition-all">
+              <div className="h-10 w-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Total HU</p>
+                <p className="text-xl md:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none mt-0.5">
+                  {shiftReportStats.totalHU}
+                </p>
+              </div>
+            </div>
+
+            {/* KPI 3 */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/80 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-800 transition-all">
+              <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0">
+                <Barcode className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Total T-Codes</p>
+                <p className="text-xl md:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none mt-0.5">
+                  {shiftReportStats.totalCodes}
+                </p>
+              </div>
+            </div>
+
+            {/* KPI 4 */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/80 shadow-xs hover:border-teal-300 dark:hover:border-teal-800 transition-all">
+              <div className="h-10 w-10 rounded-xl bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0">
+                <Tag className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Total Pièces</p>
+                <p className="text-xl md:text-2xl font-extrabold text-teal-600 dark:text-teal-400 tracking-tight leading-none mt-0.5">
+                  {shiftReportStats.totalQty || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Shift Performance Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-4 md:px-6 py-3 bg-muted/15 border-b border-border/60">
+            {/* Shift 1: Matin */}
+            <div
+              onClick={() => setShiftReportFilter(shiftReportFilter === 'morning' ? 'all' : 'morning')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                shiftReportFilter === 'morning'
+                  ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-sm'
+                  : 'bg-card border-border/80 hover:border-amber-400/60 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                    <Sunrise className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Shift Matin</p>
+                    <p className="text-[10px] text-muted-foreground">06h00 - 14h00</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-semibold bg-amber-100/70 text-amber-800 border-amber-300">
+                  {shiftReportStats.shifts.morning.percentage}%
+                </Badge>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">{shiftReportStats.shifts.morning.tcodes} <span className="font-normal text-muted-foreground text-[10px]">T-Codes</span></span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{shiftReportStats.shifts.morning.hu} <span className="font-normal text-muted-foreground text-[10px]">HU</span></span>
+                <span className="text-[10px] text-muted-foreground">{shiftReportStats.shifts.morning.opsCount} op.</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" style={{ width: `${shiftReportStats.shifts.morning.percentage}%` }} />
+              </div>
+            </div>
+
+            {/* Shift 2: Après-midi */}
+            <div
+              onClick={() => setShiftReportFilter(shiftReportFilter === 'afternoon' ? 'all' : 'afternoon')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                shiftReportFilter === 'afternoon'
+                  ? 'bg-sky-500/10 border-sky-500 ring-2 ring-sky-500/30 shadow-sm'
+                  : 'bg-card border-border/80 hover:border-sky-400/60 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
+                    <Sun className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Shift Après-midi</p>
+                    <p className="text-[10px] text-muted-foreground">14h00 - 22h00</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-semibold bg-sky-100/70 text-sky-800 border-sky-300">
+                  {shiftReportStats.shifts.afternoon.percentage}%
+                </Badge>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">{shiftReportStats.shifts.afternoon.tcodes} <span className="font-normal text-muted-foreground text-[10px]">T-Codes</span></span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{shiftReportStats.shifts.afternoon.hu} <span className="font-normal text-muted-foreground text-[10px]">HU</span></span>
+                <span className="text-[10px] text-muted-foreground">{shiftReportStats.shifts.afternoon.opsCount} op.</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-sky-400 to-sky-500 rounded-full" style={{ width: `${shiftReportStats.shifts.afternoon.percentage}%` }} />
+              </div>
+            </div>
+
+            {/* Shift 3: Nuit */}
+            <div
+              onClick={() => setShiftReportFilter(shiftReportFilter === 'night' ? 'all' : 'night')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                shiftReportFilter === 'night'
+                  ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/30 shadow-sm'
+                  : 'bg-card border-border/80 hover:border-purple-400/60 hover:shadow-xs'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
+                    <Moon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Shift Nuit</p>
+                    <p className="text-[10px] text-muted-foreground">22h00 - 06h00</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-semibold bg-purple-100/70 text-purple-800 border-purple-300">
+                  {shiftReportStats.shifts.night.percentage}%
+                </Badge>
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs">
+                <span className="font-bold text-foreground">{shiftReportStats.shifts.night.tcodes} <span className="font-normal text-muted-foreground text-[10px]">T-Codes</span></span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{shiftReportStats.shifts.night.hu} <span className="font-normal text-muted-foreground text-[10px]">HU</span></span>
+                <span className="text-[10px] text-muted-foreground">{shiftReportStats.shifts.night.opsCount} op.</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" style={{ width: `${shiftReportStats.shifts.night.percentage}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Toolbar */}
+          <div className="px-4 md:px-6 py-3 bg-muted/20 border-b border-border/60 flex flex-wrap items-center justify-between gap-3">
+            {/* Left controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-2.5 py-1 shadow-xs hover:border-purple-400 transition-colors">
+                <Calendar className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                <Input
+                  type="date"
+                  value={shiftReportDate}
+                  onChange={(e) => {
+                    setShiftReportDate(e.target.value)
+                    fetchShiftReport(e.target.value)
+                  }}
+                  className="border-0 p-0 h-6 w-33 shadow-none focus-visible:ring-0 text-xs font-semibold cursor-pointer"
+                />
+              </div>
+
+              {/* Quick Date Presets */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const today = new Date().toISOString().split('T')[0]
+                  setShiftReportDate(today)
+                  fetchShiftReport(today)
+                }}
+                className="h-8 px-2.5 text-xs font-medium"
+              >
+                Aujourd'hui
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const d = new Date()
+                  d.setDate(d.getDate() - 1)
+                  const hier = d.toISOString().split('T')[0]
+                  setShiftReportDate(hier)
+                  fetchShiftReport(hier)
+                }}
+                className="h-8 px-2.5 text-xs font-medium"
+              >
+                Hier
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchShiftReport(shiftReportDate)}
+                className="h-8 gap-1.5 px-2.5 text-xs font-medium"
+                title="Actualiser les données"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${shiftReportLoading ? 'animate-spin text-purple-600' : ''}`} />
+                Actualiser
+              </Button>
+
+              {/* Shift Quick Filter Pills */}
+              <div className="hidden lg:flex items-center gap-1 border-l border-border/60 pl-2">
+                <Button
+                  variant={shiftReportFilter === 'all' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShiftReportFilter('all')}
+                  className="h-7 px-2 text-[11px] font-medium"
+                >
+                  Tous
+                </Button>
+                <Button
+                  variant={shiftReportFilter === 'morning' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShiftReportFilter('morning')}
+                  className="h-7 px-2 text-[11px] font-medium gap-1"
+                >
+                  <Sunrise className="h-3 w-3" /> Matin
+                </Button>
+                <Button
+                  variant={shiftReportFilter === 'afternoon' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShiftReportFilter('afternoon')}
+                  className="h-7 px-2 text-[11px] font-medium gap-1"
+                >
+                  <Sun className="h-3 w-3" /> Après-midi
+                </Button>
+                <Button
+                  variant={shiftReportFilter === 'night' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShiftReportFilter('night')}
+                  className="h-7 px-2 text-[11px] font-medium gap-1"
+                >
+                  <Moon className="h-3 w-3" /> Nuit
+                </Button>
+              </div>
+
+              {/* Live search input */}
+              <div className="relative">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder="Rechercher opérateur, T-code, HU..."
+                  value={shiftReportSearch}
+                  onChange={(e) => setShiftReportSearch(e.target.value)}
+                  className="h-8 pl-8 pr-7 text-xs w-44 md:w-56 rounded-lg bg-background"
+                />
+                {shiftReportSearch && (
+                  <button
+                    onClick={() => setShiftReportSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right Action buttons */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Button
+                size="sm"
+                onClick={downloadShiftReportExcel}
+                disabled={shiftReportData.length === 0 || shiftReportLoading}
+                className="h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-medium text-xs transition-all hover:scale-[1.02] cursor-pointer"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5" /> Exporter Excel
+              </Button>
+              <Button
+                size="sm"
+                onClick={generateShiftReportPDF}
+                disabled={shiftReportData.length === 0 || shiftReportLoading}
+                className="h-8 gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-xs font-medium text-xs transition-all hover:scale-[1.02] cursor-pointer"
+              >
+                <Printer className="h-3.5 w-3.5" /> Imprimer le rapport
+              </Button>
+            </div>
+          </div>
+
+          {/* Report Body / List */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 max-h-[calc(92vh-280px)]">
+            {shiftReportLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+                <div className="relative">
+                  <div className="h-14 w-14 rounded-full border-4 border-purple-200 dark:border-purple-900 border-t-purple-600 animate-spin" />
+                  <Sparkles className="h-5 w-5 text-purple-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-foreground">Chargement des données du shift...</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Calcul des totaux et agrégation par opérateur</p>
+                </div>
+              </div>
+            ) : shiftReportData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 gap-3 text-center border-2 border-dashed border-border/80 rounded-2xl bg-muted/10">
+                <div className="h-16 w-16 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center shadow-inner">
+                  <Calendar className="h-8 w-8" />
+                </div>
+                <div>
+                  <p className="font-bold text-base text-foreground">Aucune activité enregistrée</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                    Aucun T-Code ni Unité de Manutention (HU) n'a été créé pour la date sélectionnée.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0]
+                    setShiftReportDate(today)
+                    fetchShiftReport(today)
+                  }}
+                  className="mt-2 text-xs font-semibold gap-1.5"
+                >
+                  <Calendar className="h-3.5 w-3.5" /> Revenir à aujourd'hui
+                </Button>
+              </div>
+            ) : filteredShiftReportData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
+                <Search className="h-8 w-8 text-muted-foreground/40" />
+                <p className="font-semibold text-sm">Aucun résultat trouvé</p>
+                <p className="text-xs text-muted-foreground">
+                  Aucun opérateur ou T-code ne correspond au filtre « {shiftReportSearch} »
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShiftReportSearch("")}
+                  className="text-xs text-purple-600 font-medium"
+                >
+                  Effacer le filtre
+                </Button>
+              </div>
+            ) : (
+              filteredShiftReportData.map((op) => (
+                <div
+                  key={op.matricule}
+                  className="border border-border/80 hover:border-purple-200 dark:hover:border-purple-900 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 bg-card"
+                >
+                  {/* Operator Header Bar */}
+                  <div className="bg-gradient-to-r from-purple-50/90 via-indigo-50/40 to-background dark:from-purple-950/40 dark:via-indigo-950/20 dark:to-card px-4 py-3 flex items-center justify-between border-b border-border/80 flex-wrap gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-600 text-white font-bold flex items-center justify-center shadow-xs text-xs tracking-wider">
+                        {op.matricule.slice(0, 3).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-sm text-foreground">
+                            {op.name ? `${op.matricule} • ${op.name}` : op.matricule}
+                          </p>
+                          <span className="text-[10px] font-medium bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full">
+                            Opérateur
+                          </span>
+                          {op.sharePercentage != null && (
+                            <span className="text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded">
+                              {op.sharePercentage}% du total
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <p className="text-[11px] text-muted-foreground">
+                            {op.codes.length} code(s) enregistré(s)
+                          </p>
+                          {op.shifts?.morning && op.shifts.morning.tcodes > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 px-1.5 py-0.2 rounded">
+                              <Sunrise className="h-2.5 w-2.5" /> Matin: {op.shifts.morning.tcodes}
+                            </span>
+                          )}
+                          {op.shifts?.afternoon && op.shifts.afternoon.tcodes > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 px-1.5 py-0.2 rounded">
+                              <Sun className="h-2.5 w-2.5" /> Midi: {op.shifts.afternoon.tcodes}
+                            </span>
+                          )}
+                          {op.shifts?.night && op.shifts.night.tcodes > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border border-purple-200 px-1.5 py-0.2 rounded">
+                              <Moon className="h-2.5 w-2.5" /> Nuit: {op.shifts.night.tcodes}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stat Badges */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300">
+                        <Package className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-semibold">{op.totalHU}</span>
+                        <span className="text-[10px] font-medium text-emerald-700/80 dark:text-emerald-400/80">HU</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 text-purple-800 dark:text-purple-300">
+                        <Barcode className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                        <span className="text-xs font-semibold">{op.totalCodes}</span>
+                        <span className="text-[10px] font-medium text-purple-700/80 dark:text-purple-400/80">T-Codes</span>
+                      </div>
+
+                      {op.totalQty != null && op.totalQty > 0 && (
+                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-800/60 text-teal-800 dark:text-teal-300">
+                          <Tag className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                          <span className="text-xs font-semibold">{op.totalQty}</span>
+                          <span className="text-[10px] font-medium text-teal-700/80 dark:text-teal-400/80">pcs</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Codes Table */}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-muted/40">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2 pl-4">T-CODE</TableHead>
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2">HU</TableHead>
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2">Réf. LEAR</TableHead>
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2 text-center">Quantité</TableHead>
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2 text-center">Shift</TableHead>
+                          <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground py-2 pr-4 text-right">Heure</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {op.codes.map((c, i) => (
+                          <TableRow
+                            key={c.code + i}
+                            className={`transition-colors text-xs ${i % 2 === 0 ? 'bg-background hover:bg-muted/30' : 'bg-muted/15 hover:bg-muted/40'}`}
+                          >
+                            <TableCell className="py-2 pl-4">
+                              <span className="font-mono text-xs font-bold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/70 dark:border-purple-800/50 px-2 py-0.5 rounded-md">
+                                {c.code}
+                              </span>
+                            </TableCell>
+                            <TableCell className="py-2">
+                              {c.hu ? (
+                                <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md">
+                                  {c.hu}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/60">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="py-2">
+                              {c.learPN ? (
+                                <span className="font-medium text-foreground">{c.learPN}</span>
+                              ) : (
+                                <span className="text-muted-foreground/60">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="py-2 text-center">
+                              {c.quantity != null ? (
+                                <Badge variant="outline" className="font-mono text-[11px] font-semibold">
+                                  {c.quantity}
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground/60">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="py-2 text-center">
+                              <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-muted/60 text-muted-foreground">
+                                {c.shift || '—'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="py-2 pr-4 text-right text-muted-foreground font-medium">
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-muted-foreground/70" />
+                                {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Footer Bar */}
+          <div className="px-5 py-3.5 border-t border-border/80 bg-muted/20 flex items-center justify-between gap-4">
+            <div className="text-xs text-muted-foreground flex items-center gap-2">
+              <span className="font-medium">
+                {filteredShiftReportData.length} opérateur(s) affiché(s)
+              </span>
+              <span>•</span>
+              <span>
+                Total shift : <b className="text-foreground">{shiftReportStats.totalHU} HU</b> et <b className="text-foreground">{shiftReportStats.totalCodes} T-Codes</b>
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOpenShiftReport(false)}
+              className="h-8 px-4 text-xs font-medium hover:bg-muted transition-colors cursor-pointer"
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   )
 }

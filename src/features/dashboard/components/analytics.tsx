@@ -50,7 +50,7 @@ export function Analytics() {
 
       setIsLoading(true)
       try {
-        const res = await fetch(`http://localhost:8080/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=${granularity}`, {
+        const res = await fetch(`/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=${granularity}`, {
           credentials: 'include'
         })
 

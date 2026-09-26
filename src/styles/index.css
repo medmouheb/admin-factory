@@ -134,3 +134,146 @@
 .animate-accordion-up {
   animation: accordion-up 0.2s ease-out;
 }
+
+/* ---------- Reapirage (Choix du client) animated background ---------- */
+:root {
+  --reapirage-ink: #0f172a;
+  --reapirage-mist: rgba(15, 23, 42, 0.08);
+  --reapirage-cyan: rgba(34, 211, 238, 0.25);
+  --reapirage-blue: rgba(59, 130, 246, 0.22);
+  --reapirage-emerald: rgba(16, 185, 129, 0.18);
+  --reapirage-violet: rgba(99, 102, 241, 0.14);
+}
+
+.reapirage-page {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(1200px 700px at 15% 15%, var(--reapirage-cyan), transparent 55%),
+    radial-gradient(900px 600px at 85% 20%, var(--reapirage-blue), transparent 55%),
+    radial-gradient(1000px 700px at 70% 90%, var(--reapirage-emerald), transparent 58%),
+    radial-gradient(900px 650px at 20% 85%, var(--reapirage-violet), transparent 60%),
+    linear-gradient(180deg, rgba(248, 250, 252, 1) 0%, rgba(255, 255, 255, 1) 40%, rgba(248, 250, 252, 1) 100%);
+}
+
+.reapirage-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 9999px;
+  filter: blur(28px);
+  opacity: 0.9;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  mix-blend-mode: multiply;
+}
+
+.reapirage-blob--a {
+  width: 520px;
+  height: 520px;
+  left: -180px;
+  top: -200px;
+  background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.55), rgba(59, 130, 246, 0.15) 55%, transparent 72%);
+  animation: reapirage-float-a 14s ease-in-out infinite;
+}
+
+.reapirage-blob--b {
+  width: 560px;
+  height: 560px;
+  right: -220px;
+  top: 40px;
+  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.40), rgba(59, 130, 246, 0.14) 58%, transparent 74%);
+  animation: reapirage-float-b 16s ease-in-out infinite;
+}
+
+.reapirage-blob--c {
+  width: 640px;
+  height: 640px;
+  left: 40%;
+  bottom: -340px;
+  background: radial-gradient(circle at 35% 35%, rgba(16, 185, 129, 0.35), rgba(34, 211, 238, 0.10) 60%, transparent 78%);
+  animation: reapirage-float-c 18s ease-in-out infinite;
+}
+
+.reapirage-grain {
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0 1px, transparent 1px 2px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px);
+  transform: translate3d(0, 0, 0);
+  animation: reapirage-grain 9s steps(10) infinite;
+  mix-blend-mode: soft-light;
+}
+
+.reapirage-vignette {
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side at 50% 40%, transparent 55%, rgba(2, 6, 23, 0.08) 100%);
+}
+
+@keyframes reapirage-float-a {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(60px, 40px, 0) rotate(8deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes reapirage-float-b {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-70px, 30px, 0) rotate(-10deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes reapirage-float-c {
+  0% {
+    transform: translate3d(-20px, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(30px, -35px, 0) rotate(7deg);
+  }
+  100% {
+    transform: translate3d(-20px, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes reapirage-grain {
+  0% {
+    transform: translate3d(-2%, -2%, 0);
+  }
+  25% {
+    transform: translate3d(2%, -1%, 0);
+  }
+  50% {
+    transform: translate3d(1%, 2%, 0);
+  }
+  75% {
+    transform: translate3d(-1%, 1%, 0);
+  }
+  100% {
+    transform: translate3d(-2%, -2%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reapirage-blob,
+  .reapirage-grain {
+    animation: none !important;
+  }
+}

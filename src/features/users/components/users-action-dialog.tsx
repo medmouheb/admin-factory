@@ -42,8 +42,8 @@ const formSchema = z
     firstName: z.string().min(1, 'Le prénom est requis.'),
     lastName: z.string().min(1, 'Le nom est requis.'),
     matricule: z.string().min(1, 'Le matricule est requis.'),
-    phone: z.string().min(1, 'Le numéro de téléphone est requis.'),
-    email: z.string().email('Format d\'email invalide.').optional().or(z.literal('')),
+    phone: z.string().optional().or(z.literal('')),
+    email: z.string().optional().refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Format d'email invalide."),
     password: z.string().transform((pwd) => pwd.trim()),
     role: z.enum(['superadmin', 'admin', 'operateur', 'manager', 'superviseur']),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
@@ -119,6 +119,8 @@ export function UsersActionDialog({
     defaultValues: isEdit
       ? {
         ...currentRow,
+        email: currentRow?.email ?? '',
+        phone: currentRow?.phone ?? '',
         role: currentRow.role,
         password: '',
         confirmPassword: '',
@@ -234,14 +236,14 @@ export function UsersActionDialog({
         firstName: values.firstName,
         lastName: values.lastName,
         matricule: values.matricule,
-        email: values.email,
-        phone: values.phone,
+        email: values.email || undefined,
+        phone: values.phone || undefined,
         role: values.role,
       }
       if (values.password) payload.password = values.password
 
       if (isEdit && currentRow?.id) {
-        const res = await fetch(`http://localhost:8080/api/users/${currentRow.id}`, {
+        const res = await fetch(`/api/users/${currentRow.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -258,7 +260,7 @@ export function UsersActionDialog({
           generatePDF(values, values.password)
         }
       } else {
-        const res = await fetch('http://localhost:8080/api/auth/signup', {
+        const res = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

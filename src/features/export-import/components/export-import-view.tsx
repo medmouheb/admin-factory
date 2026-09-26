@@ -32,15 +32,15 @@ export default function ExportImportView() {
 
             switch (type) {
                 case 'materials':
-                    url = `http://localhost:8080/api/materials/export?startDate=${startDate}&endDate=${endDate}`
+                    url = `/api/materials/export?startDate=${startDate}&endDate=${endDate}`
                     filename = 'materials.xlsx'
                     break
                 case 'tickets':
-                    url = `http://localhost:8080/api/tickets-combined/export?startDate=${startDate}&endDate=${endDate}`
+                    url = `/api/tickets-combined/export?startDate=${startDate}&endDate=${endDate}`
                     filename = 'tickets.xlsx'
                     break
                 case 'parts':
-                    url = `http://localhost:8080/api/parts/export?startDate=${startDate}&endDate=${endDate}`
+                    url = `/api/parts/export?startDate=${startDate}&endDate=${endDate}`
                     filename = 'parts.xlsx'
                     break
             }
@@ -75,8 +75,8 @@ export default function ExportImportView() {
             formData.append('file', file)
 
             const url = type === 'materials'
-                ? 'http://localhost:8080/api/materials/import'
-                : 'http://localhost:8080/api/parts/import'
+                ? '/api/materials/import'
+                : '/api/parts/import'
 
             const response = await fetch(url, {
                 method: 'POST',

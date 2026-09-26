@@ -87,7 +87,7 @@ function LogsPage() {
       if (startDate) params.startDate = format(startDate, 'yyyy-MM-dd')
       if (endDate) params.endDate = format(endDate, 'yyyy-MM-dd')
 
-      const response = await axios.get('http://localhost:8080/api/logs', { params, withCredentials: true })
+      const response = await axios.get('/api/logs', { params, withCredentials: true })
 
       const { data: logs, totalPages: total, totalItems: items } = response.data
       setData(logs)

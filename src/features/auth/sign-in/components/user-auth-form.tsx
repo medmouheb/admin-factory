@@ -60,8 +60,8 @@ export function UserAuthForm({
     setIsLoading(true)
 
     try {
-      // TODO: change the url to the production url http://localhost:8080/api/auth/signin
-      const res = await fetch('http://localhost:8080/api/auth/signin', {
+      // TODO: change the url to the production url /api/auth/signin
+      const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // crucial for HttpOnly cookies
@@ -109,6 +109,7 @@ export function UserAuthForm({
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn('grid gap-5', className)}
+        autoComplete="off"
         {...props}
       >
         {/* Welcome Text */}
@@ -137,6 +138,7 @@ export function UserAuthForm({
                 <Input
                   placeholder={t('auth.enterMatricule')}
                   className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
+                  autoComplete="off"
                   {...field}
                 />
               </FormControl>
@@ -179,6 +181,7 @@ export function UserAuthForm({
                 <PasswordInput
                   placeholder={t('auth.enterPassword')}
                   className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
+                  autoComplete="new-password"
                   {...field}
                 />
               </FormControl>

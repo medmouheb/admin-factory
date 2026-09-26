@@ -83,7 +83,7 @@ function MaterialsPage() {
     const fetchMaterials = async () => {
         setLoading(true)
         try {
-            const response = await axios.get('http://localhost:8080/api/materials/search', {
+            const response = await axios.get('/api/materials/search', {
                 withCredentials: true,
                 params: {
                     q: debouncedQuery,
@@ -112,7 +112,7 @@ function MaterialsPage() {
         if (!materialToDelete) return
 
         try {
-            await axios.delete(`http://localhost:8080/api/materials/${materialToDelete.id}`, { withCredentials: true })
+            await axios.delete(`/api/materials/${materialToDelete.id}`, { withCredentials: true })
             toast.success('Material deleted successfully')
             fetchMaterials()
         } catch (error) {

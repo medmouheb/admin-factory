@@ -50,10 +50,10 @@ export function AddReferenceForm({ initialData, onSuccess }: ReferenceFormProps)
     setLoading(true)
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:8080/api/parts/${initialData.id}`, values, { withCredentials: true })
+        await axios.put(`/api/parts/${initialData.id}`, values, { withCredentials: true })
         toast.success(t('references.referenceUpdatedSuccess'))
       } else {
-        await axios.post('http://localhost:8080/api/parts', values, { withCredentials: true })
+        await axios.post('/api/parts', values, { withCredentials: true })
         toast.success(t('references.referenceAddedSuccess'))
       }
 

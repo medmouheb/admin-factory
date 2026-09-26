@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth-store'
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ location }) => {
     try {
-      const res = await fetch('http://localhost:8080/api/auth/session', {
+      const res = await fetch('/api/auth/session', {
         credentials: 'include',
       })
       if (!res.ok) {

@@ -33,7 +33,7 @@ export function Users() {
         params.set('size', '1000')
         if (roleFilter) params.set('role', roleFilter)
 
-        const res = await fetch(`http://localhost:8080/api/users/search?${params.toString()}`, {
+        const res = await fetch(`/api/users/search?${params.toString()}`, {
           credentials: 'include',
         })
         if (!res.ok) return

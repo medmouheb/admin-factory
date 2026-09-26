@@ -14,7 +14,7 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
 
   const handleSignOut = async () => {
     try {
-      await fetch('http://localhost:8080/api/auth/signout', {
+      await fetch('/api/auth/signout', {
         method: 'POST',
         credentials: 'include',
       })

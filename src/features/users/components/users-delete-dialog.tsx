@@ -30,7 +30,7 @@ export function UsersDeleteDialog({
 
     try {
       setIsLoading(true)
-      const res = await fetch(`http://localhost:8080/api/users/${currentRow.id}`, {
+      const res = await fetch(`/api/users/${currentRow.id}`, {
         method: 'DELETE',
         credentials: 'include',
       })

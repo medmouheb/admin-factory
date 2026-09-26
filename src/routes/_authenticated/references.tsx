@@ -84,7 +84,7 @@ function ReferencesPage() {
   const fetchParts = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('http://localhost:8080/api/parts/search', {
+      const response = await axios.get('/api/parts/search', {
         withCredentials: true,
         params: {
           q: debouncedQuery,
@@ -113,7 +113,7 @@ function ReferencesPage() {
     if (!partToDelete) return
 
     try {
-      await axios.delete(`http://localhost:8080/api/parts/${partToDelete.id}`, { withCredentials: true })
+      await axios.delete(`/api/parts/${partToDelete.id}`, { withCredentials: true })
       toast.success('Reference deleted successfully')
       fetchParts()
     } catch (error) {

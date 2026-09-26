@@ -31,7 +31,7 @@ export function OperatorDashboard() {
 
             try {
                 // Replace with actual API call using auth.user.matricule
-                // const res = await fetch(`http://localhost:8080/api/missions/${auth.user.matricule}`)
+                // const res = await fetch(`/api/missions/${auth.user.matricule}`)
                 // const data = await res.json()
 
                 // Mock data for now

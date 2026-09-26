@@ -63,7 +63,7 @@ export function UsersTable({ data, search, navigate, roleFilter }: DataTableProp
 
       params.set('page', String((search.page ?? 1)))
       params.set('size', String((search.pageSize ?? 10)))
-      const res = await fetch(`http://localhost:8080/api/users/search?${params.toString()}`, {
+      const res = await fetch(`/api/users/search?${params.toString()}`, {
         credentials: 'include',
       })
       if (!res.ok) {

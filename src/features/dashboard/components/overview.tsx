@@ -22,19 +22,26 @@ export default function Overview({ stats = [] }: OverviewProps) {
     const monthlyStats = months.map(name => ({
       name,
       tickets: 0,
+      validated: 0,
       errors: 0
     }))
 
-    stats.forEach(item => {
-      const date = new Date(item.date)
-      if (date.getFullYear() === currentYear) {
-        const monthIndex = date.getMonth()
-        monthlyStats[monthIndex].tickets += item.count
-        // Mock errors roughly 2% of tickets (since API doesn't give errors yet)
-        monthlyStats[monthIndex].errors += Math.floor(item.count * 0.02)
-      }
-    })
-
+    if (stats && stats.length > 0) {
+      stats.forEach(item => {
+        const date = new Date(item.date)
+        if (date.getFullYear() === currentYear) {
+          const monthIndex = date.getMonth()
+          const totalCount = item.count || 0
+          
+          monthlyStats[monthIndex].tickets += totalCount
+          // Detail: mock validation logic since backend doesn't split it yet
+          const mockedErrors = Math.floor(totalCount * 0.02)
+          monthlyStats[monthIndex].errors += mockedErrors
+          monthlyStats[monthIndex].validated += (totalCount - mockedErrors)
+        }
+      })
+    }
+    
     setData(monthlyStats)
   }, [stats, t])
 
@@ -55,14 +62,6 @@ export default function Overview({ stats = [] }: OverviewProps) {
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-border">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">{t('overview.total')}:</span>
-              <span className="text-sm font-bold text-foreground">
-                {payload.reduce((sum: number, entry: any) => sum + entry.value, 0).toLocaleString()}
-              </span>
-            </div>
-          </div>
         </div>
       )
     }
@@ -70,7 +69,7 @@ export default function Overview({ stats = [] }: OverviewProps) {
   }
 
   // Calculate max value for gradient effect
-  const maxValue = Math.max(...data.map(d => d.tickets))
+  const maxValue = Math.max(...data.map(d => d.tickets), 1)
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -78,11 +77,15 @@ export default function Overview({ stats = [] }: OverviewProps) {
         <defs>
           <linearGradient id="ticketsGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+          </linearGradient>
+          <linearGradient id="validatedGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
           </linearGradient>
           <linearGradient id="errorsGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6} />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
@@ -110,26 +113,33 @@ export default function Overview({ stats = [] }: OverviewProps) {
         />
         <Bar
           dataKey="tickets"
-          name={t('overview.ticketsGenerated')}
+          name={t('overview.ticketsGenerated') || "Tickets Générés"}
           fill="url(#ticketsGradient)"
-          radius={[8, 8, 0, 0]}
+          radius={[4, 4, 0, 0]}
           animationDuration={1000}
-          animationBegin={0}
         >
           {data.map((entry, index) => (
             <Cell
-              key={`cell-${index}`}
-              opacity={entry.tickets > 0 ? 0.8 + (entry.tickets / maxValue) * 0.2 : 0.3}
+              key={`cell-tickets-${index}`}
+              opacity={0.7 + (entry.tickets / maxValue) * 0.3}
             />
           ))}
         </Bar>
         <Bar
-          dataKey="errors"
-          name={t('overview.failedAttempts')}
-          fill="url(#errorsGradient)"
-          radius={[8, 8, 0, 0]}
+          dataKey="validated"
+          name={"Tickets Validés"}
+          fill="url(#validatedGradient)"
+          radius={[4, 4, 0, 0]}
           animationDuration={1000}
           animationBegin={200}
+        />
+        <Bar
+          dataKey="errors"
+          name={t('overview.failedAttempts') || "Erreurs"}
+          fill="url(#errorsGradient)"
+          radius={[4, 4, 0, 0]}
+          animationDuration={1000}
+          animationBegin={400}
         />
       </BarChart>
     </ResponsiveContainer>

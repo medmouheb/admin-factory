@@ -13,6 +13,7 @@ import Overview from './components/overview'
 import RecentSales from './components/recent-sales'
 import { ProductionMetrics } from './components/production-metrics'
 import { RecentActivity } from './components/recent-activity'
+import { ProductionByShift } from './components/production-by-shift'
 import { useAuthStore } from '@/stores/auth-store'
 import { FileText, Users, Activity, AlertCircle, Download, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -29,11 +30,15 @@ export function Dashboard() {
   const [users, setUsers] = useState<any[]>([])
   const [stats, setStats] = useState({
     totalTickets: 0,
+    ticketsGrowth: 0,
     ticketsToday: 0,
     activeUsers: 0,
+    usersGrowth: 0,
     failedGenerations: 0,
     parts: 0,
-    materials: 0
+    partsGrowth: 0,
+    materials: 0,
+    materialsGrowth: 0,
   })
 
   const [ticketsByDate, setTicketsByDate] = useState<{ date: string; count: number }[]>([])
@@ -44,33 +49,37 @@ export function Dashboard() {
     async function fetchData() {
       try {
         // Fetch Dashboard Summary
-        const dashRes = await fetch('http://localhost:8080/api/stats/dashboard', { credentials: 'include' })
+        const dashRes = await fetch('/api/stats/dashboard', { credentials: 'include' })
         const dashData = await dashRes.json()
 
         if (dashData) {
           setStats({
-            totalTickets: dashData.counts.tickets || 0,
-            ticketsToday: 0, // Not provided directly in summary, would need calculation or another endpoint
-            activeUsers: dashData.counts.users || 0,
-            failedGenerations: 0, // Not provided
-            parts: dashData.counts.parts || 0,
-            materials: dashData.counts.materials || 0
+            totalTickets: dashData.counts.tickets?.total || 0,
+            ticketsGrowth: dashData.counts.tickets?.growth || 0,
+            ticketsToday: 0,
+            activeUsers: dashData.counts.users?.total || 0,
+            usersGrowth: dashData.counts.users?.growth || 0,
+            failedGenerations: 0,
+            parts: dashData.counts.pieces?.total || 0,
+            partsGrowth: dashData.counts.pieces?.growth || 0,
+            materials: dashData.counts.materials?.total || 0,
+            materialsGrowth: dashData.counts.materials?.growth || 0,
           })
           setRecentActivity(dashData.recentActivity || [])
         }
 
         // Fetch Tickets By Date
-        const ticketsRes = await fetch('http://localhost:8080/api/stats/tickets/by-date', { credentials: 'include' })
+        const ticketsRes = await fetch('/api/stats/tickets/by-date', { credentials: 'include' })
         const ticketsData = await ticketsRes.json()
         setTicketsByDate(ticketsData || [])
 
         // Fetch Leaderboard
-        const lbRes = await fetch('http://localhost:8080/api/stats/ticket-codes/by-matricule', { credentials: 'include' })
+        const lbRes = await fetch('/api/stats/ticket-codes/by-matricule', { credentials: 'include' })
         const lbData = await lbRes.json()
         setLeaderboardData(lbData || [])
 
         // Keep fetching users for names mapping
-        const usersRes = await fetch('http://localhost:8080/api/users/search?page=1&size=1000', { credentials: 'include' })
+        const usersRes = await fetch('/api/users/search?page=1&size=1000', { credentials: 'include' })
         const usersJson = await usersRes.json()
         setUsers(usersJson.users || [])
 
@@ -94,7 +103,7 @@ export function Dashboard() {
       const end = format(today, 'yyyy-MM-dd')
 
       // Fetch Analytics Data for the report
-      const res = await fetch(`http://localhost:8080/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=day`, {
+      const res = await fetch(`/api/stats/ticket-codes/analytics?startDate=${start}&endDate=${end}&granularity=day`, {
         credentials: 'include'
       })
       const analyticsData = await res.json()
@@ -232,8 +241,8 @@ export function Dashboard() {
     {
       title: t('dashboard.totalTickets'),
       value: stats.totalTickets.toLocaleString(),
-      change: '+12.5%',
-      trend: 'up',
+      change: `${stats.ticketsGrowth >= 0 ? '+' : ''}${stats.ticketsGrowth}%`,
+      trend: stats.ticketsGrowth >= 0 ? 'up' : 'down',
       period: t('dashboard.fromLastMonth'),
       icon: FileText,
       gradient: 'from-orange-500 to-amber-500',
@@ -243,8 +252,8 @@ export function Dashboard() {
     {
       title: t('dashboard.totalParts'),
       value: stats.parts.toLocaleString(),
-      change: '+8.2%',
-      trend: 'up',
+      change: `${stats.partsGrowth >= 0 ? '+' : ''}${stats.partsGrowth}%`,
+      trend: stats.partsGrowth >= 0 ? 'up' : 'down',
       period: t('dashboard.fromLastMonth'),
       icon: Activity,
       gradient: 'from-teal-500 to-cyan-500',
@@ -254,8 +263,8 @@ export function Dashboard() {
     {
       title: t('dashboard.activeUsers'),
       value: stats.activeUsers.toLocaleString(),
-      change: '+4.3%',
-      trend: 'up',
+      change: `${stats.usersGrowth >= 0 ? '+' : ''}${stats.usersGrowth}%`,
+      trend: stats.usersGrowth >= 0 ? 'up' : 'down',
       period: t('dashboard.fromLastMonth'),
       icon: Users,
       gradient: 'from-violet-500 to-purple-500',
@@ -265,15 +274,15 @@ export function Dashboard() {
     {
       title: t('dashboard.materials'),
       value: stats.materials.toLocaleString(),
-      change: '+15.8%',
-      trend: 'up',
+      change: `${stats.materialsGrowth >= 0 ? '+' : ''}${stats.materialsGrowth}%`,
+      trend: stats.materialsGrowth >= 0 ? 'up' : 'down',
       period: t('dashboard.fromLastMonth'),
       icon: AlertCircle,
       gradient: 'from-blue-500 to-indigo-500',
       iconBg: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
     },
-  ], [t, stats.totalTickets, stats.parts, stats.activeUsers, stats.materials])
+  ], [t, stats])
 
   return (
     <Main className="p-4 md:p-6 lg:p-8">
@@ -368,6 +377,11 @@ export function Dashboard() {
               </motion.div>
             ))}
           </motion.div>
+
+          {/* Production par Shift et par Opérateur */}
+          <div className="w-full">
+            <ProductionByShift />
+          </div>
 
           {/* Enhanced Chart Card */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">

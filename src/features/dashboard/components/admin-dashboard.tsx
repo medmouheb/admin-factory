@@ -23,23 +23,17 @@ export function AdminDashboard() {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        async function fetchStats() {
-            try {
-                // Determine token source (cookie or localStorage) - simpler to let browser handle cookies if 'include'
-                const res = await fetch('http://localhost:8080/api/stats/dashboard', {
-                    credentials: 'include'
-                })
-                if (!res.ok) throw new Error('Failed to fetch stats')
-                const data = await res.json()
-                setStats(data)
-            } catch (error) {
-                console.error(error)
-                toast.error('Failed to load dashboard stats')
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        fetchStats()
+        // Use static mock data to make the dashboard statically detailed
+        setStats({
+            counts: {
+                tickets: { total: 72840, growth: 12.5 },
+                pieces: { total: 145200, growth: 8.2 },
+                users: { total: 124, growth: 4.3 },
+                materials: { total: 42, growth: 15.8 }
+            },
+            recentActivity: []
+        });
+        setIsLoading(false);
     }, [])
 
     if (isLoading) {

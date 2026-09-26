@@ -24,7 +24,7 @@ export function UserDashboard() {
         const fetchActivity = async () => {
             if (!auth.user) return
             try {
-                const res = await fetch('http://localhost:8080/api/packets', { credentials: 'include' })
+                const res = await fetch('/api/packets', { credentials: 'include' })
                 if (res.ok) {
                     const packets = await res.json()
                     const userActivity: HistoryEntry[] = []
