@@ -16,7 +16,16 @@ export const Route = createFileRoute('/_authenticated')({
       }
       const data = await res.json()
       useAuthStore.getState().auth.setUser(data)
-    } catch {
+
+      if (data?.role === 'operateur' && location.pathname === '/') {
+        throw redirect({
+          to: '/reapirage',
+        })
+      }
+    } catch (e: any) {
+      if (e?.isRedirect || e?.to || (e && typeof e === 'object' && 'options' in e)) {
+        throw e
+      }
       throw redirect({
         to: '/sign-in-2',
         search: { redirect: location.href },

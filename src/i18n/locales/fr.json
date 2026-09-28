@@ -538,5 +538,24 @@
     "matriculeNoSpecialChars": "Le matricule ne peut pas contenir de caractères spéciaux",
     "passwordRequired": "Veuillez entrer votre mot de passe",
     "passwordMinLength": "Le mot de passe doit contenir au moins 7 caractères"
+  },
+  "users": {
+    "title": "Gestion des Utilisateurs",
+    "subtitle": "Gérez les comptes utilisateurs, leurs matricules et leurs permissions d’accès au système.",
+    "addUser": "Nouvel Utilisateur",
+    "matricule": "Matricule",
+    "name": "Nom",
+    "email": "Email",
+    "phoneNumber": "Numéro de téléphone",
+    "role": "Rôle",
+    "quickSearch": "Recherche Rapide par Matricule / Nom",
+    "searchPlaceholder": "Rechercher par matricule, nom, email...",
+    "showingResultsFor": "Affichage des résultats pour",
+    "totalUsers": "Total Utilisateurs Répertoire",
+    "filteredView": "Vue Filtrée",
+    "loadingUsers": "Chargement des utilisateurs...",
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "searchFailed": "Échec de la recherche d'utilisateurs",
+    "serverError": "Erreur lors du chargement des utilisateurs"
   }
 }

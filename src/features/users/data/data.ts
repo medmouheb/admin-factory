@@ -1,4 +1,4 @@
-import { Shield, UserCheck, Users, CreditCard } from 'lucide-react'
+import { Shield, UserCheck, Users, CreditCard, PhoneCall, PhoneOff, MailCheck, MailX } from 'lucide-react'
 import { type UserStatus } from './schema'
 
 export const callTypes = new Map<UserStatus, string>([
@@ -13,14 +13,9 @@ export const callTypes = new Map<UserStatus, string>([
 
 export const roles = [
   {
-    label: 'Manager',
-    value: 'manager',
-    icon: Shield,
-  },
-  {
-    label: 'Admin',
-    value: 'admin',
-    icon: UserCheck,
+    label: 'Opérateur',
+    value: 'operateur',
+    icon: CreditCard,
   },
   {
     label: 'Superviseur',
@@ -28,8 +23,39 @@ export const roles = [
     icon: Users,
   },
   {
-    label: 'operateur',
-    value: 'operateur',
-    icon: CreditCard,
+    label: 'Admin',
+    value: 'admin',
+    icon: UserCheck,
+  },
+  {
+    label: 'Manager',
+    value: 'manager',
+    icon: Shield,
+  },
+] as const
+
+export const phoneFilterOptions = [
+  {
+    label: 'Avec Téléphone',
+    value: 'hasPhone',
+    icon: PhoneCall,
+  },
+  {
+    label: 'Sans Téléphone',
+    value: 'noPhone',
+    icon: PhoneOff,
+  },
+] as const
+
+export const emailFilterOptions = [
+  {
+    label: 'Avec Email',
+    value: 'hasEmail',
+    icon: MailCheck,
+  },
+  {
+    label: 'Sans Email',
+    value: 'noEmail',
+    icon: MailX,
   },
 ] as const

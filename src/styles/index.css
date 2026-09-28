@@ -2,6 +2,56 @@
 @import 'tw-animate-css';
 @import './theme.css';
 
+/* ═══════════════════════════════════════════════════
+   Global keyframe animations — used by all pages
+   ═══════════════════════════════════════════════════ */
+
+/* Smooth breathe/pulse for ambient orbs */
+@keyframes orb-pulse {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  33% {
+    transform: scale(1.08) translate(20px, -15px);
+    opacity: 0.75;
+  }
+  66% {
+    transform: scale(0.94) translate(-15px, 10px);
+    opacity: 0.85;
+  }
+}
+
+/* Gentle float used for individual elements */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* Gradient shift for hero banners */
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Shimmer sweep */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Spin slow — for decorative rings */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-float      { animation: float-gentle  6s ease-in-out infinite; }
+.animate-grad-shift { animation: gradient-shift 8s ease infinite; background-size: 200% 200%; }
+.animate-shimmer    { animation: shimmer 1.8s linear infinite; }
+.animate-spin-slow  { animation: spin-slow 20s linear infinite; }
+
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
@@ -15,6 +65,11 @@
   }
   body {
     @apply bg-background text-foreground has-[div[data-variant='inset']]:bg-sidebar min-h-svh w-full;
+    /* Rich mesh background */
+    background-image:
+      radial-gradient(ellipse 900px 600px at 0% 0%,   rgba(99,102,241,0.08)  0%, transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 30%, rgba(139,92,246,0.07)  0%, transparent 60%),
+      radial-gradient(ellipse 800px 600px at 50% 100%, rgba(6,182,212,0.05)   0%, transparent 60%);
   }
 
   /* Override Radix scroll locking for sticky headers */
@@ -42,6 +97,113 @@
   margin-inline: auto;
   padding-inline: 2rem;
 }
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL GLASSMORPHISM — Cards, Dialogs, Tables
+   ══════════════════════════════════════════════════════════ */
+@layer base {
+
+  /* ── DARK-mode glass cards ───────────────────────────── */
+  .dark [data-slot="card"] {
+    background: rgba(22, 18, 56, 0.75) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.18) !important;
+    box-shadow:
+      0 4px 24px rgba(99, 102, 241, 0.12),
+      0 1px 0 rgba(255,255,255,0.04) inset !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  }
+  .dark [data-slot="card"]:hover {
+    border-color: rgba(139, 92, 246, 0.35) !important;
+    box-shadow:
+      0 8px 40px rgba(99, 102, 241, 0.22),
+      0 1px 0 rgba(255,255,255,0.06) inset !important;
+  }
+
+  /* Light-mode tinted cards (not plain white) */
+  [data-slot="card"] {
+    background: rgba(245, 243, 255, 0.95);
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    box-shadow: 0 2px 16px rgba(99, 102, 241, 0.06), 0 1px 3px rgba(99,102,241,0.04);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  /* ── DARK-mode Dialogs / Modals ──────────────────────── */
+  .dark [role="dialog"],
+  .dark [data-radix-popper-content-wrapper] > div {
+    background: rgba(15, 12, 40, 0.95) !important;
+    backdrop-filter: blur(28px) !important;
+    -webkit-backdrop-filter: blur(28px) !important;
+    border: 1px solid rgba(139, 92, 246, 0.25) !important;
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.1),
+      0 24px 80px rgba(0, 0, 0, 0.6),
+      0 8px 32px rgba(99, 102, 241, 0.2) !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Dialog header gradient bar */
+  .dark [role="dialog"] [data-radix-dialog-content] > div:first-child,
+  .dark [role="dialog"] header {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.06) 100%);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+  }
+
+  /* ── Focus ring ──────────────────────────────────────── */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Dark-mode tables ────────────────────────────────── */
+  .dark tbody tr {
+    border-color: rgba(255,255,255,0.04);
+    transition: background-color 0.15s ease;
+  }
+  .dark tbody tr:hover td {
+    background-color: rgba(99, 102, 241, 0.08) !important;
+  }
+  .dark thead tr {
+    background: rgba(99, 102, 241, 0.08);
+  }
+  .dark thead th {
+    color: rgba(167, 139, 250, 0.9);
+    border-color: rgba(255,255,255,0.05);
+  }
+
+  /* Light-mode table row hover */
+  tbody tr:hover td {
+    background-color: rgba(99,102,241,0.04);
+    transition: background-color 0.15s ease;
+  }
+
+  /* ── Dark-mode inputs ────────────────────────────────── */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background: rgba(22, 18, 56, 0.7) !important;
+    border-color: rgba(139, 92, 246, 0.2) !important;
+    color: rgba(240, 238, 255, 0.95) !important;
+  }
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    border-color: rgba(139, 92, 246, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgba(148, 163, 184, 0.45) !important;
+  }
+
+  /* ── Dark scrollbar ──────────────────────────────────── */
+  .dark * {
+    scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+  }
+}
+
 
 @utility no-scrollbar {
   /* Hide scrollbar for Chrome, Safari and Opera */

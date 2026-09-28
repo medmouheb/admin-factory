@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, User, Mail, Hash } from 'lucide-react'
+import { Search, User, Mail, Hash, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { type User as UserType } from '../data/schema'
@@ -14,7 +14,7 @@ type AutocompleteSearchProps = {
 export function AutocompleteSearch({
   users,
   onSelect,
-  placeholder = 'Search users...',
+  placeholder = 'Rechercher un utilisateur...',
   className,
 }: AutocompleteSearchProps) {
   const [query, setQuery] = useState('')
@@ -31,10 +31,11 @@ export function AutocompleteSearch({
           user.matricule?.toLowerCase().includes(searchTerm) ||
           fullName.includes(searchTerm) ||
           user.email?.toLowerCase().includes(searchTerm) ||
+          user.phone?.toLowerCase().includes(searchTerm) ||
           user.firstName?.toLowerCase().includes(searchTerm) ||
           user.lastName?.toLowerCase().includes(searchTerm)
         )
-      }).slice(0, 8) // Limit to 8 results
+      }).slice(0, 8)
     : []
 
   // Close dropdown when clicking outside
@@ -90,15 +91,15 @@ export function AutocompleteSearch({
     setHighlightedIndex(0)
   }
 
-  const highlightMatch = (text: string, query: string) => {
-    if (!query.trim()) return text
+  const highlightMatch = (text: string, queryText: string) => {
+    if (!queryText.trim()) return text
     
-    const parts = text.split(new RegExp(`(${query})`, 'gi'))
+    const parts = text.split(new RegExp(`(${queryText})`, 'gi'))
     return (
       <>
         {parts.map((part, index) => 
-          part.toLowerCase() === query.toLowerCase() ? (
-            <span key={index} className="bg-primary/20 text-primary font-semibold">
+          part.toLowerCase() === queryText.toLowerCase() ? (
+            <span key={index} className="bg-violet-500/35 text-violet-200 font-bold px-1 rounded">
               {part}
             </span>
           ) : (
@@ -112,7 +113,7 @@ export function AutocompleteSearch({
   return (
     <div ref={wrapperRef} className={cn('relative w-full', className)}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-400 pointer-events-none" />
         <Input
           type="text"
           placeholder={placeholder}
@@ -120,72 +121,81 @@ export function AutocompleteSearch({
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => query.trim() && setIsOpen(true)}
-          className="pl-10 h-10 transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+          className={cn(
+            'pl-12 pr-4 h-12 rounded-2xl text-sm font-medium transition-all duration-300',
+            'bg-[rgba(16,12,42,0.85)] border border-violet-500/30 text-white placeholder:text-violet-300/40',
+            'backdrop-blur-xl',
+            'hover:border-violet-400/50 hover:bg-[rgba(22,16,58,0.9)]',
+            'focus:border-violet-400 focus:ring-4 focus:ring-violet-500/25 focus:shadow-[0_0_25px_rgba(139,92,246,0.3)]'
+          )}
         />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-violet-400 hover:text-white px-2 py-0.5 rounded-lg bg-white/10 transition-colors cursor-pointer"
+          >
+            Effacer
+          </button>
+        )}
       </div>
 
       {isOpen && filteredUsers.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-background border rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 max-h-[400px] overflow-y-auto">
-          <div className="p-2 space-y-1">
-            {filteredUsers.map((user, index) => {
-              const fullName = `${user.firstName} ${user.lastName}`
-              return (
-                <button
-                  key={user.id}
-                  onClick={() => handleSelect(user)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                  className={cn(
-                    'w-full text-left px-3 py-2.5 rounded-md transition-all duration-200',
-                    'hover:bg-primary/10 hover:shadow-sm',
-                    'focus:outline-none focus:bg-primary/10',
-                    'group relative overflow-hidden',
-                    highlightedIndex === index && 'bg-primary/10 shadow-sm',
-                    'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-primary/5 before:to-transparent',
-                    'before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500'
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                      <User className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {highlightMatch(fullName, query)}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Hash className="h-3 w-3" />
-                          {highlightMatch(user.matricule || '', query)}
-                        </span>
-                        {user.email && (
-                          <span className="flex items-center gap-1 truncate">
-                            <Mail className="h-3 w-3" />
-                            {highlightMatch(user.email, query)}
-                          </span>
-                        )}
-                      </div>
-                      {user.role && (
-                        <div className="mt-1">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                            {user.role}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
+        <div className="absolute z-50 w-full mt-2 bg-[rgba(15,11,40,0.97)] border border-violet-500/35 rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.85),0_0_30px_rgba(139,92,246,0.22)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 max-h-[420px] overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-violet-500/30">
+          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-violet-300/70 flex items-center gap-1.5 border-b border-violet-500/15 mb-1">
+            <Sparkles className="h-3 w-3 text-violet-400" />
+            <span>Suggestions de recherche</span>
           </div>
+          {filteredUsers.map((user, index) => {
+            const fullName = `${user.firstName} ${user.lastName}`
+            return (
+              <button
+                key={user.id}
+                onClick={() => handleSelect(user)}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                className={cn(
+                  'w-full text-left px-3.5 py-2.5 rounded-xl transition-all duration-150 cursor-pointer',
+                  'group relative overflow-hidden flex items-center gap-3',
+                  highlightedIndex === index
+                    ? 'bg-gradient-to-r from-violet-600/35 to-indigo-600/25 text-white border border-violet-500/30'
+                    : 'text-slate-300 hover:bg-white/5 hover:text-white border border-transparent'
+                )}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600/25 text-violet-300 border border-violet-500/30 flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <User className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm truncate text-white">
+                    {highlightMatch(fullName, query)}
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
+                    <span className="flex items-center gap-1 font-mono text-violet-300">
+                      <Hash className="h-3 w-3" />
+                      {highlightMatch(user.matricule || '', query)}
+                    </span>
+                    {user.email && (
+                      <span className="flex items-center gap-1 truncate text-slate-400">
+                        <Mail className="h-3 w-3 text-fuchsia-400/80" />
+                        {highlightMatch(user.email, query)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {user.role && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full capitalize bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    {user.role}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       )}
 
       {isOpen && query.trim() && filteredUsers.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-background border rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 p-4">
-          <div className="text-center text-muted-foreground">
-            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No users found matching "{query}"</p>
-          </div>
+        <div className="absolute z-50 w-full mt-2 bg-[rgba(15,11,40,0.97)] border border-violet-500/35 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200 p-6 text-center">
+          <Search className="h-8 w-8 mx-auto mb-2 text-violet-400/50" />
+          <p className="text-sm font-semibold text-slate-200">Aucun résultat trouvé pour "{query}"</p>
+          <p className="text-xs text-slate-400 mt-1">Vérifiez l'orthographe du matricule ou du nom</p>
         </div>
       )}
     </div>

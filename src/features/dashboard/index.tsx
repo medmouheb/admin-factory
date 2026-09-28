@@ -23,10 +23,19 @@ import { format, subDays } from 'date-fns'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from '@tanstack/react-router'
 
 export function Dashboard() {
   const { user } = useAuthStore((state) => state.auth)
+  const navigate = useNavigate()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (user && user.role === 'operateur') {
+      navigate({ to: '/reapirage', replace: true })
+    }
+  }, [user, navigate])
+
   const [users, setUsers] = useState<any[]>([])
   const [stats, setStats] = useState({
     totalTickets: 0,
@@ -46,6 +55,7 @@ export function Dashboard() {
   const [recentActivity, setRecentActivity] = useState<any[]>([])
 
   useEffect(() => {
+    if (user && user.role === 'operateur') return
     async function fetchData() {
       try {
         // Fetch Dashboard Summary
@@ -222,6 +232,11 @@ export function Dashboard() {
       toast.error('Failed to generate report')
     }
   }
+
+  if (user && user.role === 'operateur') {
+    return null
+  }
+
   const container = {
     hidden: { opacity: 0 },
     show: {

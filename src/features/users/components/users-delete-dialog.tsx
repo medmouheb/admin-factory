@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Trash2, ShieldAlert, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -27,79 +26,116 @@ export function UsersDeleteDialog({
 
   const handleDelete = async () => {
     if (value.trim() !== currentRow.matricule) return
-
     try {
       setIsLoading(true)
       const res = await fetch(`/api/users/${currentRow.id}`, {
         method: 'DELETE',
         credentials: 'include',
       })
-
       if (!res.ok) {
         const err = await res.json().catch(() => null)
-        toast.error(err?.message || 'Delete failed')
+        toast.error(err?.message || 'Échec de la suppression')
         return
       }
-
-      toast.success('User deleted successfully')
+      toast.success('Utilisateur supprimé avec succès')
       onOpenChange(false)
-      refreshUsers() // Refresh the user list
-    } catch (error) {
-      toast.error('Something went wrong')
+      refreshUsers()
+    } catch {
+      toast.error('Une erreur est survenue')
     } finally {
       setIsLoading(false)
     }
   }
+
+  const confirmed = value.trim() === currentRow.matricule
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.matricule}
+      disabled={!confirmed}
       isLoading={isLoading}
       title={
-        <span className='text-destructive'>
-          <AlertTriangle
-            className='stroke-destructive me-1 inline-block'
-            size={18}
-          />{' '}
-          Delete User
+        <span className="flex items-center gap-2 text-rose-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500/15">
+            <Trash2 className="h-4 w-4 text-rose-400" />
+          </div>
+          Supprimer l'utilisateur
         </span>
       }
       desc={
-        <div className='space-y-4'>
-          <p className='mb-2'>
-            Are you sure you want to delete{' '}
-            <span className='font-bold'>
-              {currentRow.firstName} {currentRow.lastName}
-            </span>
-            ? <br />
-            This action will permanently remove the user with the role of{' '}
-            <span className='font-bold'>
-              {currentRow.role.toUpperCase()}
-            </span>{' '}
-            from the system. This cannot be undone.
-          </p>
+        <div className="space-y-4">
+          {/* User info card */}
+          <div
+            className="rounded-xl p-4"
+            style={{
+              background: 'rgba(244,63,94,0.06)',
+              border: '1px solid rgba(244,63,94,0.2)',
+            }}
+          >
+            <p className="text-sm text-white/70 leading-relaxed">
+              Vous êtes sur le point de supprimer définitivement{' '}
+              <span className="font-bold text-white">
+                {currentRow.firstName} {currentRow.lastName}
+              </span>
+              {' '}(matricule{' '}
+              <span className="font-mono text-rose-300 font-bold">{currentRow.matricule}</span>
+              ) — rôle{' '}
+              <span className="font-bold text-rose-300 uppercase">{currentRow.role}</span>.
+              Cette action est <span className="text-rose-400 font-bold">irréversible</span>.
+            </p>
+          </div>
 
-          <Label className='my-2'>
-            Matricule:
+          {/* Confirmation input */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-white/60">
+              Tapez le matricule{' '}
+              <span className="font-mono text-rose-300 font-bold">{currentRow.matricule}</span>
+              {' '}pour confirmer :
+            </Label>
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter matricule to confirm deletion.'
+              placeholder={`Saisir "${currentRow.matricule}"`}
+              className="rounded-xl border-white/10 bg-white/[0.05] text-white placeholder:text-white/25 focus:border-rose-500/60 focus:ring-rose-500/20 transition-all"
             />
-          </Label>
+            {value && !confirmed && (
+              <p className="text-xs text-rose-400">Le matricule ne correspond pas.</p>
+            )}
+            {confirmed && (
+              <p className="text-xs text-emerald-400 flex items-center gap-1">
+                ✓ Confirmation valide — prêt à supprimer
+              </p>
+            )}
+          </div>
 
-          <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
-            <AlertDescription>
-              Please be careful, this operation can not be rolled back.
-            </AlertDescription>
-          </Alert>
+          {/* Warning */}
+          <div
+            className="flex items-start gap-3 rounded-xl p-3"
+            style={{
+              background: 'rgba(245,158,11,0.06)',
+              border: '1px solid rgba(245,158,11,0.2)',
+            }}
+          >
+            <ShieldAlert className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+            <p className="text-xs text-amber-300/80">
+              Toutes les données associées à cet utilisateur seront supprimées. Cette opération ne peut pas être annulée.
+            </p>
+          </div>
         </div>
       }
-      confirmText='Delete'
+      confirmText={
+        isLoading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" /> Suppression...
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <Trash2 className="h-4 w-4" /> Supprimer définitivement
+          </span>
+        )
+      }
       destructive
     />
   )

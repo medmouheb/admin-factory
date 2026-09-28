@@ -19,10 +19,10 @@ export function PasswordInput({
   const [showPassword, setShowPassword] = React.useState(false)
 
   return (
-    <div className={cn('relative rounded-md', className)}>
+    <div className={cn('relative w-full rounded-xl', className)}>
       <input
         type={showPassword ? 'text' : 'password'}
-        className='border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50'
+        className='placeholder:text-violet-300/40 flex h-12 w-full rounded-xl border border-violet-500/30 bg-[rgba(12,9,36,0.85)] px-4 pe-11 py-2 text-sm text-white shadow-inner transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium focus:border-violet-400 focus:ring-4 focus:ring-violet-500/25 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
         ref={ref}
         disabled={disabled}
         {...props}
@@ -32,7 +32,7 @@ export function PasswordInput({
         size='icon'
         variant='ghost'
         disabled={disabled}
-        className='text-muted-foreground absolute end-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md'
+        className='text-violet-400 hover:text-white hover:bg-white/10 absolute end-1.5 top-1/2 h-8 w-8 -translate-y-1/2 rounded-lg transition-colors'
         onClick={() => setShowPassword((prev) => !prev)}
       >
         {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}

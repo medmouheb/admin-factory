@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
-import { Loader2, LogIn } from 'lucide-react'
+import { Loader2, LogIn, User as UserIcon, Lock, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { useTranslation } from 'react-i18next'
+import { motion } from 'framer-motion'
 
 const matriculeRegex = /^[a-zA-Z0-9]+$/
 
@@ -39,12 +40,12 @@ export function UserAuthForm({
   const formSchema = z.object({
     matricule: z
       .string()
-      .min(5, t('auth.matriculeMinLength'))
-      .regex(matriculeRegex, t('auth.matriculeNoSpecialChars')),
+      .min(5, t('auth.matriculeMinLength') || 'Le matricule doit contenir au moins 5 caractères')
+      .regex(matriculeRegex, t('auth.matriculeNoSpecialChars') || 'Caractères spéciaux non autorisés'),
     password: z
       .string()
-      .min(1, t('auth.passwordRequired'))
-      .min(7, t('auth.passwordMinLength')),
+      .min(1, t('auth.passwordRequired') || 'Veuillez entrer votre mot de passe')
+      .min(7, t('auth.passwordMinLength') || 'Au moins 7 caractères requis'),
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -55,16 +56,14 @@ export function UserAuthForm({
     },
   })
 
-
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
 
     try {
-      // TODO: change the url to the production url /api/auth/signin
       const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // crucial for HttpOnly cookies
+        credentials: 'include',
         body: JSON.stringify({
           matricule: data.matricule,
           password: data.password,
@@ -73,32 +72,24 @@ export function UserAuthForm({
 
       if (!res.ok) {
         const err = await res.json()
-        toast.error(err.message || t('auth.invalidCredentials'))
+        toast.error(err.message || t('auth.invalidCredentials') || 'Identifiants invalides')
         setIsLoading(false)
         return
       }
 
-      // ✅ Successful login
-      const userData = await res.json() // optional, backend can return user info
-      toast.success(t('auth.welcomeBackUser', { matricule: data.matricule }))
-      // Mock successful authentication with expiry computed at success time
-
-      // Set user in auth store if you want client-side access
+      const userData = await res.json()
+      toast.success(t('auth.welcomeBackUser', { matricule: data.matricule }) || `Bienvenue ${data.matricule}`)
       auth.setUser(userData)
 
-
-      // Redirect based on role
       let targetPath = redirectTo || '/'
-
-      // If user is operateur, redirect to help-center (Tickets Done)
       if (userData.role === 'operateur') {
-        targetPath = '/help-center'
+        targetPath = '/reapirage'
       }
 
       navigate({ to: targetPath, replace: true })
     } catch (error) {
       console.error(error)
-      toast.error(t('auth.serverError'))
+      toast.error(t('auth.serverError') || 'Erreur du serveur')
     } finally {
       setIsLoading(false)
     }
@@ -108,41 +99,29 @@ export function UserAuthForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-5', className)}
+        className={cn('space-y-4', className)}
         autoComplete="off"
         {...props}
       >
-        {/* Welcome Text */}
-        <div className="space-y-2 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            {t('auth.welcomeBack')}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t('auth.enterCredentials')}
-          </p>
-        </div>
-
         {/* Matricule Field */}
         <FormField
           control={form.control}
           name="matricule"
           render={({ field }) => (
-            <FormItem className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-              <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                {t('auth.matricule')}
+            <FormItem className="space-y-1.5">
+              <FormLabel className="text-xs font-semibold text-violet-200/90 flex items-center gap-1.5 uppercase tracking-wider">
+                <UserIcon className="h-3.5 w-3.5 text-violet-400" />
+                <span>{t('auth.matricule') || 'Matricule'}</span>
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t('auth.enterMatricule')}
-                  className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
+                  placeholder={t('auth.enterMatricule') || 'Entrez votre matricule'}
+                  className="h-12 rounded-xl bg-[rgba(12,9,36,0.85)] border border-violet-500/30 text-white placeholder:text-violet-300/40 font-mono tracking-wide focus:border-violet-400 focus:ring-4 focus:ring-violet-500/25 transition-all"
                   autoComplete="off"
                   {...field}
                 />
               </FormControl>
-              <FormMessage className="text-xs" />
+              <FormMessage className="text-xs text-rose-400" />
             </FormItem>
           )}
         />
@@ -152,13 +131,11 @@ export function UserAuthForm({
           control={form.control}
           name="password"
           render={({ field }) => (
-            <FormItem className="relative animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
+            <FormItem className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <FormLabel className="text-sm font-semibold flex items-center gap-2">
-                  <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  {t('auth.password')}
+                <FormLabel className="text-xs font-semibold text-violet-200/90 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Lock className="h-3.5 w-3.5 text-violet-400" />
+                  <span>{t('auth.password') || 'Mot de passe'}</span>
                 </FormLabel>
                 <button
                   type="button"
@@ -166,66 +143,68 @@ export function UserAuthForm({
                     toast.promise(
                       new Promise((resolve) => setTimeout(resolve, 1000)),
                       {
-                        loading: t('auth.sendingNotification'),
-                        success: t('auth.notificationSent', { email: 'abderrahmen.dai.11@gmail.com' }),
-                        error: t('auth.failedToSendNotification'),
+                        loading: t('auth.sendingNotification') || 'Envoi du lien...',
+                        success: t('auth.notificationSent', { email: 'abderrahmen.dai.11@gmail.com' }) || 'Notification envoyée',
+                        error: t('auth.failedToSendNotification') || 'Échec d’envoi',
                       }
                     )
                   }}
-                  className="text-xs font-medium text-primary hover:underline underline-offset-4 transition-all hover:text-primary/80"
+                  className="text-xs font-medium text-violet-300 hover:text-white hover:underline underline-offset-4 transition-colors cursor-pointer"
                 >
-                  {t('auth.forgotPassword')}
+                  {t('auth.forgotPassword') || 'Mot de passe oublié ?'}
                 </button>
               </div>
               <FormControl>
                 <PasswordInput
-                  placeholder={t('auth.enterPassword')}
-                  className="h-11 border-2 focus:ring-4 focus:ring-primary/20 transition-all bg-background/50"
+                  placeholder={t('auth.enterPassword') || 'Entrez votre mot de passe'}
                   autoComplete="new-password"
                   {...field}
                 />
               </FormControl>
-              <FormMessage className="text-xs" />
+              <FormMessage className="text-xs text-rose-400" />
             </FormItem>
           )}
         />
 
         {/* Sign In Button */}
-        <Button
-          className="mt-2 h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('auth.signingIn')}
-            </>
-          ) : (
-            <>
-              <LogIn className="mr-2 h-4 w-4" />
-              {t('auth.signIn')}
-            </>
-          )}
-        </Button>
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} className="pt-2">
+          <Button
+            type="submit"
+            className="w-full h-12 rounded-xl text-sm font-bold tracking-wide text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:via-purple-500 hover:to-indigo-500 shadow-[0_8px_30px_rgba(139,92,246,0.4)] hover:shadow-[0_12px_40px_rgba(139,92,246,0.6)] transition-all cursor-pointer border border-violet-400/30"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin text-white" />
+                <span>{t('auth.signingIn') || 'Connexion en cours...'}</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 h-4 w-4 text-violet-200" />
+                <span>{t('auth.signIn') || 'Se connecter'}</span>
+              </>
+            )}
+          </Button>
+        </motion.div>
 
         {/* Divider */}
-        <div className="relative my-2 animate-in fade-in duration-500 delay-400">
+        <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/50" />
+            <span className="w-full border-t border-violet-500/20" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              {t('auth.secureLogin')}
+          <div className="relative flex justify-center text-[11px] uppercase tracking-widest">
+            <span className="bg-[rgba(16,12,44,0.95)] px-3 text-violet-300/70 font-semibold">
+              {t('auth.secureLogin') || 'Connexion Sécurisée'}
             </span>
           </div>
         </div>
 
         {/* Security Badge */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-500 delay-500">
-          <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span>{t('auth.connectionSecure')}</span>
+        <div className="flex items-center justify-center gap-2 text-xs text-slate-300/80">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <ShieldCheck className="h-3.5 w-3.5" />
+          </div>
+          <span>{t('auth.connectionSecure') || 'Votre connexion est sécurisée et cryptée'}</span>
         </div>
       </form>
     </Form>

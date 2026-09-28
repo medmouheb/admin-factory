@@ -540,5 +540,24 @@
     "matriculeNoSpecialChars": "Matricule cannot contain special characters",
     "passwordRequired": "Please enter your password",
     "passwordMinLength": "Password must be at least 7 characters long"
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage system users, their matricules and access permissions.",
+    "addUser": "Add User",
+    "matricule": "Matricule",
+    "name": "Name",
+    "email": "Email",
+    "phoneNumber": "Phone Number",
+    "role": "Role",
+    "quickSearch": "Quick Search by Matricule / Name",
+    "searchPlaceholder": "Search by matricule, name, email...",
+    "showingResultsFor": "Showing results for",
+    "totalUsers": "Total Users in Directory",
+    "filteredView": "Filtered View",
+    "loadingUsers": "Loading users...",
+    "noUsersFound": "No users found",
+    "searchFailed": "Failed to search users",
+    "serverError": "Error loading users"
   }
 }

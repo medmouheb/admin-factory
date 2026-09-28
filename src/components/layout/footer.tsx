@@ -1,4 +1,4 @@
-import { Shield, Lock, Heart } from 'lucide-react'
+import { Shield, Lock, Heart, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export function Footer() {
@@ -6,52 +6,72 @@ export function Footer() {
   const { t } = useTranslation()
 
   return (
-    <footer className="relative mt-auto border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+    <footer className="relative mt-auto overflow-hidden">
+      {/* Dark gradient background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(13,11,38,0.0) 0%, rgba(13,11,38,0.85) 40%, rgba(10,8,30,0.95) 100%)',
+        }}
+      />
 
-      <div className="relative container mx-auto px-4 py-6">
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between">
-          {/* Left side - Logo and Security message */}
+      {/* Top gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+
+      {/* Ambient glow */}
+      <div
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 h-16 w-64 pointer-events-none opacity-30"
+        style={{
+          background:
+            'radial-gradient(ellipse, rgba(99,102,241,0.6) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="relative px-6 py-5">
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:justify-between">
+          {/* Left — Logo + Security badge */}
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            {/* Tesca Logo */}
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-1 duration-500">
+            <div className="flex items-center gap-2.5 animate-in fade-in slide-in-from-left-1 duration-500">
               <img
                 src="/images/tesca70x70.png"
                 alt="Tesca Logo"
-                className="h-10 w-10 rounded-lg shadow-sm transition-all duration-300 hover:scale-110 hover:shadow-md"
+                className="h-9 w-9 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-110 hover:shadow-indigo-500/40 ring-1 ring-white/10"
               />
               <div className="flex flex-col">
-                <span className="font-bold text-foreground">{t('footer.company')}</span>
-                <span className="text-xs text-muted-foreground">{t('footer.subtitle')}</span>
+                <span className="font-bold text-white/90 text-sm">{t('footer.company')}</span>
+                <span className="text-[10px] text-white/40">{t('footer.subtitle')}</span>
               </div>
             </div>
 
-            {/* Security Badge */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 animate-in fade-in slide-in-from-left-2 duration-500">
-              <Shield className="h-4 w-4 text-primary animate-pulse" />
-              <span className="font-medium text-foreground text-sm">
-                {t('footer.security')}{' '}
-                <span className="font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                  {t('footer.copyright')}
-                </span>
+            {/* Security badge */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 animate-in fade-in slide-in-from-left-2 duration-500">
+              <Shield className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+              <span className="text-xs font-semibold text-indigo-300">
+                {t('footer.security')}
               </span>
-              <Lock className="h-3.5 w-3.5 text-primary" />
+              <Lock className="h-3 w-3 text-indigo-400" />
+            </div>
+
+            {/* System status */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
+              <Zap className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-xs font-semibold text-emerald-400">System Online</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
           </div>
 
-          {/* Right side - Copyright */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground animate-in fade-in slide-in-from-right-2 duration-500">
+          {/* Right — Copyright */}
+          <div className="flex items-center gap-2 text-xs text-white/35 animate-in fade-in slide-in-from-right-2 duration-500">
             <span>© {currentYear} {t('footer.copyright')}</span>
-            <span className="text-muted-foreground/50">•</span>
-            <span className="flex items-center gap-1">
-              {t('footer.madeWith')} <Heart className="h-3.5 w-3.5 text-red-500 fill-red-500 animate-pulse" /> {t('footer.by')}
+            <span className="text-white/20">•</span>
+            <span className="flex items-center gap-1 text-white/35">
+              {t('footer.madeWith')}
+              <Heart className="h-3 w-3 text-rose-400 fill-rose-400 animate-pulse" />
+              {t('footer.by')}
             </span>
           </div>
         </div>
-
-        {/* Bottom decorative line */}
-        <div className="mt-4 h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </div>
     </footer>
   )
